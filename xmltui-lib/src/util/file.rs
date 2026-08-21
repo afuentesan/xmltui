@@ -89,4 +89,16 @@ mod tests
 
         assert!( content.trim() != "" );
     }
+
+     #[test]
+    fn test_file_with_extension_added()
+    {
+        let content = read_file_in_chroot_with_extension( 
+            "examples/example1.xml", 
+            &Path::new( "./" ).canonicalize().unwrap().to_path_buf(),
+            "xml"
+        ).expect( "Se esperaba que existiese el fichero examples/example1 con la extensión xml en ./" );
+
+        assert!( content.trim() != "" );
+    }
 }

@@ -2,13 +2,31 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
 
     <!-- ========================================== -->
-    <!-- TIPOS PERSONALIZADOS Y GRUPOS DE ATRIBUTOS -->
+    <!-- TIPOS PERSONALIZADOS Y RESTRICCIONES       -->
     <!-- ========================================== -->
     
-    <!-- Valida el atributo ratio: dos números separados por coma (ej. 1,2 o 1.5,3.0) -->
+    <!-- Valida el atributo ratio: dos enteros sin signo separados por coma -->
     <xs:simpleType name="ratioType">
         <xs:restriction base="xs:string">
-            <xs:pattern value="\d+(\.\d+)?,\s*\d+(\.\d+)?"/>
+            <!-- Solo números sin decimales, separados por una coma y opcionalmente espacios -->
+            <xs:pattern value="\d+,\s*\d+"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Restricción para los valores del atributo align -->
+    <xs:simpleType name="alignType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="left"/>
+            <xs:enumeration value="right"/>
+            <xs:enumeration value="center"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Restricción para los valores del atributo dir -->
+    <xs:simpleType name="dirType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="horizontal"/>
+            <xs:enumeration value="vertical"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -16,13 +34,14 @@
     <xs:attributeGroup name="commonBodyAttributes">
         <xs:attribute name="id" type="xs:string"/>
         <xs:attribute name="class" type="xs:string"/>
-        <xs:attribute name="fill" type="xs:decimal"/>
-        <xs:attribute name="percentage" type="xs:decimal"/>
-        <xs:attribute name="min" type="xs:decimal"/>
-        <xs:attribute name="max" type="xs:decimal"/>
-        <xs:attribute name="length" type="xs:decimal"/>
+        <!-- Se usa xs:unsignedInt para garantizar que sean enteros positivos o cero -->
+        <xs:attribute name="fill" type="xs:unsignedInt"/>
+        <xs:attribute name="percentage" type="xs:unsignedInt"/>
+        <xs:attribute name="min" type="xs:unsignedInt"/>
+        <xs:attribute name="max" type="xs:unsignedInt"/>
+        <xs:attribute name="length" type="xs:unsignedInt"/>
         <xs:attribute name="ratio" type="ratioType"/>
-        <!-- Permite los atributos data-* (Nota: En XSD 1.0 no se puede restringir estrictamente el prefijo "data-", así que permitimos cualquier atributo extra) -->
+        <!-- Permite los atributos data-* -->
         <xs:anyAttribute namespace="##any" processContents="skip"/>
     </xs:attributeGroup>
 
@@ -45,7 +64,7 @@
     <xs:element name="layout">
         <xs:complexType>
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:attribute name="dir" type="xs:string"/>
+            <xs:attribute name="dir" type="dirType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
@@ -55,7 +74,7 @@
             <xs:sequence>
                 <xs:element ref="span" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
-            <xs:attribute name="align" type="xs:string"/>
+            <xs:attribute name="align" type="alignType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
@@ -70,7 +89,7 @@
         <xs:complexType>
             <xs:attribute name="type" type="xs:string"/>
             <xs:attribute name="value" type="xs:string"/>
-            <xs:attribute name="align" type="xs:string"/>
+            <xs:attribute name="align" type="alignType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
@@ -78,7 +97,7 @@
     <xs:element name="a">
         <xs:complexType mixed="true">
             <xs:attribute name="src" type="xs:string"/>
-            <xs:attribute name="align" type="xs:string"/>
+            <xs:attribute name="align" type="alignType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
@@ -86,7 +105,7 @@
     <xs:element name="button">
         <xs:complexType mixed="true">
             <xs:attribute name="enter" type="xs:string"/>
-            <xs:attribute name="align" type="xs:string"/>
+            <xs:attribute name="align" type="alignType"/>
             <xs:attribute name="enter-replace-childs" type="xs:string"/>
             <xs:attribute name="enter-replace-node" type="xs:string"/>
             <xs:attribute name="enter-change-value" type="xs:string"/>
@@ -99,8 +118,9 @@
         <xs:complexType>
             <xs:attribute name="exec" type="xs:string"/>
             <xs:attribute name="child-type" type="xs:string"/>
-            <xs:attribute name="child-align" type="xs:string"/>
-            <xs:attribute name="child-dir" type="xs:string"/>
+            <!-- He aplicado los mismos tipos a los hijos del command para mantener coherencia -->
+            <xs:attribute name="child-align" type="alignType"/>
+            <xs:attribute name="child-dir" type="dirType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
@@ -108,7 +128,7 @@
     <xs:element name="body">
         <xs:complexType>
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:attribute name="dir" type="xs:string"/>
+            <xs:attribute name="dir" type="dirType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
@@ -187,7 +207,8 @@
     <xs:element name="rtml">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="head"/>
+                <!-- minOccurs="0" hace que el head sea opcional -->
+                <xs:element ref="head" minOccurs="0"/>
                 <xs:element ref="body"/>
             </xs:sequence>
         </xs:complexType>

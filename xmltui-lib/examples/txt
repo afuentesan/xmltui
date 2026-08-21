@@ -1,0 +1,7 @@
+
+Bien, tenemos que refinar algunas cosas.
+
+El tag <head> es opcional, puede haber documentos solo con <body>
+
+Los números de los atributos fill, percentage, min, max, length y ratio son enteros sin signo.
+

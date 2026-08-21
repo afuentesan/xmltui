@@ -1,0 +1,9 @@
+[package]
+name = "xmltui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+xmltui-lib = { path = "../xmltui-lib" }
+clap = { version = "4.6.1", features = [ "derive" ] }
+anyhow = "1.0.104"
