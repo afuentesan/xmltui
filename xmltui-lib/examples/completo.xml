@@ -1,0 +1,40 @@
+<rtml>
+    <head>
+        <style>
+            {
+                "line" : {
+                    "bg" : "#ffffff",
+                    "fg" : "#000000"
+                }
+            }
+        </style>
+        <style src="./examples/example1_styles.json" />
+
+        <code name="date" command="/usr/bin/bash">
+            <envs>
+                <env name="a">b</env>
+                <env-data name="texto" />
+            </envs>
+            <args>
+                <arg>-c</arg>
+                <arg-data name="nombre" />
+                <arg>
+                <![CDATA[
+                    date
+                ]]>
+                </arg>
+            </args>
+        </code>
+
+        <code src="./examples/executors.xml" />
+    </head>
+    <body dir="vertical">
+        <layout dir="horizontal" id="l1">
+            <line id="l2" class=".red" align="center">Hola <span class="green">Green</span></line>
+            <input type="text" value="1" align="left" />
+            <a src="./examples/example3.xml" align="right">Vamos a 3</a>
+            <button enter="date" align="center" enter-replace-childs="container" enter-replace-node="fecha" enter-change-value="otro" enter-data="saluda" >Show date</button>
+            <command exec="saludo_arg" child-type="line" child-align="center" child-dir="horizontal" data-nombre="Nombre arg" />
+        </layout>
+    </body>
+</rtml>

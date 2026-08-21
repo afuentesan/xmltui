@@ -1,0 +1,38 @@
+<executors>
+    <code name="date_2" command="/usr/bin/date" />
+
+    <code name="saludo_env" command="/usr/bin/bash">
+        <envs>
+            <env-data name="nombre" />
+        </envs>
+        <args>
+            <arg>-c</arg>
+            <arg>
+            <![CDATA[
+                echo "Hola $nombre"
+            ]]>
+            </arg>
+        </args>
+    </code>
+
+    <code name="saludo_arg" command="/usr/bin/echo">
+        <args>
+            <arg>Hola</arg>
+            <arg-data name="nombre" />
+        </args>
+    </code>
+
+    <code name="date_line" command="/usr/bin/bash">
+        <envs>
+            <env-data name="nombre" />
+        </envs>
+        <args>
+            <arg>-c</arg>
+            <arg>
+            <![CDATA[
+                echo "<line align='center'>Hola $nombre: Son las `date`</line>"
+            ]]>
+            </arg>
+        </args>
+    </code>
+</executors>

@@ -1,0 +1,15 @@
+{
+    "input" : {
+        "bg" : "#000000",
+        "fg" : "#ffffff"
+    },
+    "#input_3, #input_5" : {
+        "bg" : "#0000ff"
+    },
+    ".bg_green" : {
+        "bg" : "#00ff00"
+    },
+    ".fg_red" : {
+        "fg" : "#ff0000"
+    }
+}

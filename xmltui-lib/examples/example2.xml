@@ -1,0 +1,68 @@
+<rtml>
+    <head>
+        <style>
+            {
+                "a:focus" : {
+                    "bg" : "#660000",
+                    "fg" : "#aaaaff",
+                    "add_modifier" : "BOLD|UNDERLINED"
+                },
+                ".green" : {
+                    "bg" : "#00ff00"
+                },
+                "body" : {
+                    "bg" : "#555555"
+                },
+                "span" : {
+                    "bg" : "#ff0000",
+                    "fg" : "#000000"
+                }
+            }
+        </style>
+
+        <code name="date" command="/usr/bin/bash">
+            <envs>
+                <env name="a">b</env>
+            </envs>
+            <args>
+                <arg>-c</arg>
+                <arg>
+                <![CDATA[
+                    date
+                ]]>
+                </arg>
+            </args>
+        </code>
+
+        <code src="./examples/executors.xml" />
+    </head>
+    <body dir="vertical">
+        <layout length="2">
+            <line align="center">Estamos en 2</line>
+        </layout>
+        <layout length="2" class="green">
+            <a src="./examples/example3.xml" align="center">Vamos a 3</a>
+        </layout>
+        <layout>
+            <line>Hola <span>Que pacha</span> Tururu</line>
+        </layout>
+        <layout>
+            <command exec="date" refresh-sec="1" child-type="line" child-align="center" />
+        </layout>
+        <layout>
+            <command exec="date_2" refresh-sec="1" child-type="line" child-align="center" />
+        </layout>
+        <layout>
+            <command exec="saludo_env" id="csaluda_env" child-type="line" child-align="center" data-nombre="Nombre env" />
+        </layout>
+        <layout>
+            <command exec="saludo_arg" child-type="line" child-align="center" data-nombre="Nombre arg" />
+        </layout>
+        <layout id="container">
+
+        </layout>
+        <layout>
+            <button enter="date_line" enter-replace-childs="container" enter-data="csaluda_env">Ver hora</button>
+        </layout>
+    </body>
+</rtml>

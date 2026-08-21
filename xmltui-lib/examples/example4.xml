@@ -1,0 +1,112 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="schema.xsd">
+    <head>
+        <code name="clear" command="/usr/bin/bash">
+            <args>
+                <arg>-c</arg>
+                <arg>
+                <![CDATA[
+                    echo "<line align=\"center\">Date cleared</line>"
+                ]]>
+                </arg>
+            </args>
+        </code>
+        <code name="add_date" command="/usr/bin/bash">
+            <args>
+                <arg>-c</arg>
+                <arg>
+                <![CDATA[
+                    echo "<layout>"
+                    echo '<command exec="date_2" refresh-sec="1" id="command_date_inner" child-type="line" child-align="center" />'
+                    echo "</layout>"
+                ]]>
+                </arg>
+            </args>
+        </code>
+        <code src="./examples/executors.xml" />
+        <code name="replace_node" command="/usr/bin/bash">
+            <envs>
+                <env-data name="texto" />
+            </envs>
+            <args>
+                <arg>-c</arg>
+                <arg>
+                <![CDATA[
+                    echo "<line>$texto</line>"
+                ]]>
+                </arg>
+            </args>
+        </code>
+        <code name="replace_node_layout" command="/usr/bin/bash">
+            <envs>
+                <env-data name="texto" />
+            </envs>
+            <args>
+                <arg>-c</arg>
+                <arg>
+                <![CDATA[
+                    echo "<layout>"
+                    echo "<line>$texto</line>"
+                    echo "</layout>"
+                ]]>
+                </arg>
+            </args>
+        </code>
+        <code name="replace_node_value" command="/usr/bin/bash">
+            <envs>
+                <env-data name="value" />
+            </envs>
+            <args>
+                <arg>-c</arg>
+                <arg>
+                <![CDATA[
+                    echo $value
+                ]]>
+                </arg>
+            </args>
+        </code>
+    </head>
+    <body dir="vertical">
+        <layout length="1"></layout>
+        <layout id="date_container" length="1">
+            <command exec="date_2" refresh-sec="1" id="command_date" child-type="line" child-align="center" />
+        </layout>
+        <layout length="1"></layout>
+        <layout length="1">
+            <button enter="clear" align="center" enter-replace-childs="date_container">Clear date</button>
+        </layout>
+        <layout length="1"></layout>
+        <layout length="1">
+            <button enter="add_date" align="center" enter-replace-childs="empty_date_container">Add date</button>
+        </layout>
+        <layout length="1"></layout>
+        <layout id="empty_date_container" length="1">
+
+        </layout>
+        <layout length="1"></layout>
+        <layout length="1">
+            <button enter="clear" align="center" enter-replace-childs="empty_date_container">Clear added date</button>
+        </layout>
+        <layout length="1"></layout>
+        <layout length="1">
+            <line id="primera">Primera</line>
+            <line id="segunda">Segunda</line>
+            <line id="tercera">Tercera</line>
+            <layout id="cuarta">
+                <line>Cuarta</line>
+            </layout>
+        </layout>
+        <layout length="1"></layout>
+        <layout length="1">
+            <button enter="replace_node" align="center" enter-replace-node="segunda" data-texto="Clear 2">Clear Segunda</button>
+        </layout>
+        <layout length="1"></layout>
+        <layout length="1">
+            <button enter="replace_node_layout" id="btn_clear_4" align="center" enter-replace-node="cuarta" data-texto="Clear 4">Clear Cuarta</button>
+        </layout>
+        <layout length="1"></layout>
+        <layout length="1">
+            <button enter="replace_node_value" align="center" enter-change-value="btn_clear_4" data-value="Clear 4, te he reemplazado">Reemplaza value btn clear cuarta</button>
+        </layout>
+    </body>
+</rtml>

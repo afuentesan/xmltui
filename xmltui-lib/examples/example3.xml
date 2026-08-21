@@ -1,0 +1,10 @@
+<rtml>
+    <body dir="vertical">
+        <layout length="2">
+            <line align="center">Estamos en 3</line>
+        </layout>
+        <layout length="2">
+            <a src="./examples/example2.xml" align="center">Vamos a 2</a>
+        </layout>
+    </body>
+</rtml>

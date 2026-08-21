@@ -1,0 +1,52 @@
+<rtml>
+    <head>
+        <style>
+            {
+                "line" : {
+                    "bg" : "#ffffff",
+                    "fg" : "#000000"
+                },
+                ".red" : {
+                    "bg" : "#ff0000"
+                },
+                "#input_2" : {
+                    "bg" : "#000000",
+                    "fg" : "#ffffff"
+                },
+                "#input_2:focus" : {
+                    "bg" : "#ffffff",
+                    "fg" : "#000000"
+                }
+            }
+        </style>
+
+        <style src="./examples/example1_styles.json" />
+    </head>
+    <body dir="vertical" id="root">
+        <layout dir="horizontal" length="1" id="input_container">
+            <line length="10" align="right" class="red">Val 1: </line>
+            <input length="15" value="012345678901234567890123456789" id="input_1" />
+            <line length="10" align="right">Val 2: </line>
+            <input length="15" value="012345678901234567890123456789" id="input_2" />
+        </layout>
+        <line fill="1">Que pacha</line>
+        <line percentage="50" align="center" id="line_50" class="bg_green fg_red">50%</line>
+        <line fill="1">Final</line>
+        <layout>
+            <input id="input_3" />
+            <input id="input_4" />
+            <layout>
+                <layout>
+                    <input id="input_5" />
+                    <layout>
+                        <input id="input_5_1" />
+                        <input id="input_5_2" />
+                        <input id="input_5_3" />
+                    </layout>
+                    <input id="input_6" />
+                </layout>
+            </layout>
+        </layout>
+        <input id="input_7" />
+    </body>
+</rtml>

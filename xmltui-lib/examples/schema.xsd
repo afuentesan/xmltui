@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <!-- ========================================== -->
+    <!-- TIPOS PERSONALIZADOS Y GRUPOS DE ATRIBUTOS -->
+    <!-- ========================================== -->
+    
+    <!-- Valida el atributo ratio: dos números separados por coma (ej. 1,2 o 1.5,3.0) -->
+    <xs:simpleType name="ratioType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\d+(\.\d+)?,\s*\d+(\.\d+)?"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Atributos que comparten TODOS los nodos dentro de body (y el propio body) -->
+    <xs:attributeGroup name="commonBodyAttributes">
+        <xs:attribute name="id" type="xs:string"/>
+        <xs:attribute name="class" type="xs:string"/>
+        <xs:attribute name="fill" type="xs:decimal"/>
+        <xs:attribute name="percentage" type="xs:decimal"/>
+        <xs:attribute name="min" type="xs:decimal"/>
+        <xs:attribute name="max" type="xs:decimal"/>
+        <xs:attribute name="length" type="xs:decimal"/>
+        <xs:attribute name="ratio" type="ratioType"/>
+        <!-- Permite los atributos data-* (Nota: En XSD 1.0 no se puede restringir estrictamente el prefijo "data-", así que permitimos cualquier atributo extra) -->
+        <xs:anyAttribute namespace="##any" processContents="skip"/>
+    </xs:attributeGroup>
+
+    <!-- Todos los elementos posibles que pueden anidarse dentro de body o de un layout -->
+    <xs:group name="bodyElements">
+        <xs:choice>
+            <xs:element ref="layout"/>
+            <xs:element ref="line"/>
+            <xs:element ref="span"/>
+            <xs:element ref="input"/>
+            <xs:element ref="a"/>
+            <xs:element ref="button"/>
+            <xs:element ref="command"/>
+        </xs:choice>
+    </xs:group>
+
+    <!-- ========================================== -->
+    <!-- ELEMENTOS DEL BODY                         -->
+    <!-- ========================================== -->
+    <xs:element name="layout">
+        <xs:complexType>
+            <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="dir" type="xs:string"/>
+            <xs:attributeGroup ref="commonBodyAttributes"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="line">
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element ref="span" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="align" type="xs:string"/>
+            <xs:attributeGroup ref="commonBodyAttributes"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="span">
+        <xs:complexType mixed="true">
+            <xs:attributeGroup ref="commonBodyAttributes"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="input">
+        <xs:complexType>
+            <xs:attribute name="type" type="xs:string"/>
+            <xs:attribute name="value" type="xs:string"/>
+            <xs:attribute name="align" type="xs:string"/>
+            <xs:attributeGroup ref="commonBodyAttributes"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="a">
+        <xs:complexType mixed="true">
+            <xs:attribute name="src" type="xs:string"/>
+            <xs:attribute name="align" type="xs:string"/>
+            <xs:attributeGroup ref="commonBodyAttributes"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="button">
+        <xs:complexType mixed="true">
+            <xs:attribute name="enter" type="xs:string"/>
+            <xs:attribute name="align" type="xs:string"/>
+            <xs:attribute name="enter-replace-childs" type="xs:string"/>
+            <xs:attribute name="enter-replace-node" type="xs:string"/>
+            <xs:attribute name="enter-change-value" type="xs:string"/>
+            <xs:attribute name="enter-data" type="xs:string"/>
+            <xs:attributeGroup ref="commonBodyAttributes"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="command">
+        <xs:complexType>
+            <xs:attribute name="exec" type="xs:string"/>
+            <xs:attribute name="child-type" type="xs:string"/>
+            <xs:attribute name="child-align" type="xs:string"/>
+            <xs:attribute name="child-dir" type="xs:string"/>
+            <xs:attributeGroup ref="commonBodyAttributes"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="body">
+        <xs:complexType>
+            <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="dir" type="xs:string"/>
+            <xs:attributeGroup ref="commonBodyAttributes"/>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========================================== -->
+    <!-- ELEMENTOS DEL HEAD                         -->
+    <!-- ========================================== -->
+    <xs:element name="style">
+        <xs:complexType mixed="true">
+            <xs:attribute name="src" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="env">
+        <xs:complexType mixed="true">
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="env-data">
+        <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="arg" type="xs:string"/>
+
+    <xs:element name="arg-data">
+        <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="envs">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="env"/>
+                <xs:element ref="env-data"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="args">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="arg"/>
+                <xs:element ref="arg-data"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="code">
+        <xs:complexType>
+            <xs:sequence minOccurs="0">
+                <xs:element ref="envs" minOccurs="0"/>
+                <xs:element ref="args" minOccurs="0"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string"/>
+            <xs:attribute name="command" type="xs:string"/>
+            <xs:attribute name="src" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="head">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="style"/>
+                <xs:element ref="code"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========================================== -->
+    <!-- ELEMENTO RAÍZ                              -->
+    <!-- ========================================== -->
+    <xs:element name="rtml">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="head"/>
+                <xs:element ref="body"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
