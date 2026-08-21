@@ -2,10 +2,11 @@ use std::{fs, path::{Path, PathBuf}};
 
 use anyhow::{Context, bail};
 
-pub fn read_file_in_chroot( path : &str, root_path : &PathBuf ) -> anyhow::Result<String>
-{
-    read_file_in_chroot_with_option_extension( path, root_path, None )
-}
+// De momento no lo estoy usando así que lo comento
+// pub fn read_file_in_chroot( path : &str, root_path : &PathBuf ) -> anyhow::Result<String>
+// {
+//     read_file_in_chroot_with_option_extension( path, root_path, None )
+// }
 
 pub fn read_file_in_chroot_with_extension( path : &str, root_path : &PathBuf, extension : &str ) -> anyhow::Result<String>
 {
@@ -54,27 +55,28 @@ mod tests
 {
     use super::*;
 
-    #[test]
-    fn test_file()
-    {
-        let content = read_file_in_chroot( 
-            "examples/example1.xml", 
-            &Path::new( "./" ).canonicalize().unwrap().to_path_buf() 
-        ).expect( "Se esperaba que existiese el fichero examples/example1.xml en ./" );
+    // Los comento porque he comentado la función
+    // #[test]
+    // fn test_file()
+    // {
+    //     let content = read_file_in_chroot( 
+    //         "examples/example1.xml", 
+    //         &Path::new( "./" ).canonicalize().unwrap().to_path_buf() 
+    //     ).expect( "Se esperaba que existiese el fichero examples/example1.xml en ./" );
 
-        assert!( content.trim() != "" );
-    }
+    //     assert!( content.trim() != "" );
+    // }
 
-    #[test]
-    fn test_dir()
-    {
-        let content = read_file_in_chroot( 
-            "examples", 
-            &Path::new( "./" ).canonicalize().unwrap().to_path_buf() 
-        );
+    // #[test]
+    // fn test_dir()
+    // {
+    //     let content = read_file_in_chroot( 
+    //         "examples", 
+    //         &Path::new( "./" ).canonicalize().unwrap().to_path_buf() 
+    //     );
 
-        assert!( content.is_err() );
-    }
+    //     assert!( content.is_err() );
+    // }
 
     #[test]
     fn test_file_with_extension()
