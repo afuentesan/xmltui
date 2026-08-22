@@ -27,14 +27,14 @@ pub struct HidrateCommand
 {
     pub doc_id : String,
     pub node_id : RTMLNodeId,
-    pub xml : String
+    pub response : String
 }
 
 impl HidrateCommand
 {
-    pub fn new( doc_id : String, node_id : RTMLNodeId, xml : String ) -> Self
+    pub fn new( doc_id : String, node_id : RTMLNodeId, response : String ) -> Self
     {
-        Self { doc_id, node_id, xml }
+        Self { doc_id, node_id, response }
     }
 }
 

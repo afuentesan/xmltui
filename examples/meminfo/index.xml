@@ -1,7 +1,26 @@
 <rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-      xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/afuentesan/xmltui/refs/heads/main/xmltui-lib/examples/schema.xsd">
-    
-    <body>
+      xsi:noNamespaceSchemaLocation="../../xmltui-lib/examples/schema.xsd"
+>
 
+<!-- xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/afuentesan/xmltui/refs/heads/main/xmltui-lib/examples/schema.xsd" -->
+    
+	<head>
+		<code command="/usr/bin/head" name="meminfo">
+			<args>
+				<arg>-3</arg>
+				<arg>/proc/meminfo</arg>
+			</args>
+		</code>
+	</head>
+    <body dir="vertical">
+		<layout></layout>
+		<command exec="meminfo" refresh-sec="1" child-type="layout" child-dir="vertical" length="3" output="strvec">
+			<template>
+				<layout>
+					<line align="center">{}</line>
+				</layout>
+			</template>
+		</command>
+		<layout></layout>
     </body>
 </rtml>

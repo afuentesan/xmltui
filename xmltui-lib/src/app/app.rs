@@ -3,7 +3,7 @@ use std::thread;
 use ratatui::{DefaultTerminal, style::Style, widgets::Block};
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::{app_callback::{execute_callback, execute_callback_response}, app_doc::load_file, event::{AppEvent, HidrateCommand, init_app_event_channels, send_app_event}}, rtml::rtml_doc::{RTMLDoc, render_rtml_doc}, util::log::log_to_file, xml::xml2rtml::{replace_node_childs_with_xml, xml2rtml_doc}};
+use crate::{app::{app_callback::{execute_callback, execute_callback_response}, app_doc::load_file, event::{AppEvent, HidrateCommand, init_app_event_channels, send_app_event}}, rtml::rtml_doc::{RTMLDoc, render_rtml_doc}, util::{log::log_to_file, template::template_to_xml}, xml::xml2rtml::{replace_node_childs_with_xml, xml2rtml_doc}};
 
 #[derive(Debug)]
 pub struct App
@@ -140,18 +140,20 @@ pub fn init_app( initial_path : &str ) -> anyhow::Result<()>
 fn hidrate_command(
     terminal : &mut DefaultTerminal,
     rtml_doc : &mut RTMLDoc,
-    mut hidrate : HidrateCommand,
+    hidrate : HidrateCommand,
     cancellation_token : CancellationToken
 )
 {
     if hidrate.doc_id != rtml_doc.doc_id { return };
 
+    let mut response = template_to_xml( hidrate.response, rtml_doc.node_template( &hidrate.node_id ), rtml_doc.command_output( &hidrate.node_id ) );
+
     if let Some( wrapper ) = rtml_doc.node_wrapper( &hidrate.node_id )
     {
-        hidrate.xml = format!( "{}{}{}", wrapper.prefix, hidrate.xml, wrapper.suffix );
+        response = format!( "{}{}{}", wrapper.prefix, response, wrapper.suffix );
     }
    
-    match replace_node_childs_with_xml( rtml_doc, hidrate.node_id.clone(), hidrate.xml ) 
+    match replace_node_childs_with_xml( rtml_doc, hidrate.node_id.clone(), &response ) 
     {
         Ok( _ ) =>
         {
@@ -162,7 +164,7 @@ fn hidrate_command(
         Err( e ) =>
         {
             // TODO: Mostrar algún tipo de error
-            log_to_file( &format!( "append_xml_to_node error: {:?}", e ) );
+            log_to_file( &format!( "append_xml_to_node. XML: {}\n Error: {:?}", response, e ) );
         }
     }
 }
@@ -175,8 +177,6 @@ fn rtml_to_terminal(
     match terminal.draw(
             | frame |
         {
-            log_to_file( &format!( "Estilo general: {:?}", rtml.style ) );
-            
             frame.render_widget( default_background( &rtml.style ), frame.area() );
             
             match render_rtml_doc(

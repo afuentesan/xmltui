@@ -5,15 +5,12 @@
     <!-- TIPOS PERSONALIZADOS Y RESTRICCIONES       -->
     <!-- ========================================== -->
     
-    <!-- Valida el atributo ratio: dos enteros sin signo separados por coma -->
     <xs:simpleType name="ratioType">
         <xs:restriction base="xs:string">
-            <!-- Solo números sin decimales, separados por una coma y opcionalmente espacios -->
             <xs:pattern value="\d+,\s*\d+"/>
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- Restricción para los valores del atributo align -->
     <xs:simpleType name="alignType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="left"/>
@@ -22,7 +19,6 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- Restricción para los valores del atributo dir -->
     <xs:simpleType name="dirType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="horizontal"/>
@@ -30,22 +26,31 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- Atributos que comparten TODOS los nodos dentro de body (y el propio body) -->
+    <xs:simpleType name="outputType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="str"/>
+            <xs:enumeration value="strvec"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Atributos que comparten TODOS los nodos dentro de body -->
     <xs:attributeGroup name="commonBodyAttributes">
         <xs:attribute name="id" type="xs:string"/>
         <xs:attribute name="class" type="xs:string"/>
-        <!-- Se usa xs:unsignedInt para garantizar que sean enteros positivos o cero -->
         <xs:attribute name="fill" type="xs:unsignedInt"/>
         <xs:attribute name="percentage" type="xs:unsignedInt"/>
         <xs:attribute name="min" type="xs:unsignedInt"/>
         <xs:attribute name="max" type="xs:unsignedInt"/>
         <xs:attribute name="length" type="xs:unsignedInt"/>
         <xs:attribute name="ratio" type="ratioType"/>
-        <!-- Permite los atributos data-* -->
+        <!-- Nuevos atributos de refresco como enteros sin signo -->
+        <xs:attribute name="refresh-sec" type="xs:unsignedInt"/>
+        <xs:attribute name="refresh-ms" type="xs:unsignedInt"/>
+        <!-- Permite los atributos extra como data-* -->
         <xs:anyAttribute namespace="##any" processContents="skip"/>
     </xs:attributeGroup>
 
-    <!-- Todos los elementos posibles que pueden anidarse dentro de body o de un layout -->
+    <!-- Todos los elementos posibles que pueden anidarse dentro de body, layout y template -->
     <xs:group name="bodyElements">
         <xs:choice>
             <xs:element ref="layout"/>
@@ -114,13 +119,22 @@
         </xs:complexType>
     </xs:element>
 
+    <xs:element name="template">
+        <xs:complexType>
+            <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="command">
         <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="template" minOccurs="0"/>
+            </xs:sequence>
             <xs:attribute name="exec" type="xs:string"/>
             <xs:attribute name="child-type" type="xs:string"/>
-            <!-- He aplicado los mismos tipos a los hijos del command para mantener coherencia -->
             <xs:attribute name="child-align" type="alignType"/>
             <xs:attribute name="child-dir" type="dirType"/>
+            <xs:attribute name="output" type="outputType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
@@ -207,7 +221,6 @@
     <xs:element name="rtml">
         <xs:complexType>
             <xs:sequence>
-                <!-- minOccurs="0" hace que el head sea opcional -->
                 <xs:element ref="head" minOccurs="0"/>
                 <xs:element ref="body"/>
             </xs:sequence>

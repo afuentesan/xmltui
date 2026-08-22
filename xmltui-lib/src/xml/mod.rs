@@ -9,3 +9,4 @@ pub mod xml_code;
 pub mod xml_command;
 pub mod xml_button;
 pub mod xml_event;
+pub mod xml_util;

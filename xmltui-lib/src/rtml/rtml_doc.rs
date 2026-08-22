@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Layout, Rect}, style::Style};
 use tokio_util::sync::CancellationToken;
 
-use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_button::render_rtml_button, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}}, xml::styles::xml_style::StyleSelector};
+use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_button::render_rtml_button, rtml_command::RTMLCommandOutput, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}}, xml::styles::xml_style::StyleSelector};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -421,6 +421,24 @@ impl RTMLDoc
         }
     }
 
+    pub fn node_template( &self, node_id : &RTMLNodeId ) -> Option<&String>
+    {
+        match self.doc.get( node_id )
+        {
+            Some( n ) => n.node_template(),
+            None => None
+        }
+    }
+
+    pub fn command_output( &self, node_id : &RTMLNodeId ) -> RTMLCommandOutput
+    {
+        match self.doc.get( node_id )
+        {
+            Some( n ) => n.command_output(),
+            None => RTMLCommandOutput::String
+        }
+    }
+
     pub fn data_from_nodes_id( &self, nodes_id : &Vec<String> ) -> HashMap<String, String>
     {
         let mut ret = HashMap::new();
@@ -618,6 +636,13 @@ fn render_node(
 
     let areas = render_node_and_get_child_areas( id, area, buf, doc )?;
 
+    // TODO: Probablemente aquí haya que ver si hay que hacer scroll. Si la longitud de childs es mayor que areas habrá que hacer scroll
+
+    // if childs.len() > areas.len()
+    // {
+    //     log_to_file( &format!( "CL: {}, AL: {}", childs.len(), areas.len() ) );
+    // }
+
     for i in 0..areas.len()
     {
         let area = areas[ i ];
@@ -707,6 +732,34 @@ fn child_areas(
 {
     let constraints = childs_constraint( childs, doc )?;
 
+    let childs_len = childs.len();
+
+    let constraints = match direction
+    {
+        Direction::Horizontal =>
+        {
+            if childs_len > area.width as usize
+            {
+                &constraints[ 0..( area.width as usize ) ]
+            }
+            else
+            {
+                constraints.as_slice()
+            }
+        },
+        Direction::Vertical =>
+        {
+            if childs_len > area.height as usize
+            {
+                &constraints[ 0..( area.height as usize ) ]
+            }
+            else
+            {
+                constraints.as_slice()
+            }
+        }
+    };
+
     let areas = calc_areas( area, direction, constraints );
 
     Ok( areas )
@@ -734,18 +787,18 @@ fn childs_constraint<'a, 'b>(
 fn calc_areas(
     container : Rect,
     direction : &Direction,
-    constraints : Vec<&Constraint>
+    constraints : &[&Constraint]
 ) -> Vec<Rect>
 {
     match direction
     {
         Direction::Horizontal =>
         {
-            container.layout_vec( &Layout::horizontal( constraints ) ).to_vec()
+            container.layout_vec( &Layout::horizontal( constraints.to_vec() ) ).to_vec()
         },
         Direction::Vertical =>
         {
-            container.layout_vec( &Layout::vertical( constraints ) ).to_vec()
+            container.layout_vec( &Layout::vertical( constraints.to_vec() ) ).to_vec()
         }
     }
 }

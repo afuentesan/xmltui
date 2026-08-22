@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use ratatui::{buffer::Buffer, layout::{Constraint, Rect}};
 
-use crate::{input::event::InputEvent, rtml::{rtml_attrs::CommonAttrs, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::RTMLCommand, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_span::RTMLSpan}};
+use crate::{input::event::InputEvent, rtml::{rtml_attrs::CommonAttrs, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_span::RTMLSpan}};
 
 pub type RTMLNodeId = String;
 
@@ -169,6 +169,34 @@ impl RTMLNode
             RTMLNode::Button( _ ) |
             RTMLNode::Link( _ ) => None,
             RTMLNode::Command( n ) => n.child.as_ref()
+        }
+    }
+
+    pub fn node_template( &self ) -> Option<&String>
+    {
+        match self
+        {
+            RTMLNode::Layout( _ ) |
+            RTMLNode::Line( _ ) |
+            RTMLNode::Input( _ ) |
+            RTMLNode::Span( _ ) |
+            RTMLNode::Button( _ ) |
+            RTMLNode::Link( _ ) => None,
+            RTMLNode::Command( n ) => n.template.as_ref()
+        }
+    }
+
+    pub fn command_output( &self ) -> RTMLCommandOutput
+    {
+        match self
+        {
+            RTMLNode::Layout( _ ) |
+            RTMLNode::Line( _ ) |
+            RTMLNode::Input( _ ) |
+            RTMLNode::Span( _ ) |
+            RTMLNode::Button( _ ) |
+            RTMLNode::Link( _ ) => RTMLCommandOutput::String,
+            RTMLNode::Command( n ) => n.output
         }
     }
 

@@ -7,9 +7,9 @@ use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode
 
 pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
 {
-    let str_rtml = read_file_in_chroot_with_extension( path, chroot(), "xml" )?;
+    let xml = read_file_in_chroot_with_extension( path, chroot(), "xml" )?;
 
-    let doc = roxmltree::Document::parse(str_rtml.as_str() )?;
+    let doc = roxmltree::Document::parse(xml.as_str() )?;
 
     let body = find_body( doc.root_element() )?;
 
@@ -24,7 +24,8 @@ pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
     let ( root, root_id ) = process_first_node( 
         body, 
         &mut rtml_doc, 
-        None
+        None,
+        &xml
     )?
     .ok_or( anyhow::Error::msg( "No root element" ) )?;
 
@@ -90,7 +91,8 @@ pub fn replace_node_with_xml(
     let ( root, root_id ) = process_first_node( 
         doc.root_element(), 
         rtml_doc, 
-        Some( parent_id.clone() )
+        Some( parent_id.clone() ),
+        &xml
     )?
     .ok_or( anyhow::Error::msg( "No root element" ) )?;
 
@@ -104,7 +106,7 @@ pub fn replace_node_with_xml(
 pub fn replace_node_childs_with_xml( 
     rtml_doc : &mut RTMLDoc,
     node_id : RTMLNodeId,
-    xml : String
+    xml : &str
 ) -> anyhow::Result<()>
 {
     if ! rtml_doc.doc.contains_key( &node_id ) 
@@ -112,14 +114,15 @@ pub fn replace_node_childs_with_xml(
         return Err( anyhow::Error::msg( format!( "No existe el nodo con id {node_id}" ) ) ); 
     };
 
-    let doc = roxmltree::Document::parse(xml.as_str() )?;
+    let doc = roxmltree::Document::parse(xml )?;
 
     rtml_doc.remove_childs_nodes( &node_id );
 
     let ( root, root_id ) = process_first_node( 
         doc.root_element(), 
         rtml_doc, 
-        Some( node_id.clone() )
+        Some( node_id.clone() ),
+        xml
     )?
     .ok_or( anyhow::Error::msg( "No root element" ) )?;
 
@@ -148,28 +151,30 @@ fn find_body<'a, 'input>( node : Node<'a, 'input> ) -> anyhow::Result<Node<'a, '
 fn process_first_node(
     node : Node, 
     rtml_doc : &mut RTMLDoc,
-    parent_id : Option<RTMLNodeId>
+    parent_id : Option<RTMLNodeId>,
+    xml : &str
 ) -> anyhow::Result<Option<( RTMLNode, RTMLNodeId )>>
 {
-    process_node( node, &mut rtml_doc.doc, parent_id, &rtml_doc.styles )
+    process_node( node, &mut rtml_doc.doc, parent_id, &rtml_doc.styles, xml )
 }
 
 pub fn process_node( 
     node : Node, 
     nodos : &mut HashMap<String, RTMLNode>,
     parent_id : Option<RTMLNodeId>,
-    styles : &HashMap<StyleSelector, Style> 
+    styles : &HashMap<StyleSelector, Style>,
+    xml : &str
 ) -> anyhow::Result<Option<( RTMLNode, RTMLNodeId )>>
 {
     match node.tag_name().name()
     {
         "layout" =>
         {
-            Ok( Some( process_layout( node, nodos, parent_id, styles )? ) )
+            Ok( Some( process_layout( node, nodos, parent_id, styles, xml )? ) )
         },
         "body" =>
         {
-            Ok( Some( process_body_layout( node, nodos, parent_id, styles )? ) )
+            Ok( Some( process_body_layout( node, nodos, parent_id, styles, xml )? ) )
         },
         "line" =>
         {
@@ -189,7 +194,7 @@ pub fn process_node(
         },
         "command" =>
         {
-            Ok( Some( process_command( node, nodos, parent_id, styles )? ) )
+            Ok( Some( process_command( node, nodos, parent_id, styles, xml )? ) )
         },
         _ => Ok( None )
     }

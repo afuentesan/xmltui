@@ -73,3 +73,13 @@ Por otro lado si cargas parte de un documento desde un comando tampoco se están
 [] Que se puedan mostrar y ocultar nodos
 
 [] Hacer un dtd o xml schema para el xml
+
+[] El nodo command debería poder tener contenido. Ese contenido se usaría como plantilla para representar la salida del comando.
+
+[] Que haya un evento para poder refrescar nodos command que no tengan el atributo refresh
+
+[] Que los layouts puedan ser scrolleables si el contenido es mayor que ellos
+
+[] Que se puedan concatenar comandos como en bash comando1 | comando2... La salida de uno será la entrada del otro. Habrá que ver como especificar si la salida se pone en una variable de entorno del siguiente comando o en un argumento.
+
+[] Pasar métodos comunes de xml a xml_util

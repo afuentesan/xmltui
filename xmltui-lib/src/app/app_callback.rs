@@ -76,7 +76,7 @@ pub fn execute_callback_response(
             match replace_node_childs_with_xml(
                 doc, 
                 parent_id.clone(), 
-                response.response
+                &response.response
             )
             {
                 Ok( _ ) =>

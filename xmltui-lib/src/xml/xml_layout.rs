@@ -9,20 +9,22 @@ pub fn process_body_layout(
     node : Node, 
     nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    styles : &HashMap<StyleSelector, Style> 
+    styles : &HashMap<StyleSelector, Style>,
+    xml : &str 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    process_container( node, nodos, parent_id, styles, default_normal_style() )
+    process_container( node, nodos, parent_id, styles, default_normal_style(), xml )
 }
 
 pub fn process_layout( 
     node : Node, 
     nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    styles : &HashMap<StyleSelector, Style> 
+    styles : &HashMap<StyleSelector, Style>,
+    xml : &str 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    process_container( node, nodos, parent_id, styles, Style::default() )
+    process_container( node, nodos, parent_id, styles, Style::default(), xml )
 }
 
 fn process_container( 
@@ -30,7 +32,8 @@ fn process_container(
     nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
     styles : &HashMap<StyleSelector, Style>,
-    default_style : Style
+    default_style : Style,
+    xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let layout_id = id_retry_if_exists( &node, nodos );
@@ -39,7 +42,7 @@ fn process_container(
 
     for c in node.children()
     {
-        match process_node( c, nodos, Some( layout_id.clone() ), styles )?
+        match process_node( c, nodos, Some( layout_id.clone() ), styles, xml )?
         {
             Some( ( n, id ) ) =>
             {
