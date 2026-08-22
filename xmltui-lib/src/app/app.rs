@@ -146,7 +146,16 @@ fn hidrate_command(
 {
     if hidrate.doc_id != rtml_doc.doc_id { return };
 
-    let mut response = template_to_xml( hidrate.response, rtml_doc.node_template( &hidrate.node_id ), rtml_doc.command_output( &hidrate.node_id ) );
+    let mut response = match template_to_xml( hidrate.response, rtml_doc.node_template( &hidrate.node_id ), rtml_doc.command_output( &hidrate.node_id ) )
+    {
+        Ok( r ) => r,
+        Err( e ) =>
+        {
+            log_to_file( &format!( "hidrate_command. Fail to parse template: {:?}", e ) );
+
+            return;
+        }
+    };
 
     if let Some( wrapper ) = rtml_doc.node_wrapper( &hidrate.node_id )
     {
@@ -164,7 +173,7 @@ fn hidrate_command(
         Err( e ) =>
         {
             // TODO: Mostrar algún tipo de error
-            log_to_file( &format!( "append_xml_to_node. XML: {}\n Error: {:?}", response, e ) );
+            log_to_file( &format!( "hidrate_command. XML: {}\n Error: {:?}", response, e ) );
         }
     }
 }

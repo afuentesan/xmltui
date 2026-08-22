@@ -16,20 +16,23 @@ pub struct RTMLDoc
     pub style : Style,
     pub styles : HashMap<StyleSelector, Style>,
     pub executors : HashMap<String, Executor>,
-    pub cancellation_tokens : HashMap<String, CancellationToken>
+    pub cancellation_tokens : HashMap<String, CancellationToken>,
+    pub templates : HashMap<String, String>
 }
 
 impl RTMLDoc
 {
     pub fn new(
         styles : HashMap<StyleSelector, Style>,
-        executors : HashMap<String, Executor>
+        executors : HashMap<String, Executor>,
+        templates : HashMap<String, String>
     ) -> Self
     {
         let mut doc = Self::empty();
 
         doc.styles = styles;
         doc.executors = executors;
+        doc.templates = templates;
 
         doc
     }
@@ -46,7 +49,8 @@ impl RTMLDoc
             focus : None, 
             sorted_nodes : vec![], 
             executors : HashMap::new(),
-            cancellation_tokens : HashMap::new()
+            cancellation_tokens : HashMap::new(),
+            templates : HashMap::new()
          }
     }
 
@@ -425,7 +429,7 @@ impl RTMLDoc
     {
         match self.doc.get( node_id )
         {
-            Some( n ) => n.node_template(),
+            Some( n ) => n.node_template( &self.templates ),
             None => None
         }
     }

@@ -254,6 +254,13 @@ pub fn attr_result( node : Node, attr : &str ) -> anyhow::Result<String>
     )
 }
 
+pub fn attr_option( node : Node, attr : &str ) -> Option<String>
+{
+    Some(
+        node.attribute( attr )?.to_string()
+    )
+}
+
 pub fn attr_source( node : Node ) -> anyhow::Result<RTMLSource>
 {
     let source = node.attribute( "src" )

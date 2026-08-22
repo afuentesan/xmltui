@@ -72,9 +72,9 @@ Por otro lado si cargas parte de un documento desde un comando tampoco se están
 
 [] Que se puedan mostrar y ocultar nodos
 
-[] Hacer un dtd o xml schema para el xml
+[x] Hacer un dtd o xml schema para el xml
 
-[] El nodo command debería poder tener contenido. Ese contenido se usaría como plantilla para representar la salida del comando.
+[x] El nodo command debería poder tener contenido. Ese contenido se usaría como plantilla para representar la salida del comando.
 
 [] Que haya un evento para poder refrescar nodos command que no tengan el atributo refresh
 

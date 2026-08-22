@@ -172,7 +172,7 @@ impl RTMLNode
         }
     }
 
-    pub fn node_template( &self ) -> Option<&String>
+    pub fn node_template<'a>( &'a self, templates : &'a HashMap<String, String> ) -> Option<&'a String>
     {
         match self
         {
@@ -182,7 +182,7 @@ impl RTMLNode
             RTMLNode::Span( _ ) |
             RTMLNode::Button( _ ) |
             RTMLNode::Link( _ ) => None,
-            RTMLNode::Command( n ) => n.template.as_ref()
+            RTMLNode::Command( n ) => n.node_template( templates )
         }
     }
 

@@ -2,16 +2,15 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
 
     <!-- ========================================== -->
-    <!-- TIPOS PERSONALIZADOS Y RESTRICCIONES       -->
+    <!-- TIPOS ESTRICTOS BASE                       -->
     <!-- ========================================== -->
-    
-    <xs:simpleType name="ratioType">
+    <xs:simpleType name="ratioBase">
         <xs:restriction base="xs:string">
             <xs:pattern value="\d+,\s*\d+"/>
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:simpleType name="alignType">
+    <xs:simpleType name="alignEnum">
         <xs:restriction base="xs:string">
             <xs:enumeration value="left"/>
             <xs:enumeration value="right"/>
@@ -19,38 +18,70 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:simpleType name="dirType">
+    <xs:simpleType name="dirEnum">
         <xs:restriction base="xs:string">
             <xs:enumeration value="horizontal"/>
             <xs:enumeration value="vertical"/>
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:simpleType name="outputType">
+    <xs:simpleType name="outputEnum">
         <xs:restriction base="xs:string">
             <xs:enumeration value="str"/>
             <xs:enumeration value="strvec"/>
+            <xs:enumeration value="json"/> <!-- Nueva opción -->
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- Atributos que comparten TODOS los nodos dentro de body -->
+    <!-- ========================================== -->
+    <!-- SOPORTE PARA SINTAXIS MINIJINJA EN ATRIBUTOS-->
+    <!-- ========================================== -->
+    <!-- Patrón para detectar variables Jinja: {{ ... }} -->
+    <xs:simpleType name="jinjaAttr">
+        <xs:restriction base="xs:string">
+            <xs:pattern value=".*\{\{.*\}\}.*"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- TIPOS FINALES (Unión del estricto + Jinja) -->
+    <xs:simpleType name="alignType">
+        <xs:union memberTypes="alignEnum jinjaAttr"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="dirType">
+        <xs:union memberTypes="dirEnum jinjaAttr"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="outputType">
+        <xs:union memberTypes="outputEnum jinjaAttr"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="ratioType">
+        <xs:union memberTypes="ratioBase jinjaAttr"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="uintType">
+        <xs:union memberTypes="xs:unsignedInt jinjaAttr"/>
+    </xs:simpleType>
+
+    <!-- ========================================== -->
+    <!-- GRUPOS Y ATRIBUTOS COMUNES                 -->
+    <!-- ========================================== -->
     <xs:attributeGroup name="commonBodyAttributes">
         <xs:attribute name="id" type="xs:string"/>
         <xs:attribute name="class" type="xs:string"/>
-        <xs:attribute name="fill" type="xs:unsignedInt"/>
-        <xs:attribute name="percentage" type="xs:unsignedInt"/>
-        <xs:attribute name="min" type="xs:unsignedInt"/>
-        <xs:attribute name="max" type="xs:unsignedInt"/>
-        <xs:attribute name="length" type="xs:unsignedInt"/>
+        <xs:attribute name="fill" type="uintType"/>
+        <xs:attribute name="percentage" type="uintType"/>
+        <xs:attribute name="min" type="uintType"/>
+        <xs:attribute name="max" type="uintType"/>
+        <xs:attribute name="length" type="uintType"/>
         <xs:attribute name="ratio" type="ratioType"/>
-        <!-- Nuevos atributos de refresco como enteros sin signo -->
-        <xs:attribute name="refresh-sec" type="xs:unsignedInt"/>
-        <xs:attribute name="refresh-ms" type="xs:unsignedInt"/>
-        <!-- Permite los atributos extra como data-* -->
+        <xs:attribute name="refresh-sec" type="uintType"/>
+        <xs:attribute name="refresh-ms" type="uintType"/>
         <xs:anyAttribute namespace="##any" processContents="skip"/>
     </xs:attributeGroup>
 
-    <!-- Todos los elementos posibles que pueden anidarse dentro de body, layout y template -->
+    <!-- Todos los elementos anidables -->
     <xs:group name="bodyElements">
         <xs:choice>
             <xs:element ref="layout"/>
@@ -64,10 +95,21 @@
     </xs:group>
 
     <!-- ========================================== -->
-    <!-- ELEMENTOS DEL BODY                         -->
+    <!-- ELEMENTOS DEL BODY Y TEMPLATE              -->
     <!-- ========================================== -->
+    <!-- Se añade mixed="true" al template para soportar sintaxis Jinja como {% for %} entre nodos -->
+    <xs:element name="template">
+        <xs:complexType mixed="true">
+            <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- Atributos para cuando va en head (name) o se carga de externo (src) -->
+            <xs:attribute name="name" type="xs:string"/>
+            <xs:attribute name="src" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Se añade mixed="true" al layout para soportar bucles Jinja internos -->
     <xs:element name="layout">
-        <xs:complexType>
+        <xs:complexType mixed="true">
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
             <xs:attribute name="dir" type="dirType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
@@ -119,28 +161,24 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="template">
-        <xs:complexType>
-            <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
-        </xs:complexType>
-    </xs:element>
-
     <xs:element name="command">
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="template" minOccurs="0"/>
             </xs:sequence>
             <xs:attribute name="exec" type="xs:string"/>
+            <xs:attribute name="template" type="xs:string"/> <!-- Nuevo atributo string -->
             <xs:attribute name="child-type" type="xs:string"/>
             <xs:attribute name="child-align" type="alignType"/>
             <xs:attribute name="child-dir" type="dirType"/>
-            <xs:attribute name="output" type="outputType"/>
+            <xs:attribute name="output" type="outputType"/> <!-- Soporta json ahora -->
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
 
+    <!-- mixed="true" permite lógica de Minijinja justo debajo del body -->
     <xs:element name="body">
-        <xs:complexType>
+        <xs:complexType mixed="true">
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
             <xs:attribute name="dir" type="dirType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
@@ -211,6 +249,7 @@
             <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <xs:element ref="style"/>
                 <xs:element ref="code"/>
+                <xs:element ref="template"/> <!-- Se incluye el template como opción del head -->
             </xs:choice>
         </xs:complexType>
     </xs:element>

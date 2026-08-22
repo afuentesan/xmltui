@@ -11,16 +11,34 @@
 				<arg>/proc/meminfo</arg>
 			</args>
 		</code>
+		
+		<template name="meminfo">
+			<layout>
+				<line align="center">Meminfo</line>
+			</layout>
+			{% for item in ctx %}
+			<layout>
+				{% for column in item | split( ":" ) %}
+					<line align="{{ 'right' if loop.index0 == 0 else 'left' }}">{{ column | trim }}</line>
+				{% endfor %}
+			</layout>
+			{% endfor %}
+		</template>
 	</head>
     <body dir="vertical">
 		<layout></layout>
+		<!--
 		<command exec="meminfo" refresh-sec="1" child-type="layout" child-dir="vertical" length="3" output="strvec">
 			<template>
+				{% for item in ctx %}
 				<layout>
-					<line align="center">{}</line>
+					<line align="center">{{ item }}</line>
 				</layout>
+				{% endfor %}
 			</template>
 		</command>
+		-->
+		<command exec="meminfo" refresh-sec="1" child-type="layout" child-dir="vertical" length="4" output="strvec" template="meminfo" />
 		<layout></layout>
     </body>
 </rtml>

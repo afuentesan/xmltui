@@ -1,12 +1,13 @@
 
-use serde_json::Value;
+use minijinja::Environment;
+use serde_json::{Value, json};
 
 use crate::rtml::rtml_command::RTMLCommandOutput;
 
 
-pub fn template_to_xml( data : String, template : Option<&String>, data_type : RTMLCommandOutput ) -> String
+pub fn template_to_xml( data : String, template : Option<&String>, data_type : RTMLCommandOutput ) -> anyhow::Result<String>
 {
-    if template.is_none() { return data };
+    if template.is_none() { return Ok( data ) };
 
     match data_type
     {
@@ -32,61 +33,76 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
                 }
             };
 
-            let mut ret = String::from( "" );
+            xml_from_template_context( template.as_ref().unwrap(), serde_json::Value::Array( context ) )
+        },
+        RTMLCommandOutput::Json =>
+        {
+            let json : Result<serde_json::Value, _> = serde_json::from_str( &data );
 
-            for context in context
+            let context = match json
             {
-                ret.push_str( &xml_from_template_context( template.as_ref().unwrap(), context ) );
-            }
+                Ok( v ) => v,
+                Err( _ ) => serde_json::Value::String( data )
+            };
 
-            ret
-        }    
+            xml_from_template_context( template.as_ref().unwrap(), context )
+        }
     }
 }
 
-fn xml_from_template_context( template : &str, context : Value ) -> String
+fn xml_from_template_context( template : &str, context : Value ) -> anyhow::Result<String>
 {
-    let mut rest : Option<usize> = None;
+    let mut env = Environment::new();
 
-    let mut ret : String = String::from( "" );
+    env.add_template( "rtml_template", template )?;
 
-    let mut has_vars = false;
+    let tmpl = env.get_template( "rtml_template" )?;
 
-    let mut index = 0;
+    let context = json!( { "ctx" : context } );
 
-    while let Some( ( ( from, to ), end, var ) ) = next_var( &template[index..] )
-    {
-        has_vars = true;
+    Ok( tmpl.render( context )? )
 
-        ret.push_str( &template[ index..end ] );
+    // let mut rest : Option<usize> = None;
 
-        match var
-        {
-            Some( s ) =>
-            {
-                ret.push_str( &var_value( &context, s ) );
-            },
-            None => ret.push_str( &template[ from..=to ] ),
-        }
+    // let mut ret : String = String::from( "" );
 
-        index = to + 1;
+    // let mut has_vars = false;
 
-        rest = Some( index );
-    }
+    // let mut index = 0;
 
-    if ! has_vars
-    {
-        template.to_string()
-    }
-    else
-    {
-        if let Some( rest ) = rest && rest < template.len()
-        {
-            ret.push_str( &template[ rest.. ] );
-        }
+    // while let Some( ( ( from, to ), end, var ) ) = next_var( &template[index..] )
+    // {
+    //     has_vars = true;
 
-        ret    
-    }
+    //     ret.push_str( &template[ index..end ] );
+
+    //     match var
+    //     {
+    //         Some( s ) =>
+    //         {
+    //             ret.push_str( &var_value( &context, s ) );
+    //         },
+    //         None => ret.push_str( &template[ from..=to ] ),
+    //     }
+
+    //     index = to + 1;
+
+    //     rest = Some( index );
+    // }
+
+    // if ! has_vars
+    // {
+    //     template.to_string()
+    // }
+    // else
+    // {
+    //     if let Some( rest ) = rest && rest < template.len()
+    //     {
+    //         ret.push_str( &template[ rest.. ] );
+    //     }
+
+    //     ret    
+    // }
 }
 
 fn var_value( context : &Value, var : &str ) -> String
