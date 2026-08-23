@@ -41,7 +41,7 @@ fn execute_callback_command(
                 node_id, 
                 node_data, 
                 CommandRefresh::Once, 
-                executor, 
+                vec![ executor ], 
                 ExecutorEventType::Callback( action ), 
                 None, 
                 None

@@ -1,0 +1,148 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="../../xmltui-lib/examples/schema.xsd"
+>
+    <head>
+        <code command="/usr/bin/node" name="parse-info">
+            <args>
+                <arg>-e</arg>
+                <arg>
+                    <![CDATA[ 
+
+                        function cpus_map( input )
+                        {
+                            let map = {};
+
+                            input.split( "\n" )
+                            .filter( ( s ) => s.trim() != "" )
+                            .forEach(
+                                ( s ) => {
+                                    let res = key_numbers( s );
+
+                                    map[ res.key ] = res;
+                                }
+                            );
+
+                            return map;
+                        }
+
+                        function key_numbers( input )
+                        {
+                            let cols = input.split( " " ).filter( ( s ) => s.trim() != "" ).map( ( s ) => s.trim() );
+
+                            return {
+                                key : cols[ 0 ],
+                                numbers : numbers_from_cols( cols )
+                            }
+                        }
+
+                        function numbers_from_cols( cols )
+                        {
+                            let idle = Number( cols[ 4 ] ) + Number( cols[ 5 ] );
+                            let non_idle = Number( cols[ 1 ] ) + Number( cols[ 2 ] ) + Number( cols[ 3 ] ) +
+                                           Number( cols[ 6 ] ) + Number( cols[ 7 ] ) + Number( cols[ 8 ] );
+                            let total = idle + non_idle;
+
+                            return {
+                                idle,
+                                non_idle,
+                                total
+                            }
+                        }
+
+                        function calcula_uso_cpu( antes, despues )
+                        {
+                            let total = despues.numbers.total - antes.numbers.total;
+                            let idle = despues.numbers.idle - antes.numbers.idle;
+
+                            let uso = ( ( total - idle ) / total ) * 100;
+
+                            return {
+                                cpu : despues.key,
+                                uso
+                            }
+                        }
+
+                        function calcula_uso( cpus_antes, cpus_despues )
+                        {
+                            let ret = [];
+
+                            for( const cpu of Object.keys( cpus_despues ) )
+                            {
+                                if( ! cpus_antes[ cpu ] ) { continue; }
+
+                                let uso = calcula_uso_cpu( cpus_antes[ cpu ], cpus_despues[ cpu ] );
+
+                                if( ! uso ) { continue; } 
+
+                                ret.push( uso );
+                            }
+
+                            return ret;
+                        }
+
+                        let stdin_str = "";
+
+                        for await ( const chunk of process.stdin )
+                        {
+                            stdin_str += chunk.toString();
+                        }
+
+                        let parts = stdin_str.toString().split( "---" );
+                    
+                        let info_cpus_antes = cpus_map( parts[ 0 ] );
+                        let info_cpus_despues = cpus_map( parts[ 1 ] );
+
+                        let uso = calcula_uso( info_cpus_antes, info_cpus_despues ); 
+
+                        console.log( JSON.stringify( uso ) );
+                    ]]>
+                </arg>
+            </args>
+        </code>
+        <code command="/usr/bin/bash" name="read-cpuinfo">
+            <args>
+                <arg>-c</arg>
+                <arg>
+                    <![CDATA[ 
+                        grep "^cpu" /proc/stat
+                        echo ---
+                        sleep 1
+                        grep "^cpu" /proc/stat
+                    ]]>
+                </arg>
+            </args>
+        </code>
+        <style>
+            {
+                ".red" : {
+                    "bg" : "#ff0000"
+                },
+                ".bg-transparent" : {
+                    "bg" : "Reset"
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <command exec="read-cpuinfo|parse-info" refresh-ms="10" output="json" dir="vertical" flex="center">
+            <template>
+                <layout dir="horizontal" flex="center" length="{{ ( ctx | length ) + 2 }}">
+                    <border title="Cpuinfo" dir="vertical" max="110" flex="center">
+                        {% for uso in ctx %}
+                        <layout flex="start" length="1">
+                            <line length="7" align="right">{{ uso.cpu }}: </line>
+                            {% set porcentaje = ( uso.uso | round ) | int %}
+                            {% set porcentaje_str = ( porcentaje | string ) + "%" %}
+                            {% for i in range( porcentaje ) %}
+                                <line length="1" class="red">{% if porcentaje_str | length > i %}{{ porcentaje_str[ i ] }}{% else %} {% endif %}</line>
+                            {% endfor %}
+                            <line>{{ porcentaje_str[porcentaje:] }}</line>
+                        </layout>
+                        {% endfor %}
+                    </border>
+                </layout>
+            </template>
+        </command>
+        
+    </body>
+</rtml>

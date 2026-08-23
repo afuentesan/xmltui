@@ -82,3 +82,11 @@ Por otro lado si cargas parte de un documento desde un comando tampoco se están
 [] sse para los command y que el comando se ejecute cada vez que llegue un evento. El evento hay que pasarlo como parámetro al comando. Quizá con un atributo refresh-sse.
 
 [] Poder definir estilos directamente en los nodos con atributos fg, bg, etc...
+
+[] Añadir eventos focus y blur para todos los nodos que sean focusables.
+
+[] Hay que rerenderizar la aplicación cuando se redimensione la consola
+
+[] Ventanas flotantes
+
+[] Mensajes toast

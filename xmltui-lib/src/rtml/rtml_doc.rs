@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect}, style::Style};
 use tokio_util::sync::CancellationToken;
 
-use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::RTMLCommandOutput, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}}, xml::styles::xml_style::StyleSelector};
+use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::RTMLCommandOutput, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}}, util::log::log_to_file, xml::styles::xml_style::StyleSelector};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -215,7 +215,7 @@ impl RTMLDoc
                 {
                     RTMLNode::Command( c ) =>
                     {
-                        if let Some( executor ) = self.executors.get( &c.executor_id )
+                        if let Some( executor ) = self.executors_from_ids( &c.executors )
                         {
                             let global_cancel = cancellation_token.clone();
                             let local_cancel = CancellationToken::new();
@@ -259,6 +259,27 @@ impl RTMLDoc
                 }
             }
         }
+    }
+
+    fn executors_from_ids( &self, ids : &Vec<String> ) -> Option<Vec<Executor>>
+    {
+        let mut executors = vec![];
+
+        for id in ids
+        {
+            if let Some( e ) = self.executors.get( id )
+            {
+                executors.push( e.clone() );
+            }
+            else
+            {
+                log_to_file( &format!( "No se encontró el Executor con id {id}" ) );
+
+                return None;    
+            }
+        }
+
+        Some( executors )
     }
 
     fn all_childs_ids( &self, node_id : &RTMLNodeId ) -> Vec<String>
@@ -723,9 +744,9 @@ fn render_node_and_get_child_areas(
 
             Ok( vec![] )
         },
-        RTMLNode::Command( _ ) =>
+        RTMLNode::Command( c ) =>
         {
-            child_areas( root.childs(), &Direction::Horizontal, &Flex::Legacy, area, doc )
+            child_areas( root.childs(), &c.direction, &c.flex, area, doc )
         },
         RTMLNode::Span( _ ) =>
         {

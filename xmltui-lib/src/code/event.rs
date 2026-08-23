@@ -4,7 +4,7 @@ use std::{collections::HashMap, time::Duration};
 use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::event::{AppEvent, CallbackResponse, HidrateCommand, send_app_event}, code::executor::{Executor, ExecutorOutput, execute_command}, rtml::{rtml_command::CommandRefresh, util::rtml_event::RTMLCallbackAction}, util::log::log_to_file};
+use crate::{app::event::{AppEvent, CallbackResponse, HidrateCommand, send_app_event}, code::executor::{Executor, ExecutorOutput, execute_command, execute_commands}, rtml::{rtml_command::CommandRefresh, util::rtml_event::RTMLCallbackAction}, util::log::log_to_file};
 
 pub enum ExecutorEventType
 {
@@ -18,7 +18,7 @@ pub struct CommandExecutorParams
     node_id : String,
     node_data : HashMap<String, String>,
     refresh : CommandRefresh,
-    executor : Executor,
+    executors : Vec<Executor>,
     event_type : ExecutorEventType,
     global_cancellation_token : Option<CancellationToken>,
     local_cancellation_token : Option<CancellationToken>
@@ -31,13 +31,13 @@ impl CommandExecutorParams
         node_id : String,
         node_data : HashMap<String, String>,
         refresh : CommandRefresh,
-        executor : Executor,
+        executors : Vec<Executor>,
         event_type : ExecutorEventType,
         global_cancellation_token : Option<CancellationToken>,
         local_cancellation_token : Option<CancellationToken>
     ) -> Self
     {
-        Self { doc_id, node_id, node_data, refresh, executor, event_type, global_cancellation_token, local_cancellation_token }
+        Self { doc_id, node_id, node_data, refresh, executors, event_type, global_cancellation_token, local_cancellation_token }
     }
 }
 
@@ -53,7 +53,7 @@ pub async fn new_command_executor(
         },
         CommandRefresh::Once =>
         {
-            execute_once( &params.doc_id, &params.node_id, &params.node_data, &params.executor, &params.event_type ).await;
+            execute_once( &params.doc_id, &params.node_id, &params.node_data, &params.executors, &params.event_type ).await;
         }
     }
 }
@@ -67,7 +67,7 @@ async fn new_repeat_command_executor(
     
     loop
     {
-        execute_once( &params.doc_id, &params.node_id, &params.node_data, &params.executor, &params.event_type ).await;
+        execute_once( &params.doc_id, &params.node_id, &params.node_data, &params.executors, &params.event_type ).await;
 
         if let Some( g ) = params.global_cancellation_token.as_ref() &&
            let Some( l ) = params.local_cancellation_token.as_ref()
@@ -106,19 +106,19 @@ async fn execute_once(
     doc_id : &str,
     node_id : &str,
     node_data : &HashMap<String, String>,
-    executor : &Executor,
+    executors : &Vec<Executor>,
     event_type : &ExecutorEventType,
 )
 {
-    match execute_command( executor, node_data ).await
+    match execute_commands( executors, node_data ).await
     {
         Ok( output ) =>
         {
             send_command_output( doc_id, node_id, event_type, output );
         },
-        Err( _ ) =>
+        Err( e ) =>
         {
-            // TODO: Mostrar algún tipo de error
+            log_to_file( &format!( "execute_once. Se ha producido un error al ejecutar el comando. Error: {:?}", e ) );
         }
     }
 }
@@ -161,6 +161,6 @@ fn send_command_output( doc_id : &str, node_id : &str, event_type : &ExecutorEve
     }
     else
     {
-        // TODO: Mostrar algún tipo de error    
+        log_to_file( &format!( "Se ha producido un error al ejecutar el comando del nodo {node_id}. Stderr: {}", output.stderr_str().unwrap_or( "".to_string() ) ) );
     }
 }

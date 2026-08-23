@@ -1,5 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
+use ratatui::layout::{Direction, Flex};
+
 use crate::rtml::rtml_node::{RTMLNodeCommon, XMLNodeWrapper};
 
 #[derive(Debug, Clone, Copy)]
@@ -14,7 +16,9 @@ pub enum RTMLCommandOutput
 pub struct RTMLCommand
 {
     pub common : RTMLNodeCommon,
-    pub executor_id : String,
+    pub direction : Direction,
+    pub flex : Flex,
+    pub executors : Vec<String>,
     pub refresh : CommandRefresh,
     pub child : Option<XMLNodeWrapper>,
     pub template_name : Option<String>,
@@ -25,9 +29,11 @@ pub struct RTMLCommand
 impl RTMLCommand
 {
     pub fn new( 
-        executor_id : String, 
+        executors : Vec<String>, 
         refresh : CommandRefresh, 
         common : RTMLNodeCommon, 
+        direction : Direction,
+        flex : Flex,
         child : Option<XMLNodeWrapper>,
         template_name : Option<String>,
         template : Option<String>,
@@ -37,7 +43,9 @@ impl RTMLCommand
         Self 
         { 
             common, 
-            executor_id, 
+            direction,
+            flex,
+            executors, 
             refresh,
             child,
             template_name,

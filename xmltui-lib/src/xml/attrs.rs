@@ -5,7 +5,7 @@ use regex::regex;
 use roxmltree::Node;
 use uuid::Uuid;
 
-use crate::{rtml::{rtml_attrs::CommonAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource}, util::{log::log_to_file, str::str_len}, xml::xml_util::text_from_childs};
+use crate::{rtml::{rtml_attrs::CommonAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource}, util::str::str_len, xml::xml_util::text_from_childs};
 
 const DEFAULT_DIRECTION : Direction = Direction::Horizontal;
 const DEFAULT_FLEX : Flex = Flex::Legacy;
@@ -111,8 +111,6 @@ fn attr_constraint( node : &Node ) -> anyhow::Result<Constraint>
         },
         _ => DEFAULT_CONSTRAINT
     };
-
-    log_to_file( &format!( "Default constraint: {:?}, tag: {}, text: {:?}", default, node.tag_name().name(), node.text() ) );
 
     for attr in attrs
     {
@@ -321,6 +319,21 @@ pub fn attr_result( node : Node, attr : &str ) -> anyhow::Result<String>
         node.attribute( attr ).ok_or(
             anyhow::Error::msg( "src expected" )
         )?.to_string()
+    )
+}
+
+pub fn attr_commands( node : Node, attr : &str ) -> anyhow::Result<Vec<String>>
+{
+    Ok(
+        node.attribute( attr ).ok_or(
+            anyhow::Error::msg( "src expected" )
+        )?
+        .split( "|" )
+        .filter( | s | s.trim() != "" )
+        .map(
+            | s | s.to_string()
+        )
+        .collect()
     )
 }
 

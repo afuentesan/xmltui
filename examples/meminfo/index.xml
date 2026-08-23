@@ -33,6 +33,7 @@
 		</style>
 		<template name="meminfo">
 			{% for item in ctx %}
+			{% if item | trim != "" %}
 			<layout flex="center">
 				{% for column in item | split( ":" ) %}
 					<layout>
@@ -43,12 +44,13 @@
 					</layout>
 				{% endfor %}
 			</layout>
+			{% endif %}
 			{% endfor %}
 		</template>
 	</head>
     <body flex="center" dir="vertical">
 		<layout dir="horizontal" length="5" flex="center">
-			<border title=" Meminfo " length="50" class="border" title-position="top" title-align="center" borders="top,left">
+			<border title=" Meminfo " length="50" class="border" title-position="top" title-align="center" borders="top,bottom">
 				<command exec="meminfo" refresh-sec="1" child-type="layout" child-dir="vertical" output="strvec" template="meminfo" />
 			</border>
 		</layout>
