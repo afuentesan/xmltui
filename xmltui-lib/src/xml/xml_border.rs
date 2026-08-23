@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{style::Style, widgets::{BorderType, Borders, TitlePosition}};
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_border::RTMLBorder, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment, attr_alignment_name, attr_direction, attr_flex, attr_option, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, StyleVariant, style_from_container, style_from_node}}, xml2rtml::process_node}};
+use crate::{rtml::{rtml_border::RTMLBorder, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment_name, attr_direction, attr_flex, attr_option, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml2rtml::process_node}};
 
 
 pub fn process_border( 
