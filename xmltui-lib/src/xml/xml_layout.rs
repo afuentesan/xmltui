@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_layout::RTMLLayout, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_direction, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_container}}, xml2rtml::process_node}};
+use crate::{rtml::{rtml_layout::RTMLLayout, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_direction, attr_flex, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_container}}, xml2rtml::process_node}};
 
 pub fn process_body_layout( 
     node : Node, 
@@ -59,6 +59,7 @@ fn process_container(
             RTMLNode::Layout(
                 RTMLLayout::new(
                     attr_direction( &node )?, 
+                    attr_flex( &node )?,
                     RTMLNodeCommon::new( 
                         parse_common_attrs( &node )?, 
                         childs, 

@@ -43,7 +43,9 @@ impl FromStr for StyleSelector
 
 pub enum StyleVariant
 {
-    Focus
+    Focus,
+    Border,
+    Title
 }
 
 impl ToString for StyleVariant
@@ -52,7 +54,9 @@ impl ToString for StyleVariant
     {
         match self
         {
-            StyleVariant::Focus => String::from( "focus" )
+            StyleVariant::Focus => String::from( "focus" ),
+            StyleVariant::Border => "border".to_string(),
+            StyleVariant::Title => "title".to_string()
         }
     }
 }

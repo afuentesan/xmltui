@@ -29,14 +29,41 @@
         <xs:restriction base="xs:string">
             <xs:enumeration value="str"/>
             <xs:enumeration value="strvec"/>
-            <xs:enumeration value="json"/> <!-- Nueva opción -->
+            <xs:enumeration value="json"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Nuevo: title-position base -->
+    <xs:simpleType name="titlePositionEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="top"/>
+            <xs:enumeration value="bottom"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Nuevo: flex base -->
+    <xs:simpleType name="flexEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="start"/>
+            <xs:enumeration value="end"/>
+            <xs:enumeration value="center"/>
+            <xs:enumeration value="space-around"/>
+            <xs:enumeration value="space-between"/>
+            <xs:enumeration value="space-evenly"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Nuevo: borders base (Permite top, left, right, bottom separados por coma) -->
+    <xs:simpleType name="bordersBase">
+        <xs:restriction base="xs:string">
+            <!-- Patrón: Una palabra permitida, opcionalmente seguida de coma y otra palabra permitida -->
+            <xs:pattern value="(top|bottom|left|right)(\s*,\s*(top|bottom|left|right))*"/>
         </xs:restriction>
     </xs:simpleType>
 
     <!-- ========================================== -->
     <!-- SOPORTE PARA SINTAXIS MINIJINJA EN ATRIBUTOS-->
     <!-- ========================================== -->
-    <!-- Patrón para detectar variables Jinja: {{ ... }} -->
     <xs:simpleType name="jinjaAttr">
         <xs:restriction base="xs:string">
             <xs:pattern value=".*\{\{.*\}\}.*"/>
@@ -64,6 +91,18 @@
         <xs:union memberTypes="xs:unsignedInt jinjaAttr"/>
     </xs:simpleType>
 
+    <xs:simpleType name="titlePositionType">
+        <xs:union memberTypes="titlePositionEnum jinjaAttr"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="flexType">
+        <xs:union memberTypes="flexEnum jinjaAttr"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="bordersType">
+        <xs:union memberTypes="bordersBase jinjaAttr"/>
+    </xs:simpleType>
+
     <!-- ========================================== -->
     <!-- GRUPOS Y ATRIBUTOS COMUNES                 -->
     <!-- ========================================== -->
@@ -85,6 +124,7 @@
     <xs:group name="bodyElements">
         <xs:choice>
             <xs:element ref="layout"/>
+            <xs:element ref="border"/> <!-- Incluido aquí para que pueda anidarse en todos lados -->
             <xs:element ref="line"/>
             <xs:element ref="span"/>
             <xs:element ref="input"/>
@@ -95,23 +135,35 @@
     </xs:group>
 
     <!-- ========================================== -->
-    <!-- ELEMENTOS DEL BODY Y TEMPLATE              -->
+    <!-- ELEMENTOS DEL BODY, LAYOUT, BORDER, TEMPLATE -->
     <!-- ========================================== -->
-    <!-- Se añade mixed="true" al template para soportar sintaxis Jinja como {% for %} entre nodos -->
     <xs:element name="template">
         <xs:complexType mixed="true">
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
-            <!-- Atributos para cuando va en head (name) o se carga de externo (src) -->
             <xs:attribute name="name" type="xs:string"/>
             <xs:attribute name="src" type="xs:string"/>
         </xs:complexType>
     </xs:element>
 
-    <!-- Se añade mixed="true" al layout para soportar bucles Jinja internos -->
     <xs:element name="layout">
         <xs:complexType mixed="true">
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
             <xs:attribute name="dir" type="dirType"/>
+            <xs:attribute name="flex" type="flexType"/> <!-- Se ha añadido flex -->
+            <xs:attributeGroup ref="commonBodyAttributes"/>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Nuevo elemento border -->
+    <xs:element name="border">
+        <xs:complexType mixed="true">
+            <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:attribute name="title" type="xs:string"/>
+            <xs:attribute name="title-position" type="titlePositionType"/>
+            <xs:attribute name="title-align" type="alignType"/> <!-- Comparte tipo con align -->
+            <xs:attribute name="dir" type="dirType"/>
+            <xs:attribute name="flex" type="flexType"/>
+            <xs:attribute name="borders" type="bordersType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
@@ -167,20 +219,20 @@
                 <xs:element ref="template" minOccurs="0"/>
             </xs:sequence>
             <xs:attribute name="exec" type="xs:string"/>
-            <xs:attribute name="template" type="xs:string"/> <!-- Nuevo atributo string -->
+            <xs:attribute name="template" type="xs:string"/>
             <xs:attribute name="child-type" type="xs:string"/>
             <xs:attribute name="child-align" type="alignType"/>
             <xs:attribute name="child-dir" type="dirType"/>
-            <xs:attribute name="output" type="outputType"/> <!-- Soporta json ahora -->
+            <xs:attribute name="output" type="outputType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
 
-    <!-- mixed="true" permite lógica de Minijinja justo debajo del body -->
     <xs:element name="body">
         <xs:complexType mixed="true">
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
             <xs:attribute name="dir" type="dirType"/>
+            <xs:attribute name="flex" type="flexType"/> <!-- Se ha añadido flex -->
             <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
@@ -249,7 +301,7 @@
             <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <xs:element ref="style"/>
                 <xs:element ref="code"/>
-                <xs:element ref="template"/> <!-- Se incluye el template como opción del head -->
+                <xs:element ref="template"/>
             </xs:choice>
         </xs:complexType>
     </xs:element>

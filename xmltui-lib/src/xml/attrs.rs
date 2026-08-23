@@ -1,13 +1,14 @@
 use std::{collections::HashMap, str::FromStr};
 
-use ratatui::layout::{Alignment, Constraint, Direction, Rect};
+use ratatui::layout::{Alignment, Constraint, Direction, Flex, Rect};
 use regex::regex;
 use roxmltree::Node;
 use uuid::Uuid;
 
-use crate::rtml::{rtml_attrs::CommonAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource};
+use crate::{rtml::{rtml_attrs::CommonAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource}, util::{log::log_to_file, str::str_len}, xml::xml_util::text_from_childs};
 
 const DEFAULT_DIRECTION : Direction = Direction::Horizontal;
+const DEFAULT_FLEX : Flex = Flex::Legacy;
 const DEFAULT_CONSTRAINT : Constraint = Constraint::Fill( 1 );
 const DEFAULT_ALIGNMENT : Alignment = Alignment::Left;
 
@@ -86,6 +87,33 @@ fn attr_constraint( node : &Node ) -> anyhow::Result<Constraint>
 {
     let attrs = [ "fill", "percentage", "min", "max", "length", "ratio" ];
 
+    let default = match node.tag_name().name()
+    {
+        "line" | "span" | "button" | "a" =>
+        {
+            match node.text()
+            {
+                Some( t ) => Constraint::Length( str_len( t ) as u16 ),
+                None =>
+                {
+                    let t = text_from_childs( node );
+
+                    if t == ""
+                    {
+                        Constraint::Min( 1 )
+                    }
+                    else
+                    {
+                        Constraint::Length( str_len( &t ) as u16 )    
+                    }
+                }
+            }
+        },
+        _ => DEFAULT_CONSTRAINT
+    };
+
+    log_to_file( &format!( "Default constraint: {:?}, tag: {}, text: {:?}", default, node.tag_name().name(), node.text() ) );
+
     for attr in attrs
     {
         match node.attribute( attr )
@@ -98,7 +126,7 @@ fn attr_constraint( node : &Node ) -> anyhow::Result<Constraint>
         }
     }
 
-    Ok( DEFAULT_CONSTRAINT )
+    Ok( default )
 }
 
 fn parse_attr_constraint( attr : &str, val : &str ) -> anyhow::Result<Constraint>
@@ -214,9 +242,51 @@ fn parse_attr_direction( d : &str ) -> anyhow::Result<Direction>
     }
 }
 
+pub fn attr_flex( node : &Node ) -> anyhow::Result<Flex>
+{
+    match node.attribute( "flex" )
+    {
+        Some( f ) =>
+        {
+            parse_attr_flex( f )
+        },
+        None => Ok( DEFAULT_FLEX )
+    }
+}
+
+fn parse_attr_flex( flex : &str ) -> anyhow::Result<Flex>
+{
+    match flex.trim().to_lowercase().as_str()
+    {
+        "" => Ok( DEFAULT_FLEX ),
+        "start" => Ok( Flex::Start ),
+        "end" => Ok( Flex::End ),
+        "center" => Ok( Flex::Center ),
+        "space-around" => Ok( Flex::SpaceAround ),
+        "space-between" => Ok( Flex::SpaceBetween ),
+        "space-evenly" => Ok( Flex::SpaceEvenly ),
+        "default" => Ok( Flex::Legacy ),
+        e => Err( anyhow::Error::msg(
+            format!( "{} is not a valid direction", e )
+        ) )
+    }
+}
+
 pub fn attr_alignment( node : &Node ) -> anyhow::Result<Alignment>
 {
     match node.attribute( "align" )
+    {
+        Some( d ) =>
+        {
+            parse_attr_align( d )
+        },
+        None => Ok( DEFAULT_ALIGNMENT )
+    }
+}
+
+pub fn attr_alignment_name( node : &Node, attr : &str ) -> anyhow::Result<Alignment>
+{
+    match node.attribute( attr )
     {
         Some( d ) =>
         {

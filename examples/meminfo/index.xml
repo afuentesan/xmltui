@@ -12,33 +12,45 @@
 			</args>
 		</code>
 		
+		<style>
+			{
+				".red" : {
+					"fg" : "#AA3333"
+				},
+				".blue" : {
+					"fg" : "#3333AA"
+				},
+				".title" : {
+					"add_modifier" : "UNDERLINED"
+				},
+				".border:title" : {
+					"fg" : "#33AA33"
+				},
+				".border:border" : {
+					"fg" : "#3333AA"
+				}
+			}
+		</style>
 		<template name="meminfo">
-			<layout>
-				<line align="center">Meminfo</line>
-			</layout>
 			{% for item in ctx %}
-			<layout>
+			<layout flex="center">
 				{% for column in item | split( ":" ) %}
-					<line align="{{ 'right' if loop.index0 == 0 else 'left' }}">{{ column | trim }}</line>
+					<layout>
+					<line 
+						align="{{ 'right' if loop.index0 == 0 else 'left' }}"
+						class="{{ 'blue' if loop.index0 == 0 else 'red' }}"
+					>{{ column | trim }}{{ ': ' if loop.index0 == 0 else '' }}</line>
+					</layout>
 				{% endfor %}
 			</layout>
 			{% endfor %}
 		</template>
 	</head>
-    <body dir="vertical">
-		<layout></layout>
-		<!--
-		<command exec="meminfo" refresh-sec="1" child-type="layout" child-dir="vertical" length="3" output="strvec">
-			<template>
-				{% for item in ctx %}
-				<layout>
-					<line align="center">{{ item }}</line>
-				</layout>
-				{% endfor %}
-			</template>
-		</command>
-		-->
-		<command exec="meminfo" refresh-sec="1" child-type="layout" child-dir="vertical" length="4" output="strvec" template="meminfo" />
-		<layout></layout>
+    <body flex="center" dir="vertical">
+		<layout dir="horizontal" length="5" flex="center">
+			<border title=" Meminfo " length="50" class="border" title-position="top" title-align="center" borders="top,left">
+				<command exec="meminfo" refresh-sec="1" child-type="layout" child-dir="vertical" output="strvec" template="meminfo" />
+			</border>
+		</layout>
     </body>
 </rtml>

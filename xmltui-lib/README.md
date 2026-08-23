@@ -2,24 +2,19 @@
 
 ## Todos:
 
-[-] Extraer la lógica del input a un componente genérico que puedan utilizar otros. Seguramente sea buena idea hacer un textarea genérico y el input sería un caso específico de una sola fila. 
-He hecho el componente pero de momento solo tengo el input, me falta crear el textarea y ver si se comporta bien.
+[] No me gusta mucho la lógica del input, hay que refinarla.
+
+[] Componente textarea.
 
 [x] Estilos por defecto y que los componentes focusables tengan mínimo el estilo normal y otra para cuando tengan el foco.
 
-[] Mejorar la implementación de los spans que están dentro del line. Seguramente sea mejor crear un componente genérico que se pueda utilizar tanto para líneas como para párrafos.
-
-[] Hacer que los datos de los componentes puedan venir de algún fichero. Si es un pipe se puede tener un hilo escuchando que nos devuelva línea a línea y esa línea procesarla de alguna manera que actualice el valor de uno o varios inputs. Si es un fichero dar opción para que se lea solo una vez o cada x tiempo.
-
-[] Igual que en el todo anterior pero con urls y también sse.
-
-[] Que los lines y los links tengan como constraint por defecto algo relativo al texto que contienen. Mejor, que todos los elementos puedan tener constraints por defecto solo para ellos aunque quizá la mayoría tiren de la misma función. (Los links ya no lo necesitan, el estilo se lo he puesto al span y así no ocupa todo el tamaño del line).
+[] Componente párrafo.
 
 [x] Al definir estilos poder especificar de algún modo si el estilo es para focus u otros usos. Quizá poniendo el estilo y al final :focus, por ejemplo "a:focus".
 
 [x] ¿Estilos para los layouts?, ¿color de fondo y quizá también bordes?. Ya tengo estilos para el layout, los bordes están en otro punto y hay que hacerlos para todos los elementos.
 
-[] Bordes para cualquier elemento
+[x] Bordes para cualquier elemento. (Se crea un elemento border que puede contener cualquier otro elemento)
 
 [] Que se puedan definir estilos teniendo en cuenta los elementos que contienen a otro. Igual que en css puedes hacer "p .red", quiere decir todos los elementos que estén dentro de un p y tengan la clase red.
 
@@ -39,9 +34,9 @@ He hecho el componente pero de momento solo tengo el input, me falta crear el te
 
 [] Poder enviar el value de un nodo a los comandos
 
-[] Poder recuperar información de la aplicación desde un comando
-
 [] Tener un atributo data-from-node que pueda tener una lista de ids separados por coma. Cuando se ejecute un comando se le podrán pasar los data de todos los nodos especificados.
+
+[] Que se puedan modificar los atributos data de un nodo desde la respuesta de un comando.
 
 [] Tener un atributo value-from-node que pueda tener una lista de ids separados por coma. Cuando se ejecute un comando se le podrán pasar los values de todos los nodos especificados.
 
@@ -62,13 +57,11 @@ Por otro lado si cargas parte de un documento desde un comando tampoco se están
 
 [] Cuando lanzo un comando desde un botón no estoy enviando el id del botón. Tengo que ver si aporta algo enviarlo.
 
-[] Que la aplicación pueda tener un contexto que se alimente con comandos ejecutados al inicio y que pueda cambiar con eventos.
+[x] Cuando haya un contexto poder utilizar algún tipo de sintaxis para coger el valor del contexto. Algo como {nombre} que se pueda utilizar en atributos, en textos y también de forma intercalada con el texto.
 
-[] Cuando haya un contexto poder utilizar algún tipo de sintaxis para coger el valor del contexto. Algo como {nombre} que se pueda utilizar en atributos, en textos y también de forma intercalada con el texto.
+[x] Que pueda haber condicionales en el xml.
 
-[] Que pueda haber condicionales en el xml.
-
-[] Que pueda haber loops en el xml.
+[x] Que pueda haber loops en el xml.
 
 [] Que se puedan mostrar y ocultar nodos
 
@@ -83,3 +76,9 @@ Por otro lado si cargas parte de un documento desde un comando tampoco se están
 [] Que se puedan concatenar comandos como en bash comando1 | comando2... La salida de uno será la entrada del otro. Habrá que ver como especificar si la salida se pone en una variable de entorno del siguiente comando o en un argumento.
 
 [] Pasar métodos comunes de xml a xml_util
+
+[] Hay que revisar la implementación que permite reemplazar nodos desde un callback. Hay que poder utilizar templates.
+
+[] sse para los command y que el comando se ejecute cada vez que llegue un evento. El evento hay que pasarlo como parámetro al comando. Quizá con un atributo refresh-sse.
+
+[] Poder definir estilos directamente en los nodos con atributos fg, bg, etc...

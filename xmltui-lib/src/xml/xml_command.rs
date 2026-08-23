@@ -54,6 +54,7 @@ fn output_from_str( str : &str ) -> RTMLCommandOutput
     match str
     {
         "strvec" => RTMLCommandOutput::StrVec,
+        "json" => RTMLCommandOutput::Json,
         _ => RTMLCommandOutput::String
     }
 }

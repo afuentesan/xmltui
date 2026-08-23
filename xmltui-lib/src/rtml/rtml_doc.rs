@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Layout, Rect}, style::Style};
+use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect}, style::Style};
 use tokio_util::sync::CancellationToken;
 
-use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_button::render_rtml_button, rtml_command::RTMLCommandOutput, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}}, xml::styles::xml_style::StyleSelector};
+use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::RTMLCommandOutput, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}}, xml::styles::xml_style::StyleSelector};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -254,6 +254,7 @@ impl RTMLDoc
                     RTMLNode::Line( _ ) |
                     RTMLNode::Link( _ ) |
                     RTMLNode::Button( _ ) |
+                    RTMLNode::Border( _ ) |
                     RTMLNode::Span( _ ) => {}
                 }
             }
@@ -690,7 +691,13 @@ fn render_node_and_get_child_areas(
         {
             render_rtml_layout( l, area, buf );
             
-            child_areas( root.childs(), &l.direction, area, doc )
+            child_areas( root.childs(), &l.direction, &l.flex, area, doc )
+        },
+        RTMLNode::Border( b ) =>
+        {
+            let inner_area = render_rtml_border( b, area, buf );
+
+            child_areas( root.childs(), &b.direction, &b.flex, inner_area, doc )
         },
         RTMLNode::Line( l ) =>
         {
@@ -718,7 +725,7 @@ fn render_node_and_get_child_areas(
         },
         RTMLNode::Command( _ ) =>
         {
-            child_areas( root.childs(), &Direction::Horizontal, area, doc )
+            child_areas( root.childs(), &Direction::Horizontal, &Flex::Legacy, area, doc )
         },
         RTMLNode::Span( _ ) =>
         {
@@ -730,6 +737,7 @@ fn render_node_and_get_child_areas(
 fn child_areas(
     childs : &Vec<RTMLNodeId>,
     direction : &Direction,
+    flex : &Flex,
     area : Rect,
     doc : &RTMLDoc
 ) -> anyhow::Result<Vec<Rect>>
@@ -764,7 +772,7 @@ fn child_areas(
         }
     };
 
-    let areas = calc_areas( area, direction, constraints );
+    let areas = calc_areas( area, direction, flex, constraints );
 
     Ok( areas )
 }
@@ -791,6 +799,7 @@ fn childs_constraint<'a, 'b>(
 fn calc_areas(
     container : Rect,
     direction : &Direction,
+    flex : &Flex,
     constraints : &[&Constraint]
 ) -> Vec<Rect>
 {
@@ -798,11 +807,11 @@ fn calc_areas(
     {
         Direction::Horizontal =>
         {
-            container.layout_vec( &Layout::horizontal( constraints.to_vec() ) ).to_vec()
+            container.layout_vec( &Layout::horizontal( constraints.to_vec() ).flex( *flex ) ).to_vec()
         },
         Direction::Vertical =>
         {
-            container.layout_vec( &Layout::vertical( constraints.to_vec() ) ).to_vec()
+            container.layout_vec( &Layout::vertical( constraints.to_vec() ).flex( *flex ) ).to_vec()
         }
     }
 }

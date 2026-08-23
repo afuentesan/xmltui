@@ -10,3 +10,4 @@ pub mod rtml_source;
 pub mod util;
 pub mod rtml_command;
 pub mod rtml_button;
+pub mod rtml_border;

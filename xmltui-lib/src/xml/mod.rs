@@ -11,3 +11,4 @@ pub mod xml_button;
 pub mod xml_event;
 pub mod xml_util;
 pub mod xml_template;
+pub mod xml_border;
