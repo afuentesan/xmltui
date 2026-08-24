@@ -1,6 +1,6 @@
-use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
+use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::Line, widgets::Widget};
 
-use crate::rtml::{rtml_doc::RTMLDoc, rtml_line, rtml_node::RTMLNodeCommon, rtml_padding::HorizontalPadding, rtml_span::{padding_span, spans_from_childs}};
+use crate::rtml::{rtml_doc::RTMLDoc, rtml_node::RTMLNodeCommon, rtml_padding::HorizontalPadding, rtml_span::{padding_span, spans_from_childs}};
 
 
 #[derive(Debug)]
