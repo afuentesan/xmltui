@@ -261,7 +261,7 @@ impl RTMLDoc
         }
     }
 
-    fn executors_from_ids( &self, ids : &Vec<String> ) -> Option<Vec<Executor>>
+    pub fn executors_from_ids( &self, ids : &Vec<String> ) -> Option<Vec<Executor>>
     {
         let mut executors = vec![];
 

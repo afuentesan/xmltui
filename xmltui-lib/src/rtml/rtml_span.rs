@@ -1,6 +1,6 @@
 use ratatui::{style::Style, text::Span};
 
-use crate::rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeCommon}};
+use crate::rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeCommon}, rtml_padding::HorizontalPadding};
 
 
 #[derive(Debug)]
@@ -8,14 +8,15 @@ pub struct RTMLSpan
 {
     pub common : RTMLNodeCommon,
     pub text : String,
-    pub style : Style
+    pub style : Style,
+    pub padding : HorizontalPadding
 }
 
 impl RTMLSpan
 {
-    pub fn new( text : String, common : RTMLNodeCommon, style : Style ) -> Self
+    pub fn new( text : String, common : RTMLNodeCommon, style : Style, padding : HorizontalPadding ) -> Self
     {
-        Self { text, common, style }
+        Self { text, common, style, padding }
     }
 
     pub fn replace_value( &mut self, new_value : String ) -> bool
@@ -43,12 +44,16 @@ pub fn spans_from_childs<'a>(
         {
             RTMLNode::Span( s ) =>
             {
+                if s.padding.left > 0 { spans.push( padding_span( s.padding.left, s.style ) ); }
+
                 if s.text.len() > 0
                 {
                     let span = Span::from( s.text.as_str() ).style( s.style );
 
                     spans.push( span );
                 }
+
+                if s.padding.right > 0 { spans.push( padding_span( s.padding.right, s.style ) ); }
             },
             RTMLNode::Command( c ) =>
             {
@@ -66,4 +71,9 @@ pub fn spans_from_childs<'a>(
     }
     
     Ok( spans )
+}
+
+pub fn padding_span<'a>( padding : usize, style : Style ) -> Span<'a>
+{
+    Span::from( " ".repeat( padding ) ).style( style )
 }

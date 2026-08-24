@@ -325,16 +325,23 @@ pub fn attr_result( node : Node, attr : &str ) -> anyhow::Result<String>
 pub fn attr_commands( node : Node, attr : &str ) -> anyhow::Result<Vec<String>>
 {
     Ok(
-        node.attribute( attr ).ok_or(
-            anyhow::Error::msg( "src expected" )
-        )?
-        .split( "|" )
-        .filter( | s | s.trim() != "" )
-        .map(
-            | s | s.to_string()
+        attr_comands_from_str(
+            node.attribute( attr ).ok_or(
+                anyhow::Error::msg( format!( "{} expected", attr ) )
+            )?
         )
-        .collect()
     )
+}
+
+pub fn attr_comands_from_str( str : &str ) -> Vec<String>
+{
+    str
+    .split( "|" )
+    .filter( | s | s.trim() != "" )
+    .map(
+        | s | s.to_string()
+    )
+    .collect()
 }
 
 pub fn attr_option( node : Node, attr : &str ) -> Option<String>

@@ -115,10 +115,18 @@
         <style>
             {
                 ".red" : {
-                    "bg" : "#ff0000"
+                    "bg" : "#aa3333"
                 },
-                ".bg-transparent" : {
-                    "bg" : "Reset"
+                ".label-cpu" : {
+                    "bg" : "#333333",
+                    "fg" : "#aaaaff"
+                },
+                "border" : {
+                    "bg" : "#333333",
+                    "fg" : "#aaffaa"
+                },
+                "line, layout, body" : {
+                    "bg" : "#333333"
                 }
             }
         </style>
@@ -127,14 +135,22 @@
         <command exec="read-cpuinfo|parse-info" refresh-ms="10" output="json" dir="vertical" flex="center">
             <template>
                 <layout dir="horizontal" flex="center" length="{{ ( ctx | length ) + 2 }}">
-                    <border title="Cpuinfo" dir="vertical" max="110" flex="center">
+                    <border title="Cpuinfo" dir="vertical" max="109" flex="center">
                         {% for uso in ctx %}
                         <layout flex="start" length="1">
-                            <line length="7" align="right">{{ uso.cpu }}: </line>
+                            <line length="6" align="right" class="label-cpu" padding="0,1">
+                                {% if uso.cpu == "cpu" %}
+                                    all:
+                                {% else %}
+                                    {{ uso.cpu | replace( "cpu", "" ) }}:
+                                {% endif %}
+                                
+                            </line>
                             {% set porcentaje = ( uso.uso | round ) | int %}
                             {% set porcentaje_str = ( porcentaje | string ) + "%" %}
+                            {% set porcentaje_str_len = porcentaje_str | length %}
                             {% for i in range( porcentaje ) %}
-                                <line length="1" class="red">{% if porcentaje_str | length > i %}{{ porcentaje_str[ i ] }}{% else %} {% endif %}</line>
+                                <line length="1" class="red">{% if porcentaje_str_len > i %}{{ porcentaje_str[ i ] }}{% else %} {% endif %}</line>
                             {% endfor %}
                             <line>{{ porcentaje_str[porcentaje:] }}</line>
                         </layout>

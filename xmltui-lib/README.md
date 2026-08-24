@@ -77,7 +77,7 @@ Por otro lado si cargas parte de un documento desde un comando tampoco se están
 
 [] Pasar métodos comunes de xml a xml_util
 
-[] Hay que revisar la implementación que permite reemplazar nodos desde un callback. Hay que poder utilizar templates.
+[x] Hay que revisar la implementación que permite reemplazar nodos desde un callback. Hay que poder utilizar templates.
 
 [] sse para los command y que el comando se ejecute cada vez que llegue un evento. El evento hay que pasarlo como parámetro al comando. Quizá con un atributo refresh-sse.
 
@@ -90,3 +90,5 @@ Por otro lado si cargas parte de un documento desde un comando tampoco se están
 [] Ventanas flotantes
 
 [] Mensajes toast
+
+[] Añadir más atributos en los estilos. Ahora los line y los span pueden tener padding left y right, estaría bien poder poner eso en los estilos.

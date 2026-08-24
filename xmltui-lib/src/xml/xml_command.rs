@@ -51,7 +51,7 @@ fn output_from_node( node : Node ) -> RTMLCommandOutput
     }
 }
 
-fn output_from_str( str : &str ) -> RTMLCommandOutput
+pub fn output_from_str( str : &str ) -> RTMLCommandOutput
 {
     match str
     {

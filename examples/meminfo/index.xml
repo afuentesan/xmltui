@@ -40,7 +40,10 @@
 					<line 
 						align="{{ 'right' if loop.index0 == 0 else 'left' }}"
 						class="{{ 'blue' if loop.index0 == 0 else 'red' }}"
-					>{{ column | trim }}{{ ': ' if loop.index0 == 0 else '' }}</line>
+						padding-right="1"
+					>
+						{{ column | trim }}{{ ': ' if loop.index0 == 0 else '' }}
+					</line>
 					</layout>
 				{% endfor %}
 			</layout>

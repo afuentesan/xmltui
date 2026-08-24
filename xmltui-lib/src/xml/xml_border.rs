@@ -42,8 +42,8 @@ pub fn process_border(
                     title_position( node ),
                     attr_alignment_name( &node, "title-align" )?,
                     style_from_node( node, styles, default_normal_style(), None ),
-                    style_from_node( node, styles, default_normal_style(), Some( StyleVariant::Title ) ),
-                    style_from_node( node, styles, default_normal_style(), Some( StyleVariant::Border ) ),
+                    style_from_node( node, styles, Style::default(), Some( StyleVariant::Title ) ),
+                    style_from_node( node, styles, Style::default(), Some( StyleVariant::Border ) ),
                     attr_direction( &node )?,
                     attr_flex( &node )?,
                     RTMLNodeCommon::new( 

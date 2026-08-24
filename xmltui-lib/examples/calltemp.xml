@@ -1,0 +1,39 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="schema.xsd">
+    
+    <head>
+
+        <code command="/usr/bin/head" name="mem">
+            <args>
+                <arg>-3</arg>
+                <arg>/proc/meminfo</arg>
+            </args>
+        </code>
+
+        <code command="/usr/bin/head" name="cpu">
+            <args>
+                <arg>-3</arg>
+                <arg>/proc/stat</arg>
+            </args>
+        </code>
+
+        <template name="generic">
+            <layout id="content" dir="vertical">
+            {% for i in ctx %}
+                <layout>
+                    <line>{{ i }}</line>
+                </layout>
+            {% endfor %}
+            </layout>
+        </template>
+    </head>
+    <body dir="vertical">
+        <layout id="content"></layout>
+
+        <layout>
+            <button enter="mem" enter-replace-node="content" enter-template="generic" enter-output="strvec">Meminfo</button>
+            <button enter="cpu" enter-replace-node="content" enter-template="generic" enter-output="strvec">Cpuinfo</button>
+        </layout>
+    </body>
+
+</rtml>

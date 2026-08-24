@@ -134,7 +134,7 @@ impl ExecutorBuilder
 
 }
 
-pub async fn execute_command( 
+async fn execute_command( 
     executor: &Executor,
     node_data : &HashMap<String, String>
 ) -> anyhow::Result<ExecutorOutput> 
