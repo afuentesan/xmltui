@@ -391,20 +391,6 @@ impl RTMLDoc
         }
     }
 
-    pub fn append_child( &mut self, node_id : RTMLNodeId, child : RTMLNode, child_id : RTMLNodeId )
-    {
-        match self.doc.get_mut( &node_id )
-        {
-            Some( n ) =>
-            {
-                n.childs_mut().push( child_id.clone() );
-
-                self.doc.insert( child_id, child );
-            },
-            None => {}
-        }
-    }
-
     pub fn append_child_at_position( 
         &mut self, 
         node_id : RTMLNodeId, 

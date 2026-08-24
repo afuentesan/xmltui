@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::{StyleSelector, styles_from_head}, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::process_line, xml_link::process_link, xml_template::templates_from_parent}};
+use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::{StyleSelector, styles_from_head}, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::process_line, xml_link::process_link, xml_template::templates_from_parent}};
 
 pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
 {
@@ -116,19 +116,21 @@ pub fn replace_node_childs_with_xml(
         return Err( anyhow::Error::msg( format!( "No existe el nodo con id {node_id}" ) ) ); 
     };
 
-    let doc = roxmltree::Document::parse(xml )?;
+    let xml = format!( "<container>{xml}</container>" );
+
+    let doc = roxmltree::Document::parse(&xml )?;
 
     rtml_doc.remove_childs_nodes( &node_id );
 
-    let ( root, root_id ) = process_first_node( 
+    process_first_node( 
         doc.root_element(), 
         rtml_doc, 
         Some( node_id.clone() ),
-        xml
-    )?
-    .ok_or( anyhow::Error::msg( "No root element" ) )?;
+        &xml
+    )?;
+    //.ok_or( anyhow::Error::msg( "No root element" ) )?;
 
-    rtml_doc.append_child( node_id, root, root_id );
+    // rtml_doc.append_child( node_id, root, root_id );
     
     rtml_doc.sort_nodes();
 
@@ -201,6 +203,17 @@ pub fn process_node(
         "border" =>
         {
             Ok( Some( process_border( node, nodos, parent_id, styles, xml )? ) )
+        },
+        "container" =>
+        {
+            if parent_id.is_none() || nodos.get( parent_id.as_ref().unwrap() ).is_none()
+            {
+                return Err( anyhow::Error::msg( "El nodo container siempre debe tener un parent_id y debe estar ya entre los nodos." ) )
+            }
+
+            process_childs_container( node, nodos, parent_id.unwrap(), styles, xml )?;
+
+            Ok( None )
         },
         _ => Ok( None )
     }

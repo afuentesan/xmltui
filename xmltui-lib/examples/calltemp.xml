@@ -18,21 +18,19 @@
         </code>
 
         <template name="generic">
-            <layout id="content" dir="vertical">
             {% for i in ctx %}
                 <layout>
                     <line>{{ i }}</line>
                 </layout>
             {% endfor %}
-            </layout>
         </template>
     </head>
     <body dir="vertical">
-        <layout id="content"></layout>
+        <layout id="content" dir="vertical"></layout>
 
         <layout>
-            <button enter="mem" enter-replace-node="content" enter-template="generic" enter-output="strvec">Meminfo</button>
-            <button enter="cpu" enter-replace-node="content" enter-template="generic" enter-output="strvec">Cpuinfo</button>
+            <button enter="mem" enter-replace-childs="content" enter-template="generic" enter-output="strvec">Meminfo</button>
+            <button enter="cpu" enter-replace-childs="content" enter-template="generic" enter-output="strvec">Cpuinfo</button>
         </layout>
     </body>
 
