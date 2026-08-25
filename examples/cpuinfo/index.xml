@@ -134,8 +134,8 @@
     <body>
         <command exec="read-cpuinfo|parse-info" refresh-ms="10" output="json" dir="vertical" flex="center">
             <template>
-                <layout dir="horizontal" flex="center" length="{{ ( ctx | length ) + 2 }}">
-                    <border title="Cpuinfo" dir="vertical" max="109" flex="center">
+                <layout dir="horizontal" flex="center" length="{{ ( ctx | length ) + 4 }}">
+                    <border title="Cpuinfo" dir="vertical" max="111" flex="center" padding="1,1,1,1">
                         {% for uso in ctx %}
                         <layout flex="start" length="1">
                             <line length="6" align="right" class="label-cpu" padding="0,1">

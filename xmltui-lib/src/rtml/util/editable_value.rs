@@ -297,5 +297,12 @@ pub fn editable_value_to_spans(
 
 fn cursor_style( style : Style ) -> Style
 {
-    style.add_modifier( Modifier::REVERSED )
+    if style.has_modifier( Modifier::REVERSED )
+    {
+        style.remove_modifier( Modifier::REVERSED )
+    }
+    else
+    {
+        style.add_modifier( Modifier::REVERSED )    
+    }
 }

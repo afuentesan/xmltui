@@ -1,6 +1,7 @@
 use roxmltree::Node;
+use unicode_width::UnicodeWidthStr;
 
-use crate::{rtml::rtml_padding::HorizontalPadding, util::str::str_len};
+use crate::rtml::rtml_padding::{HorizontalPadding, RTMLPadding};
 
 pub fn node_text_len_y_horizontal_padding( node : &Node ) -> usize
 {
@@ -14,7 +15,7 @@ pub fn node_text_len_y_horizontal_padding( node : &Node ) -> usize
         {
             if let Some( t ) = child.text()
             {
-                len += str_len( &t.replace( "\n", "" ).trim() );
+                len += &t.replace( "\n", "" ).trim().width();
             }
         }
         else if child.tag_name().name() == "span"
@@ -25,7 +26,7 @@ pub fn node_text_len_y_horizontal_padding( node : &Node ) -> usize
 
             if let Some( t ) = child.text()
             {
-                len += str_len( &t.replace( "\n", "" ).trim() );
+                len += &t.replace( "\n", "" ).trim().width();
             }
         }
     }
@@ -89,4 +90,71 @@ pub fn horizontal_padding_from_node( node : &Node ) -> HorizontalPadding
     }
 
     HorizontalPadding::new( left, right )
+}
+
+pub fn container_padding_from_node( node : Node ) -> RTMLPadding
+{
+    let mut padding = padding_all( node, "padding" );
+
+    if let Some( p ) = padding_attr( node, "padding-top" )
+    {
+        padding[ 0 ] = p;
+    }
+
+    if let Some( p ) = padding_attr( node, "padding-right" )
+    {
+        padding[ 1 ] = p;
+    }
+
+    if let Some( p ) = padding_attr( node, "padding-bottom" )
+    {
+        padding[ 2 ] = p;
+    }
+
+    if let Some( p ) = padding_attr( node, "padding-left" )
+    {
+        padding[ 3 ] = p;
+    }
+
+    RTMLPadding::new( padding[ 0 ], padding[ 1 ], padding[ 2 ], padding[ 3 ] )
+}
+
+fn padding_all( node : Node, attr : &str ) -> [ usize; 4 ]
+{
+    if let Some( p ) = node.attribute( attr )
+    {
+        let mut padding = [ 0, 0, 0, 0 ];
+
+        for ( i, s ) in p.split( "," ).enumerate()
+        {
+            padding[ i ] = parse_padding( s );
+        }
+
+        padding
+    }
+    else
+    {
+        [ 0, 0, 0, 0 ]
+    }
+}
+
+fn padding_attr( node : Node, attr : &str ) -> Option<usize>
+{
+    if let Some( p ) = node.attribute( attr ) && p.trim() != ""
+    {
+        Some( parse_padding( p ) )
+    }
+    else
+    {
+        None
+    }
+}
+
+fn parse_padding( padding : &str ) -> usize
+{
+    match padding.trim().parse::<usize>()
+    {
+        Ok( n ) => n,
+        _ => 0
+    }
 }

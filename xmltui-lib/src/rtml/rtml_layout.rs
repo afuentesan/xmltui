@@ -1,22 +1,21 @@
-use ratatui::{buffer::Buffer, layout::{Direction, Flex, Rect}, style::Style};
+use ratatui::{buffer::Buffer, layout::Rect, style::Style};
 
-use crate::{rtml::rtml_node::RTMLNodeCommon, util::draw::clear_area};
+use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_node::RTMLNodeCommon}, util::draw::clear_area};
 
 
 #[derive(Debug)]
 pub struct RTMLLayout 
 {
     pub common : RTMLNodeCommon,
-    pub direction : Direction,
-    pub flex : Flex,
+    pub container : ContainerAttrs,
     pub style : Option<Style>
 }
 
 impl RTMLLayout
 {
-    pub fn new( direction : Direction, flex : Flex, common : RTMLNodeCommon, style : Option<Style> ) -> Self
+    pub fn new( common : RTMLNodeCommon, container : ContainerAttrs, style : Option<Style> ) -> Self
     {
-        Self { direction, common, style, flex }
+        Self { common, container, style }
     }
 }
 

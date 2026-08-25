@@ -3,14 +3,14 @@ use std::{collections::HashMap, time::Duration};
 use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_direction, attr_flex, attr_option, attr_result, id_retry_if_exists, parse_common_attrs}, styles::xml_style::StyleSelector, xml_util::template_from_inner_node}};
+use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_container}}, xml_util::template_from_inner_node}};
 
 // TODO: No se si usaré los styles, quiza haga como en el layout que pinta el fondo del estilo que sea
 pub fn process_command( 
     node : Node, 
     nodos : &HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    _styles : &HashMap<StyleSelector, Style>,
+    styles : &HashMap<StyleSelector, Style>,
     xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
@@ -29,8 +29,8 @@ pub fn process_command(
                         vec![], 
                         parent_id
                     ),
-                    attr_direction( &node )?, 
-                    attr_flex( &node )?,
+                    container_attrs( node )?,
+                    style_from_container( node, styles, default_normal_style() ),
                     wrapper_from_node( node ),
                     attr_option( node, "template" ),
                     template_from_inner_node( node, xml ),

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{style::Style, widgets::{BorderType, Borders, TitlePosition}};
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_border::RTMLBorder, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment_name, attr_direction, attr_flex, attr_option, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml2rtml::process_node}};
+use crate::{rtml::{rtml_border::RTMLBorder, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment_name, attr_option, container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml2rtml::process_node}};
 
 
 pub fn process_border( 
@@ -44,8 +44,7 @@ pub fn process_border(
                     style_from_node( node, styles, default_normal_style(), None ),
                     style_from_node( node, styles, Style::default(), Some( StyleVariant::Title ) ),
                     style_from_node( node, styles, Style::default(), Some( StyleVariant::Border ) ),
-                    attr_direction( &node )?,
-                    attr_flex( &node )?,
+                    container_attrs( node )?,
                     RTMLNodeCommon::new( 
                         parse_common_attrs( &node )?, 
                         childs, 

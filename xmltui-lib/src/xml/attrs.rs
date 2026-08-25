@@ -5,7 +5,7 @@ use regex::regex;
 use roxmltree::Node;
 use uuid::Uuid;
 
-use crate::{rtml::{rtml_attrs::CommonAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource}, xml::xml_padding::node_text_len_y_horizontal_padding};
+use crate::{rtml::{rtml_attrs::{CommonAttrs, ContainerAttrs}, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource}, xml::xml_padding::{container_padding_from_node, node_text_len_y_horizontal_padding}};
 
 const DEFAULT_DIRECTION : Direction = Direction::Horizontal;
 const DEFAULT_FLEX : Flex = Flex::Legacy;
@@ -361,4 +361,9 @@ pub fn attr_source( node : Node ) -> anyhow::Result<RTMLSource>
     )?;
 
     Ok( RTMLSource::File( source.to_string() ) )
+}
+
+pub fn container_attrs( node : Node ) -> anyhow::Result<ContainerAttrs>
+{
+    Ok( ContainerAttrs::new( attr_direction( &node )?, attr_flex( &node )?, container_padding_from_node( node ) ) )
 }

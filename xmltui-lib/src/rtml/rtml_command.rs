@@ -1,8 +1,9 @@
 use std::{collections::HashMap, time::Duration};
 
-use ratatui::layout::{Direction, Flex};
 
-use crate::rtml::rtml_node::{RTMLNodeCommon, XMLNodeWrapper};
+use ratatui::{buffer::Buffer, layout::Rect, style::Style};
+
+use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_node::{RTMLNodeCommon, XMLNodeWrapper}}, util::draw::clear_area};
 
 #[derive(Debug, Clone, Copy)]
 pub enum RTMLCommandOutput
@@ -16,8 +17,8 @@ pub enum RTMLCommandOutput
 pub struct RTMLCommand
 {
     pub common : RTMLNodeCommon,
-    pub direction : Direction,
-    pub flex : Flex,
+    pub container : ContainerAttrs,
+    pub style : Option<Style>,
     pub executors : Vec<String>,
     pub refresh : CommandRefresh,
     pub child : Option<XMLNodeWrapper>,
@@ -32,8 +33,8 @@ impl RTMLCommand
         executors : Vec<String>, 
         refresh : CommandRefresh, 
         common : RTMLNodeCommon, 
-        direction : Direction,
-        flex : Flex,
+        container : ContainerAttrs,
+        style : Option<Style>,
         child : Option<XMLNodeWrapper>,
         template_name : Option<String>,
         template : Option<String>,
@@ -43,8 +44,8 @@ impl RTMLCommand
         Self 
         { 
             common, 
-            direction,
-            flex,
+            container,
+            style,
             executors, 
             refresh,
             child,
@@ -70,4 +71,20 @@ pub enum CommandRefresh
 {
     Once,
     Repeat( Duration )
+}
+
+pub fn render_rtml_command(
+    layout : &RTMLCommand,
+    area : Rect,
+    buf : &mut Buffer
+)
+{
+    match layout.style
+    {
+        Some( s ) =>
+        {
+            clear_area( area, s, buf );
+        },
+        None => {}
+    }
 }

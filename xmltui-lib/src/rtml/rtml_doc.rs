@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect}, style::Style};
 use tokio_util::sync::CancellationToken;
 
-use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::RTMLCommandOutput, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}}, util::log::log_to_file, xml::styles::xml_style::StyleSelector};
+use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding}, util::log::log_to_file, xml::styles::xml_style::StyleSelector};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -650,11 +650,6 @@ fn render_node(
 
     // TODO: Probablemente aquí haya que ver si hay que hacer scroll. Si la longitud de childs es mayor que areas habrá que hacer scroll
 
-    // if childs.len() > areas.len()
-    // {
-    //     log_to_file( &format!( "CL: {}, AL: {}", childs.len(), areas.len() ) );
-    // }
-
     for i in 0..areas.len()
     {
         let area = areas[ i ];
@@ -698,13 +693,19 @@ fn render_node_and_get_child_areas(
         {
             render_rtml_layout( l, area, buf );
             
-            child_areas( root.childs(), &l.direction, &l.flex, area, doc )
+            child_areas( root.childs(), &l.container.direction, &l.container.flex, &l.container.padding, area, doc )
         },
         RTMLNode::Border( b ) =>
         {
             let inner_area = render_rtml_border( b, area, buf );
 
-            child_areas( root.childs(), &b.direction, &b.flex, inner_area, doc )
+            child_areas( root.childs(), &b.container.direction, &b.container.flex, &b.container.padding, inner_area, doc )
+        },
+        RTMLNode::Command( c ) =>
+        {
+            render_rtml_command( c, area, buf );
+
+            child_areas( root.childs(), &c.container.direction, &c.container.flex, &c.container.padding, area, doc )
         },
         RTMLNode::Line( l ) =>
         {
@@ -730,10 +731,6 @@ fn render_node_and_get_child_areas(
 
             Ok( vec![] )
         },
-        RTMLNode::Command( c ) =>
-        {
-            child_areas( root.childs(), &c.direction, &c.flex, area, doc )
-        },
         RTMLNode::Span( _ ) =>
         {
             Err( anyhow::Error::msg( "Span not expected" ) )
@@ -745,10 +742,13 @@ fn child_areas(
     childs : &Vec<RTMLNodeId>,
     direction : &Direction,
     flex : &Flex,
+    padding : &RTMLPadding,
     area : Rect,
     doc : &RTMLDoc
 ) -> anyhow::Result<Vec<Rect>>
 {
+    let area = area_con_padding( area, padding );
+
     let constraints = childs_constraint( childs, doc )?;
 
     let childs_len = childs.len();
@@ -782,6 +782,29 @@ fn child_areas(
     let areas = calc_areas( area, direction, flex, constraints );
 
     Ok( areas )
+}
+
+fn area_con_padding( mut area : Rect, padding : &RTMLPadding ) -> Rect
+{
+    let top_y_bottom = padding.vertical.top + padding.vertical.bottom;
+
+    if top_y_bottom < area.height as usize
+    {
+        area.y = area.y + padding.vertical.top as u16;
+
+        area.height = area.height - top_y_bottom as u16;
+    }
+
+    let left_y_right = padding.horizontal.left + padding.horizontal.right;
+
+    if left_y_right < area.width as usize
+    {
+        area.x = area.x + padding.horizontal.left as u16;
+
+        area.width = area.width - left_y_right as u16;
+    }
+
+    area
 }
 
 fn childs_constraint<'a, 'b>(

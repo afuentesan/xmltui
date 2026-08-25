@@ -1,13 +1,12 @@
-use ratatui::{buffer::Buffer, layout::{Alignment, Direction, Flex, Rect}, style::Style, widgets::{Block, BorderType, Borders, TitlePosition, Widget}};
+use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, widgets::{Block, BorderType, Borders, TitlePosition, Widget}};
 
-use crate::rtml::rtml_node::RTMLNodeCommon;
+use crate::rtml::{rtml_attrs::ContainerAttrs, rtml_node::RTMLNodeCommon};
 
 #[derive(Debug)]
 pub struct RTMLBorder
 {
     pub common : RTMLNodeCommon,
-    pub direction : Direction,
-    pub flex : Flex,
+    pub container : ContainerAttrs,
     pub borders : Borders,
     pub border_type : BorderType,
     pub style : Style,
@@ -29,12 +28,11 @@ impl RTMLBorder
         style : Style,
         title_style : Style,
         border_style : Style,
-        direction : Direction,
-        flex : Flex,
+        container : ContainerAttrs,
         common : RTMLNodeCommon
     ) -> Self
     {
-        Self { common, borders, border_type, style, title_style, border_style, title, title_position, title_alignment, direction, flex }
+        Self { common, borders, border_type, style, title_style, border_style, title, title_position, title_alignment, container }
     }
 }
 
