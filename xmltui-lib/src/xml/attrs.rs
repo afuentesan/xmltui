@@ -5,7 +5,7 @@ use regex::regex;
 use roxmltree::Node;
 use uuid::Uuid;
 
-use crate::{rtml::{rtml_attrs::CommonAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource}, util::str::str_len, xml::xml_util::text_from_childs};
+use crate::{rtml::{rtml_attrs::CommonAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource}, xml::xml_padding::node_text_len_y_horizontal_padding};
 
 const DEFAULT_DIRECTION : Direction = Direction::Horizontal;
 const DEFAULT_FLEX : Flex = Flex::Legacy;
@@ -87,31 +87,6 @@ fn attr_constraint( node : &Node ) -> anyhow::Result<Constraint>
 {
     let attrs = [ "fill", "percentage", "min", "max", "length", "ratio" ];
 
-    let default = match node.tag_name().name()
-    {
-        "line" | "span" | "button" | "a" =>
-        {
-            match node.text()
-            {
-                Some( t ) => Constraint::Length( str_len( t ) as u16 ),
-                None =>
-                {
-                    let t = text_from_childs( node );
-
-                    if t == ""
-                    {
-                        Constraint::Min( 1 )
-                    }
-                    else
-                    {
-                        Constraint::Length( str_len( &t ) as u16 )    
-                    }
-                }
-            }
-        },
-        _ => DEFAULT_CONSTRAINT
-    };
-
     for attr in attrs
     {
         match node.attribute( attr )
@@ -124,7 +99,34 @@ fn attr_constraint( node : &Node ) -> anyhow::Result<Constraint>
         }
     }
 
+    let default = match node.tag_name().name()
+    {
+        "line" | "span" | "button" | "a" =>
+        {
+            match horizontal_text_length_from_node( node )
+            {
+                Some( l ) => Constraint::Length( l as u16 ),
+                None => DEFAULT_CONSTRAINT    
+            }
+        },
+        _ => DEFAULT_CONSTRAINT
+    };
+
     Ok( default )
+}
+
+fn horizontal_text_length_from_node( node : &Node ) -> Option<usize>
+{
+    let len = node_text_len_y_horizontal_padding( node );
+
+    if len > 0
+    {
+        Some( len )
+    }
+    else
+    {
+        None    
+    }
 }
 
 fn parse_attr_constraint( attr : &str, val : &str ) -> anyhow::Result<Constraint>

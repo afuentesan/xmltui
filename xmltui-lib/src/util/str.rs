@@ -1,24 +1,50 @@
 use unicode_segmentation::UnicodeSegmentation;
+use unicode_width::UnicodeWidthStr;
 
 
 pub fn str_len( str : &str ) -> usize
 {
-    str.chars().count()
+    str.graphemes( true ).count()
 }
 
-pub fn substr( str : &str, from : usize, to : usize ) -> &str
+pub fn take_width<'a>( text: &'a str, max_width: usize ) -> &'a str
 {
-    let indices = str.grapheme_indices( true )
-    .collect::<Vec<(usize, &str)>>();
+    let mut current_width = 0;
+    let mut end_byte = 0;
 
-    if from >= indices.len() { return "" };
+    for( idx, g ) in text.grapheme_indices( true )
+    {
+        let w = g.width();
+        
+        if current_width + w > max_width 
+        {
+            break;
+        }
+        
+        current_width += w;
+        end_byte = idx + g.len();
+    }
 
-    if to >= indices.len()
+    &text[ ..end_byte ]
+}
+
+pub fn substr( text : &str, from : usize, to : usize ) -> &str
+{
+    if from >= to || text.is_empty() { return "" };
+
+    let mut iter = text.grapheme_indices( true );
+
+    let start_byte = match iter.nth( from )
     {
-        &str[indices[from].0..]
-    }
-    else
+        Some( ( idx, _ ) ) => idx,
+        None => return "",
+    };
+
+    let end_byte = match iter.nth( to - from - 1 )
     {
-        &str[indices[from].0..indices[to].0]
-    }
+        Some( ( idx, _ ) ) => idx,
+        None => text.len(),
+    };
+
+    &text[ start_byte..end_byte ]
 }

@@ -1,6 +1,6 @@
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
 
-use crate::{input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, util::rtml_value::{RTMLValue, RTMLValueAttrs, RTMLValueType, rtml_value_to_spans}}};
+use crate::{input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, util::editable_value::{EditableValue, editable_value_to_spans}}};
 
 
 #[derive(Debug)]
@@ -8,14 +8,14 @@ pub struct RTMLInput
 {
     pub common : RTMLNodeCommon,
     pub alignment : Alignment,
-    value : RTMLValue,
+    value : EditableValue,
     pub style : Style,
     pub focus_style : Style
 }
 
 impl RTMLInput
 {
-    pub fn new( alignment : Alignment, value : RTMLValue, style : Style, focus_style : Style, common : RTMLNodeCommon ) -> Self
+    pub fn new( alignment : Alignment, value : EditableValue, style : Style, focus_style : Style, common : RTMLNodeCommon ) -> Self
     {
         Self { alignment, value, style, focus_style, common }
     }
@@ -37,23 +37,14 @@ impl RTMLInput
 
     pub fn replace_value( &mut self, new_value : String ) -> bool
     {
-        self.value = RTMLValue::Write( 
-            RTMLValueAttrs::new(
-                Some( 1 ),
-                RTMLValueType::new_string(
-                    new_value,
-                    true,
-                    false
-                )
-            )
-        );
+        self.value.replace_value( new_value, self.common.attrs.area.width as usize );
 
         true
     }
 
     fn add_char( &mut self, char : char, area : Rect ) -> bool
     {
-        self.value.add_char( char, area )
+        self.value.add_char( char, area.width as usize )
     }
 
     fn move_cursor_right( &mut self, area : Rect ) -> bool
@@ -78,7 +69,7 @@ impl RTMLInput
 
     fn end( &mut self, area : Rect ) -> bool
     {
-        self.value.end( area )
+        self.value.end( area.width as usize )
     }
 
     fn home( &mut self ) -> bool
@@ -93,9 +84,9 @@ pub fn render_rtml_input(
     buf : &mut Buffer
 ) -> anyhow::Result<()>
 {
-    let mut spans = rtml_value_to_spans( 
+    let spans = editable_value_to_spans( 
         &rtml_input.value, 
-        area, 
+        area.width as usize, 
         rtml_input.style, 
         false
     );
@@ -106,10 +97,6 @@ pub fn render_rtml_input(
     }
     else
     {
-        let mut spans = spans.remove( 0 );
-
-        if spans.len() == 0 { spans.push( Span::from( " " ).style( rtml_input.focus_style ) ); }
-
         spans
     };
 
@@ -127,9 +114,9 @@ pub fn render_input_cursor(
     buf : &mut Buffer
 ) -> anyhow::Result<()>
 {
-    let mut spans = rtml_value_to_spans( 
+    let spans = editable_value_to_spans( 
         &rtml_input.value, 
-        rtml_input.common.attrs.area, 
+        rtml_input.common.attrs.area.width as usize, 
         rtml_input.focus_style, 
         true
     );
@@ -140,10 +127,6 @@ pub fn render_input_cursor(
     }
     else
     {
-        let mut spans = spans.remove( 0 );
-
-        if spans.len() == 0 { spans.push( Span::from( " " ).style( rtml_input.focus_style ) ); }
-
         spans
     };
 

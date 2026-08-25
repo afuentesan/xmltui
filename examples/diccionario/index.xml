@@ -1,0 +1,10 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="../../xmltui-lib/examples/schema.xsd"
+>
+    <body dir="vertical" flex="center">
+        <layout flex="center" length="1">
+            <line>Buscar: <span padding="5,1"> que pacha</span></line>
+            <input length="25" />
+        </layout>
+    </body>
+</rtml>

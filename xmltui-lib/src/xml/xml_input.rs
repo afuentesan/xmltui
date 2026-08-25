@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_input::RTMLInput, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::rtml_value::{RTMLValue, RTMLValueAttrs, RTMLValueType}}, xml::{attrs::{attr_alignment, attr_value, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleSelector, StyleVariant, style_from_node}}}};
+use crate::{rtml::{rtml_input::RTMLInput, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::editable_value::EditableValue}, xml::{attrs::{attr_alignment, attr_value, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleSelector, StyleVariant, style_from_node}}}};
 
-const DEFAULT_INPUT_TYPE : &str = "text";
+// const DEFAULT_INPUT_TYPE : &str = "text";
 
 pub fn process_input( 
     node : Node, 
@@ -18,7 +18,7 @@ pub fn process_input(
     
     let alignment = attr_alignment( &node )?;
 
-    let value = parse_input_value( &node )?;
+    let value = parse_input_value_2( node )?;
 
     Ok(
         (
@@ -40,33 +40,9 @@ pub fn process_input(
     )
 }
 
-fn parse_input_value( node : &Node ) -> anyhow::Result<RTMLValue>
+fn parse_input_value_2( node : Node ) -> anyhow::Result<EditableValue>
 {
-    match node.attribute( "type" )
-    {
-        Some( t ) => parse_input_type( t, node ),
-        None => parse_input_type( DEFAULT_INPUT_TYPE, node )
-    }
-}
+    let value = attr_value( &node );
 
-fn parse_input_type( itype : &str, node : &Node ) -> anyhow::Result<RTMLValue>
-{
-    let itype = itype.trim();
-
-    match itype
-    {
-        "" | DEFAULT_INPUT_TYPE => Ok( 
-            RTMLValue::Write( 
-                RTMLValueAttrs::new(
-                    Some( 1 ),
-                    RTMLValueType::new_string(
-                        attr_value( node ),
-                        true,
-                        false
-                    )
-                )
-            ) 
-        ),
-        _ => Err( anyhow::Error::msg( format!( "Input type not valid. Type: {}", itype ) ) )
-    }
+    Ok( EditableValue::new( value ) )
 }

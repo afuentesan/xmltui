@@ -43,20 +43,3 @@ pub fn template_from_node( node : Node, xml : &str ) -> Option<String>
 // {
 //     xml[ node.range() ].to_string()
 // }
-
-pub fn text_from_childs( node : &Node ) -> String
-{
-    node.children()
-    .fold(
-        String::new(), 
-        | mut a, n |
-        {
-            if let Some( t ) = n.text()
-            {
-                a.push_str( t );
-            }
-
-            a
-        }
-    )
-}
