@@ -13,9 +13,9 @@ pub fn process_link(
     styles : &HashMap<StyleSelector, Style> 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let id = id_retry_if_exists( &node, nodos );
+    let id = id_retry_if_exists( node, nodos );
     
-    let alignment = attr_alignment( &node )?;
+    let alignment = attr_alignment( node )?;
 
     let text = node.text().unwrap_or( " " ).to_string();
 
@@ -31,7 +31,7 @@ pub fn process_link(
                     style_from_node( node, styles, default_link_normal_style(), None ),
                     style_from_node( node, styles, default_link_focus_style(),Some( StyleVariant::Focus ) ),
                     RTMLNodeCommon::new( 
-                        parse_common_attrs( &node )?, 
+                        parse_common_attrs( node )?, 
                         vec![], 
                         parent_id
                     )

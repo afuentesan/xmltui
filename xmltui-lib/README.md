@@ -53,3 +53,5 @@
 [] Mensajes toast
 
 [] Añadir más atributos en los estilos. Ahora los line y los span pueden tener padding left y right, estaría bien poder poner eso en los estilos. También pueden tener padding todos los elementos contenedores.
+
+[] Mejorar el atributo padding, cuando se ponga un solo número debe aplicarlo a los cuatro, etc... Ver doc de css https://developer.mozilla.org/es/docs/Web/CSS/Reference/Properties/padding

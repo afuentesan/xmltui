@@ -21,14 +21,16 @@ impl ExecutorEnvVar
 pub enum ExecutorEnv
 {
     Var( ExecutorEnvVar ),
-    Data( String )
+    Data( String ),
+    Value( String )
 }
 
 #[derive(Debug, Clone)]
 pub enum ExecutorArg
 {
     Text( String ),
-    Data( String )
+    Data( String ),
+    Value( String )
 }
 
 #[derive(Debug, Clone)]
@@ -136,10 +138,11 @@ impl ExecutorBuilder
 
 async fn execute_command( 
     executor: &Executor,
-    node_data : &HashMap<String, String>
+    node_data : &HashMap<String, String>,
+    node_value : &HashMap<String, String>
 ) -> anyhow::Result<ExecutorOutput> 
 {
-    let mut command = build_command( executor, node_data );
+    let mut command = build_command( executor, node_data, node_value );
 
     command.stderr( Stdio::piped() );
 
@@ -150,12 +153,13 @@ async fn execute_command(
 
 pub async fn execute_commands( 
     executors : &Vec<Executor>,
-    node_data : &HashMap<String, String>
+    node_data : &HashMap<String, String>,
+    node_value : &HashMap<String, String>
 ) -> anyhow::Result<ExecutorOutput> 
 {
     if executors.is_empty() { return Err( anyhow::Error::msg( "execute_commands. Se necesita por lo menos 1 executor." ) ) }
 
-    if executors.len() == 1 { return execute_command( &executors[ 0 ], node_data ).await }
+    if executors.len() == 1 { return execute_command( &executors[ 0 ], node_data, node_value ).await }
 
     let ( last_executor, init_executors ) = executors.split_last().unwrap();
 
@@ -164,14 +168,14 @@ pub async fn execute_commands(
 
     for executor in init_executors
     {
-        let ( stdio, child ) = execute_piped_command( executor, node_data, stdin ).await?;
+        let ( stdio, child ) = execute_piped_command( executor, node_data, node_value, stdin ).await?;
 
         stdin = Some( stdio );
 
         children.push( child );
     }
 
-    let mut last_command = build_command( last_executor, node_data );
+    let mut last_command = build_command( last_executor, node_data, node_value );
     
     last_command.stdout( Stdio::piped() ); 
 
@@ -198,10 +202,11 @@ pub async fn execute_commands(
 async fn execute_piped_command(
     executor: &Executor,
     node_data : &HashMap<String, String>,
+    node_value : &HashMap<String, String>,
     stdin : Option<Stdio>
 ) -> anyhow::Result<( Stdio, Child )>
 {
-    let mut command = build_command( executor, node_data );
+    let mut command = build_command( executor, node_data, node_value );
 
     command.stdout( Stdio::piped() );
 
@@ -225,7 +230,8 @@ async fn execute_piped_command(
 
 fn build_command(
     executor : &Executor,
-    node_data : &HashMap<String, String>
+    node_data : &HashMap<String, String>,
+    node_value : &HashMap<String, String>
 ) -> Command
 {
     let mut command = Command::new( &executor.command );
@@ -242,6 +248,13 @@ fn build_command(
                 ExecutorArg::Data( key ) =>
                 {
                     if let Some( val ) = node_data.get( key )
+                    {
+                        command.arg( val );
+                    }
+                },
+                ExecutorArg::Value( key ) =>
+                {
+                    if let Some( val ) = node_value.get( key )
                     {
                         command.arg( val );
                     }
@@ -266,6 +279,13 @@ fn build_command(
                 ExecutorEnv::Data( key ) =>
                 {
                     if let Some( val ) = node_data.get( key )
+                    {
+                        command.env( key, val );
+                    }
+                },
+                ExecutorEnv::Value( key ) =>
+                {
+                    if let Some( val ) = node_value.get( key )
                     {
                         command.env( key, val );
                     }

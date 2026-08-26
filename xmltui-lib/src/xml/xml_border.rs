@@ -14,7 +14,7 @@ pub fn process_border(
     xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let border_id = id_retry_if_exists( &node, nodos );
+    let border_id = id_retry_if_exists( node, nodos );
 
     let mut childs : Vec<RTMLNodeId> = vec![];
 
@@ -40,13 +40,13 @@ pub fn process_border(
                     border_type( node ),
                     attr_option( node, "title" ),
                     title_position( node ),
-                    attr_alignment_name( &node, "title-align" )?,
+                    attr_alignment_name( node, "title-align" )?,
                     style_from_node( node, styles, default_normal_style(), None ),
                     style_from_node( node, styles, Style::default(), Some( StyleVariant::Title ) ),
                     style_from_node( node, styles, Style::default(), Some( StyleVariant::Border ) ),
                     container_attrs( node )?,
                     RTMLNodeCommon::new( 
-                        parse_common_attrs( &node )?, 
+                        parse_common_attrs( node )?, 
                         childs, 
                         parent_id
                     )

@@ -1,6 +1,6 @@
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
 
-use crate::{input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, util::editable_value::{EditableValue, editable_value_to_spans}}};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, util::{editable_value::{EditableValue, editable_value_to_spans}, rtml_event::RTMLEvent}}};
 
 
 #[derive(Debug)]
@@ -10,14 +10,22 @@ pub struct RTMLInput
     pub alignment : Alignment,
     value : EditableValue,
     pub style : Style,
-    pub focus_style : Style
+    pub focus_style : Style,
+    pub events : Vec<RTMLEvent>
 }
 
 impl RTMLInput
 {
-    pub fn new( alignment : Alignment, value : EditableValue, style : Style, focus_style : Style, common : RTMLNodeCommon ) -> Self
+    pub fn new( 
+        alignment : Alignment, 
+        events : Vec<RTMLEvent>,
+        value : EditableValue, 
+        style : Style, 
+        focus_style : Style, 
+        common : RTMLNodeCommon 
+    ) -> Self
     {
-        Self { alignment, value, style, focus_style, common }
+        Self { alignment, events, value, style, focus_style, common }
     }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> bool
@@ -31,15 +39,39 @@ impl RTMLInput
             InputEvent::Delete => self.delete( self.common.attrs.area ),
             InputEvent::End => self.end( self.common.attrs.area ),
             InputEvent::Home => self.home(),
+            InputEvent::Enter => self.enter_event(),
             _ => false
         }
     }
 
+    fn enter_event( &mut self ) -> bool
+    {
+        for ev in &self.events
+        {
+            match ev
+            {
+                RTMLEvent::Enter( e ) =>
+                {
+                    send_app_event( AppEvent::Callback( e.clone() ) );
+
+                    break;
+                }    
+            }
+        }
+
+        false
+    }
+    
     pub fn replace_value( &mut self, new_value : String ) -> bool
     {
         self.value.replace_value( new_value, self.common.attrs.area.width as usize );
 
         true
+    }
+
+    pub fn value( &self ) -> &str
+    {
+        &self.value.value
     }
 
     fn add_char( &mut self, char : char, area : Rect ) -> bool

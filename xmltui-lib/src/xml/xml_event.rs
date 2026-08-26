@@ -19,9 +19,33 @@ fn parse_enter_event( node : Node, value : &str, id : &str ) -> anyhow::Result<R
 {
     let executors = attr_comands_from_str( value );
 
-    let mut data_from = vec![];
+    let data_from = data_from_node( node, id );
+    let value_from = value_from_node( node, id );
 
-    if let Some( from ) = node.attribute( "enter-data" )
+    Ok(
+        RTMLEvent::Enter( RTMLCallback::Command(
+                RTMLCallbackCommand::new( executors, data_from, value_from ),
+                parse_callback_action( node, "enter" )?
+            )
+        )
+    )
+}
+
+fn value_from_node( node : Node, id : &str ) -> Vec<String>
+{
+    nodes_from_attr( node, id, "enter-value" )
+}
+
+fn data_from_node( node : Node, id : &str ) -> Vec<String>
+{
+    nodes_from_attr( node, id, "enter-data" )
+}
+
+fn nodes_from_attr( node : Node, id : &str, attr : &str ) -> Vec<String>
+{
+    let mut nodes = vec![];
+
+    if let Some( from ) = node.attribute( attr )
     {
         from.split( "," ).for_each(
             | s |
@@ -30,23 +54,17 @@ fn parse_enter_event( node : Node, value : &str, id : &str ) -> anyhow::Result<R
 
                 if s != ""
                 {
-                    data_from.push( s.to_string() );
+                    nodes.push( s.to_string() );
                 }
             }
         );
     }
     else
     {
-        data_from.push( id.to_string() );    
+        nodes.push( id.to_string() );    
     }
 
-    Ok(
-        RTMLEvent::Enter( RTMLCallback::Command(
-                RTMLCallbackCommand::new( executors, data_from ),
-                parse_callback_action( node, "enter" )?
-            )
-        )
-    )
+    nodes
 }
 
 fn parse_callback_action( node : Node, prefix : &str ) -> anyhow::Result<RTMLCallbackAction>

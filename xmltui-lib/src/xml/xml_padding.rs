@@ -3,7 +3,7 @@ use unicode_width::UnicodeWidthStr;
 
 use crate::rtml::rtml_padding::{HorizontalPadding, RTMLPadding};
 
-pub fn node_text_len_y_horizontal_padding( node : &Node ) -> usize
+pub fn node_text_len_y_horizontal_padding( node : Node ) -> usize
 {
     let padding = horizontal_padding_from_node( node );
 
@@ -20,7 +20,7 @@ pub fn node_text_len_y_horizontal_padding( node : &Node ) -> usize
         }
         else if child.tag_name().name() == "span"
         {
-            let padding = horizontal_padding_from_node( &child );
+            let padding = horizontal_padding_from_node( child );
 
             len = len + padding.left + padding.right;
 
@@ -34,7 +34,7 @@ pub fn node_text_len_y_horizontal_padding( node : &Node ) -> usize
     len
 }
 
-pub fn horizontal_padding_from_node( node : &Node ) -> HorizontalPadding
+pub fn horizontal_padding_from_node( node : Node ) -> HorizontalPadding
 {
     let mut left = 0;
     let mut right = 0;

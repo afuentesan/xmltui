@@ -13,7 +13,7 @@ pub fn process_line(
     styles : &HashMap<StyleSelector, Style> 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let id = id_retry_if_exists( &node, nodos );
+    let id = id_retry_if_exists( node, nodos );
 
     let mut childs = vec![];
 
@@ -24,11 +24,11 @@ pub fn process_line(
         childs.append( &mut process_span( n, nodos, id.clone(), styles, line_style )? );
     }
 
-    let alignment = attr_alignment( &node )?;
+    let alignment = attr_alignment( node )?;
 
-    let padding = horizontal_padding_from_node( &node );
+    let padding = horizontal_padding_from_node( node );
 
-    let common_attrs = parse_common_attrs( &node )?;
+    let common_attrs = parse_common_attrs( node )?;
 
     Ok(
         (
@@ -60,9 +60,9 @@ pub fn process_span(
     {
         let text = span_text( node.text().unwrap_or( "" ) );
 
-        let padding = horizontal_padding_from_node( &node );
+        let padding = horizontal_padding_from_node( node );
 
-        let common = parse_common_attrs( &node )?;
+        let common = parse_common_attrs( node )?;
 
         let span = RTMLSpan::new( 
             text,
@@ -75,7 +75,7 @@ pub fn process_span(
                     padding
         );
 
-        let id = id_retry_if_exists( &node, nodos );
+        let id = id_retry_if_exists( node, nodos );
 
         nodos.insert(
             id.clone(), 
@@ -108,9 +108,9 @@ fn process_span_node(
 
     let span_style = style_from_node( node, styles, line_style, None );
 
-    let padding = horizontal_padding_from_node( &node );
+    let padding = horizontal_padding_from_node( node );
 
-    let common = parse_common_attrs( &node )?;
+    let common = parse_common_attrs( node )?;
 
     let span = RTMLSpan::new( 
         text,
@@ -123,7 +123,7 @@ fn process_span_node(
                 padding
     );
     
-    let id = id_retry_if_exists( &node, nodos );
+    let id = id_retry_if_exists( node, nodos );
 
         nodos.insert(
             id.clone(), 

@@ -36,7 +36,7 @@ fn process_container(
     xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let layout_id = id_retry_if_exists( &node, nodos );
+    let layout_id = id_retry_if_exists( node, nodos );
 
     let mut childs : Vec<RTMLNodeId> = vec![];
 
@@ -59,7 +59,7 @@ fn process_container(
             RTMLNode::Layout(
                 RTMLLayout::new( 
                     RTMLNodeCommon::new( 
-                        parse_common_attrs( &node )?, 
+                        parse_common_attrs( node )?, 
                         childs, 
                         parent_id
                     ),

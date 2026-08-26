@@ -13,7 +13,7 @@ const DEFAULT_CONSTRAINT : Constraint = Constraint::Fill( 1 );
 const DEFAULT_ALIGNMENT : Alignment = Alignment::Left;
 
 
-pub fn attr_id( node : &Node ) -> Option<RTMLNodeId>
+pub fn attr_id( node : Node ) -> Option<RTMLNodeId>
 {
     if let Some( id ) = node.attribute( "id" )
     {
@@ -30,7 +30,7 @@ pub fn default_id() -> RTMLNodeId
     Uuid::new_v4().to_string()
 }
 
-pub fn id_retry_if_exists( node : &Node, nodos : &HashMap<String, RTMLNode> ) -> RTMLNodeId
+pub fn id_retry_if_exists( node : Node, nodos : &HashMap<String, RTMLNode> ) -> RTMLNodeId
 {
     let mut id = attr_id( node ).unwrap_or( default_id() );
 
@@ -46,7 +46,7 @@ pub fn id_retry_if_exists( node : &Node, nodos : &HashMap<String, RTMLNode> ) ->
     default_id()
 }
 
-pub fn parse_common_attrs( node : &Node ) -> anyhow::Result<CommonAttrs>
+pub fn parse_common_attrs( node : Node ) -> anyhow::Result<CommonAttrs>
 {
     Ok(
         CommonAttrs
@@ -58,7 +58,7 @@ pub fn parse_common_attrs( node : &Node ) -> anyhow::Result<CommonAttrs>
     )
 }
 
-fn attr_data( node : &Node ) -> HashMap<String, String>
+fn attr_data( node : Node ) -> HashMap<String, String>
 {
     node.attributes()
     .fold(
@@ -83,7 +83,7 @@ fn attr_data( node : &Node ) -> HashMap<String, String>
     )
 }
 
-fn attr_constraint( node : &Node ) -> anyhow::Result<Constraint>
+fn attr_constraint( node : Node ) -> anyhow::Result<Constraint>
 {
     let attrs = [ "fill", "percentage", "min", "max", "length", "ratio" ];
 
@@ -115,7 +115,7 @@ fn attr_constraint( node : &Node ) -> anyhow::Result<Constraint>
     Ok( default )
 }
 
-fn horizontal_text_length_from_node( node : &Node ) -> Option<usize>
+fn horizontal_text_length_from_node( node : Node ) -> Option<usize>
 {
     let len = node_text_len_y_horizontal_padding( node );
 
@@ -217,7 +217,7 @@ fn str_to_uint<T: FromStr>( str : &str ) -> anyhow::Result<T>
     }
 }
 
-pub fn attr_direction( node : &Node ) -> anyhow::Result<Direction>
+pub fn attr_direction( node : Node ) -> anyhow::Result<Direction>
 {
     match node.attribute( "dir" )
     {
@@ -242,7 +242,7 @@ fn parse_attr_direction( d : &str ) -> anyhow::Result<Direction>
     }
 }
 
-pub fn attr_flex( node : &Node ) -> anyhow::Result<Flex>
+pub fn attr_flex( node : Node ) -> anyhow::Result<Flex>
 {
     match node.attribute( "flex" )
     {
@@ -272,7 +272,7 @@ fn parse_attr_flex( flex : &str ) -> anyhow::Result<Flex>
     }
 }
 
-pub fn attr_alignment( node : &Node ) -> anyhow::Result<Alignment>
+pub fn attr_alignment( node : Node ) -> anyhow::Result<Alignment>
 {
     match node.attribute( "align" )
     {
@@ -284,7 +284,7 @@ pub fn attr_alignment( node : &Node ) -> anyhow::Result<Alignment>
     }
 }
 
-pub fn attr_alignment_name( node : &Node, attr : &str ) -> anyhow::Result<Alignment>
+pub fn attr_alignment_name( node : Node, attr : &str ) -> anyhow::Result<Alignment>
 {
     match node.attribute( attr )
     {
@@ -310,7 +310,7 @@ fn parse_attr_align( align : &str ) -> anyhow::Result<Alignment>
     }
 }
 
-pub fn attr_value( node : &Node ) -> String
+pub fn attr_value( node : Node ) -> String
 {
     node.attribute( "value" ).unwrap_or( "" ).to_string()
 }
@@ -365,5 +365,5 @@ pub fn attr_source( node : Node ) -> anyhow::Result<RTMLSource>
 
 pub fn container_attrs( node : Node ) -> anyhow::Result<ContainerAttrs>
 {
-    Ok( ContainerAttrs::new( attr_direction( &node )?, attr_flex( &node )?, container_padding_from_node( node ) ) )
+    Ok( ContainerAttrs::new( attr_direction( node )?, attr_flex( node )?, container_padding_from_node( node ) ) )
 }

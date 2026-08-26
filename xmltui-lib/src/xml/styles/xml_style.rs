@@ -13,6 +13,19 @@ pub enum StyleSelector
     Id( String )
 }
 
+impl ToString for StyleSelector
+{
+    fn to_string( &self ) -> String 
+    {
+        match self
+        {
+            StyleSelector::Class( s ) |
+            StyleSelector::Id( s ) |
+            StyleSelector::TagName( s ) => s.clone()    
+        }
+    }
+}
+
 impl FromStr for StyleSelector
 {
     type Err = anyhow::Error;
@@ -105,6 +118,16 @@ pub fn style_from_node( node : Node, styles : &HashMap<StyleSelector, Style>, de
 
     style
 }
+
+// pub fn classes_from_node( node : Node ) -> Vec<String>
+// {
+//     node.attribute( "class" )
+//     .unwrap_or( "" )
+//     .split( " " )
+//     .filter( | s | s.trim() != "" )
+//     .map( | s | s.to_string() )
+//     .collect()
+// }
 
 fn style_from_classes<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, Style>, variant : Option<&StyleVariant> ) -> Option<Style>
 {

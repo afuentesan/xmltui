@@ -10,7 +10,7 @@ pub struct EditableValue
 {
     cursor_position : usize,
     start_at : usize,
-    value : String
+    pub value : String
 }
 
 impl EditableValue

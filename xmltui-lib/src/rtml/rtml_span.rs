@@ -25,6 +25,11 @@ impl RTMLSpan
 
         true
     }
+
+    pub fn value( &self ) -> &str
+    {
+        &self.text
+    }
 }
 
 pub fn spans_from_childs<'a>(

@@ -32,11 +32,13 @@ fn execute_callback_command(
         let doc_id = doc.doc_id.clone();
         let node_id = doc.root_id.clone();
         let node_data = doc.data_from_nodes_id( command.data_from.as_ref() );
+        let node_value = doc.value_from_nodes_id( command.value_from.as_ref() );
 
         let params = CommandExecutorParams::new(
             doc_id, 
             node_id, 
             node_data, 
+            node_value,
             CommandRefresh::Once, 
             executors, 
             ExecutorEventType::Callback( action ), 

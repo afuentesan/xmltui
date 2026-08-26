@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect}, style::Style};
+use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect}, style::Style, widgets::Paragraph};
 use tokio_util::sync::CancellationToken;
 
-use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding}, util::log::log_to_file, xml::styles::xml_style::StyleSelector};
+use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}}, util::log::log_to_file, xml::styles::xml_style::StyleSelector};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -234,6 +234,8 @@ impl RTMLDoc
                                 doc_id, 
                                 node_id,
                                 data, 
+                                // TODO: Hacer que los command puedan coger values de otros nodos
+                                HashMap::new(),
                                 refresh, 
                                 executor, 
                                 ExecutorEventType::CommandChild, 
@@ -255,6 +257,7 @@ impl RTMLDoc
                     RTMLNode::Link( _ ) |
                     RTMLNode::Button( _ ) |
                     RTMLNode::Border( _ ) |
+                    RTMLNode::Paragraph( _ ) |
                     RTMLNode::Span( _ ) => {}
                 }
             }
@@ -473,6 +476,29 @@ impl RTMLDoc
         ret
     }
 
+    pub fn value_from_nodes_id( &self, nodes_id : &Vec<String> ) -> HashMap<String, String>
+    {
+        let mut ret = HashMap::new();
+
+        for node_id in nodes_id
+        {
+            match self.doc.get( node_id )
+            {
+                Some( n ) =>
+                {
+                    match n.value()
+                    {
+                        Some( v ) => ret.insert( node_id.clone(), v.to_string() ),
+                        None => continue
+                    };
+                },
+                None => continue
+            }
+        }
+
+        ret
+    }
+
     pub fn replace_node_value( &mut self, node_id : &str, new_value : String ) -> bool
     {
         if let Some( n ) = self.doc.get_mut( node_id )
@@ -661,10 +687,10 @@ fn render_node(
     Ok( () )
 }
 
-fn change_area_and_get_childs(
-    id : &str,
+fn change_area_and_get_childs<'a, 'b>(
+    id : &'a str,
     area : Rect,
-    doc : &mut RTMLDoc
+    doc : &'b mut RTMLDoc
 ) -> anyhow::Result<Vec<RTMLNodeId>>
 {
     let root = doc.node_mut_by_id( &id ).ok_or(
@@ -672,6 +698,20 @@ fn change_area_and_get_childs(
     )?;
 
     root.set_area( area );
+
+    // TODO: Hay que ver como hacer esto mejor, estamos creando el Paragraph 2 veces, una aquí para guardar las líneas y otra cuando lo renderizamos
+    match root
+    {
+        RTMLNode::Paragraph( rtml_paragraph ) =>
+        {
+            let p = create_paragraph( rtml_paragraph );
+
+            let num_lines = p.line_count( area.width );
+
+            rtml_paragraph.num_lines = num_lines;
+        },
+        _ => {}
+    };
 
     Ok( root.childs().clone() )
 }
@@ -706,6 +746,12 @@ fn render_node_and_get_child_areas(
             render_rtml_command( c, area, buf );
 
             child_areas( root.childs(), &c.container.direction, &c.container.flex, &c.container.padding, area, doc )
+        },
+        RTMLNode::Paragraph( p ) =>
+        {
+            render_rtml_paragraph( p, area, buf )?;
+
+            Ok( vec![] )
         },
         RTMLNode::Line( l ) =>
         {

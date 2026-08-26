@@ -1,10 +1,46 @@
 <rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
       xsi:noNamespaceSchemaLocation="../../xmltui-lib/examples/schema.xsd"
 >
-    <body dir="vertical" flex="center">
+    <head>
+        <style>
+            {
+                ".red" : {
+                    "fg" : "#ff0000"
+                },
+                "p" : {
+                    "bg" : "#222222"
+                }
+            }
+        </style>
+        <template name="definicion">
+            <p length="25">{{ ctx }}
+                <span>Que pacha</span> por tu cacha
+                tururu <span>Que pacha 2</span> <span class="red">Y que pacha     si pongo mucho mucho texto aquiii por aqui también rururu allal la</span>
+            </p>
+        </template>
+        <code command="/usr/bin/bash" name="buscar">
+            <envs>
+                <env-value name="palabra" />
+            </envs>
+            <args>
+                <arg>-c</arg>
+                <arg>
+                    <![CDATA[ 
+                        curl -s "https://rae-api.com/api/words/${palabra}" |jq -r ".data.meanings[].senses[].raw" 2>> /tmp/err_rt
+
+                        exit 0
+                    ]]>
+                </arg>
+            </args>
+        </code>
+    </head>
+    <body dir="vertical" flex="start" padding="1,1,1,1">
         <layout flex="center" length="1">
-            <line>Buscar: <span padding="5,1"> que pacha</span></line>
-            <input length="25" />
+            <line padding-right="1">Buscar:</line>
+            <input id="palabra" length="25" enter="buscar" enter-replace-childs="definicion" enter-template="definicion" />
+        </layout>
+        <layout id="definicion" flex="center" length="5">
+
         </layout>
     </body>
 </rtml>

@@ -11,14 +11,15 @@ pub enum RTMLEvent
 pub struct RTMLCallbackCommand
 {
     pub name : Vec<String>,
-    pub data_from : Vec<String>
+    pub data_from : Vec<String>,
+    pub value_from : Vec<String>
 }
 
 impl RTMLCallbackCommand
 {
-    pub fn new( name : Vec<String>, data_from : Vec<String> ) -> Self
+    pub fn new( name : Vec<String>, data_from : Vec<String>, value_from : Vec<String> ) -> Self
     {
-        Self { name, data_from }
+        Self { name, data_from, value_from }
     }
 }
 

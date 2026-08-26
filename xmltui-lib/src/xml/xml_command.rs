@@ -14,7 +14,7 @@ pub fn process_command(
     xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let command_id = id_retry_if_exists( &node, nodos );
+    let command_id = id_retry_if_exists( node, nodos );
 
     let executors = attr_commands( node, "exec" )?;
 
@@ -25,7 +25,7 @@ pub fn process_command(
                     executors, 
                     refresh_from_node( node ),
                     RTMLNodeCommon::new( 
-                        parse_common_attrs( &node )?, 
+                        parse_common_attrs( node )?, 
                         vec![], 
                         parent_id
                     ),

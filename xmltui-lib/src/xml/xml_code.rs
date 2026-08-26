@@ -104,6 +104,12 @@ fn envs( node : Node, mut builder : ExecutorBuilder ) -> anyhow::Result<Executor
 
                 builder = builder.env( ExecutorEnv::Data( name ) );
             },
+            "env-value" =>
+            {
+                let name = code_attr( n, "name" )?;
+
+                builder = builder.env( ExecutorEnv::Value( name ) );
+            },
             _ => {}
         }
     }
@@ -133,6 +139,12 @@ fn args( node : Node, mut builder : ExecutorBuilder ) -> anyhow::Result<Executor
                 let name = code_attr( n, "name" )?;
 
                 builder = builder.arg( ExecutorArg::Data( name ) );
+            },
+            "arg-value" =>
+            {
+                let name = code_attr( n, "name" )?;
+
+                builder = builder.arg( ExecutorArg::Value( name ) );
             }
             _ => {}
         }
