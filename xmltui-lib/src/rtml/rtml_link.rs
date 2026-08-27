@@ -86,7 +86,7 @@ fn render_rtml_link_width_style(
     let str = rtml_link.text.as_str();
 
     let line = Line::from( 
-        Span::from( str ).style( style )
+        Span::styled( str, style )
     )
     .alignment( rtml_link.alignment );
 

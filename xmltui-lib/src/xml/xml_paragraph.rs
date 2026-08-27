@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use ratatui::style::Style;
+use regex::regex;
 use roxmltree::Node;
 
 use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::RTMLParagraph}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_node}}}};
@@ -38,24 +39,34 @@ fn process_lines(
     styles : &HashMap<StyleSelector, Style>   
 ) -> anyhow::Result<Vec<Vec<( String, Option<Style> )>>>
 {
+    let re = regex!( "[ \t]*\n[ \t]*" );
+
     let mut ret = vec![];
 
     for child in node.children()
     {
-        if let Some( text ) = child.text() && child.is_text()
+        if let Some( mut text ) = child.text() && child.is_text()
         {
-            if ret.len() == 0 { ret.push( vec![] ); }
+            if ret.is_empty() 
+            {
+                text = text.trim_start_matches( | c | matches!( c, ' ' | '\t' | '\n' ) );
 
-            let trim_right = text.ends_with( "\n" );
-            let trim_left = text.starts_with( "\n" );
-            let trim_all = trim_right && trim_left;
+                if text.is_empty()
+                {
+                    continue; 
+                }
+
+                ret.push( vec![] );
+            }
+
+            let text = re.replace_all( &text, "\n" );
 
             text.split( "\n" )
             .enumerate()
             .for_each(
                 | ( i, s ) |
                 {
-                    let val = ( trimmed_string( s, trim_all, trim_left, trim_right ), None );
+                    let val = ( s.to_string(), None );
 
                     if i == 0
                     {
@@ -86,29 +97,40 @@ fn process_lines(
                     ret.push( vec![ val ] );
                 }
             }
+        }
+    }
 
+    while let Some( l ) = ret.last() 
+    {
+        if l.len() == 1 && l[ 0 ].0.trim().is_empty() 
+        {
+            ret.pop();
+        } 
+        else 
+        {
+            break;
         }
     }
 
     Ok( ret )
 }
 
-fn trimmed_string( str : &str, trim : bool, trim_left : bool, trim_right : bool ) -> String
-{
-    if trim
-    {
-        str.trim().to_string()
-    }
-    else if trim_left
-    {
-        str.trim_start().to_string()
-    }
-    else if trim_right
-    {
-        str.trim_end().to_string()
-    }
-    else
-    {
-        str.to_string()    
-    }
-}
+// fn trimmed_string( str : &str, trim : bool, trim_left : bool, trim_right : bool ) -> String
+// {
+//     if trim
+//     {
+//         str.trim().to_string()
+//     }
+//     else if trim_left
+//     {
+//         str.trim_start().to_string()
+//     }
+//     else if trim_right
+//     {
+//         str.trim_end().to_string()
+//     }
+//     else
+//     {
+//         str.to_string()    
+//     }
+// }

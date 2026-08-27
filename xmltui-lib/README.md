@@ -4,7 +4,9 @@
 
 [] Componente textarea.
 
-[] Componente párrafo.
+[x] Componente párrafo.
+
+[] He hecho un componente párrafo pero hay que revisarlo. Se está creando el Paragraph de ratatui dos veces, una para calcular el número de líneas y otra para renderizarlo.
 
 [] Que se puedan definir estilos teniendo en cuenta los elementos que contienen a otro. Igual que en css puedes hacer "p .red", quiere decir todos los elementos que estén dentro de un p y tengan la clase red.
 

@@ -674,8 +674,6 @@ fn render_node(
 
     let areas = render_node_and_get_child_areas( id, area, buf, doc )?;
 
-    // TODO: Probablemente aquí haya que ver si hay que hacer scroll. Si la longitud de childs es mayor que areas habrá que hacer scroll
-
     for i in 0..areas.len()
     {
         let area = areas[ i ];

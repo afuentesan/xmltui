@@ -125,7 +125,7 @@ pub fn render_rtml_input(
 
     let spans = if spans.len() == 0
     {
-        vec![ Span::from( " " ).style( rtml_input.focus_style ) ]
+        vec![ Span::styled( " ", rtml_input.focus_style  ) ]
     }
     else
     {
@@ -155,7 +155,7 @@ pub fn render_input_cursor(
 
     let spans = if spans.len() == 0
     {
-        vec![ Span::from( " " ).style( rtml_input.focus_style ) ]
+        vec![ Span::styled( " ", rtml_input.focus_style ) ]
     }
     else
     {

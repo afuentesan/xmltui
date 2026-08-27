@@ -53,7 +53,7 @@ pub fn spans_from_childs<'a>(
 
                 if s.text.len() > 0
                 {
-                    let span = Span::from( s.text.as_str() ).style( s.style );
+                    let span = Span::styled( s.text.as_str(), s.style );
 
                     spans.push( span );
                 }
@@ -72,7 +72,7 @@ pub fn spans_from_childs<'a>(
     
     if spans.len() == 0
     {
-        spans.push( Span::from( " " ) );
+        spans.push( Span::raw( " " ) );
     }
     
     Ok( spans )
@@ -80,5 +80,5 @@ pub fn spans_from_childs<'a>(
 
 pub fn padding_span<'a>( padding : usize, style : Style ) -> Span<'a>
 {
-    Span::from( " ".repeat( padding ) ).style( style )
+    Span::styled( " ".repeat( padding ), style )
 }

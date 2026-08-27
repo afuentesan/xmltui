@@ -100,7 +100,7 @@ fn render_rtml_button_width_style(
     let str = rtml_button.text.as_str();
 
     let line = Line::from( 
-        Span::from( str ).style( style )
+        Span::styled( str, style )
     )
     .alignment( rtml_button.alignment );
 

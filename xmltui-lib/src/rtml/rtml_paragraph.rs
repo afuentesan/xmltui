@@ -35,12 +35,6 @@ impl RTMLParagraph
             {
                 let max_start_at = self.num_lines.saturating_sub( self.common.attrs.area.height as usize );
 
-                log_to_file( 
-                    &format!( 
-                        "Start at: {}, Max start at: {max_start_at}, num_lines: {}, height: {}", self.start_at, self.num_lines, self.common.attrs.area.height 
-                    ) 
-                );
-
                 if self.start_at >= max_start_at
                 {
                     false
@@ -65,14 +59,9 @@ pub fn render_rtml_paragraph(
 {
     let mut paragraph = create_paragraph( rtml_paragraph );
 
-    let num_lines = paragraph.line_count( area.width );
-
-    if num_lines > area.height as usize
+    if rtml_paragraph.start_at > 0
     {
-        if rtml_paragraph.start_at > 0 && rtml_paragraph.start_at < num_lines
-        {
-            paragraph = paragraph.scroll( ( rtml_paragraph.start_at as u16, 0 ) );
-        }
+        paragraph = paragraph.scroll( ( rtml_paragraph.start_at as u16, 0 ) );
     }
 
     paragraph.render( area, buf );
@@ -95,7 +84,7 @@ pub fn create_paragraph<'a>(
 
     Paragraph::new( lines )
     .style( rtml_paragraph.style )
-    .wrap( Wrap { trim: true } )
+    .wrap( Wrap { trim: false } )
 }
 
 fn line_from_spans<'a>( spans : &'a Vec<( String, Option<Style> )> ) -> Line<'a>
@@ -106,8 +95,8 @@ fn line_from_spans<'a>( spans : &'a Vec<( String, Option<Style> )> ) -> Line<'a>
         {
             match style
             {
-                Some( s ) => Span::from( text ).style( *s ),
-                None => Span::from( text )
+                Some( s ) => Span::styled( text.as_str(), *s ),
+                None => Span::raw( text.as_str() )
             }
         }
     )

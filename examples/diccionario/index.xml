@@ -13,9 +13,15 @@
             }
         </style>
         <template name="definicion">
-            <p length="25">{{ ctx }}
+            <p length="25">
+                {{ ctx }}
+                <span>    Unos espacios</span>
                 <span>Que pacha</span> por tu cacha
                 tururu <span>Que pacha 2</span> <span class="red">Y que pacha     si pongo mucho mucho texto aquiii por aqui también rururu allal la</span>
+
+
+
+                
             </p>
         </template>
         <code command="/usr/bin/bash" name="buscar">

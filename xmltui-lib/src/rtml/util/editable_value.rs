@@ -274,14 +274,14 @@ pub fn editable_value_to_spans(
         
         if ! pre.is_empty() 
         {
-            ret.push( Span::from( pre ).style( style ) );
+            ret.push( Span::styled( pre, style ) );
         }
 
-        ret.push( Span::from( cursor ).style( cursor_style( style ) ) );
+        ret.push( Span::styled( cursor, cursor_style( style ) ) );
 
         if ! post.is_empty() 
         {
-            ret.push( Span::from( post ).style( style ) );
+            ret.push( Span::styled( post, style ) );
         }
     }
     else
@@ -289,7 +289,7 @@ pub fn editable_value_to_spans(
         let full_text = substr( &value.value, value.start_at, len );
         let visible_text = take_width( full_text, width );
         
-        ret.push( Span::from( visible_text ).style( style ) );
+        ret.push( Span::styled( visible_text, style ) );
     }
 
     ret
