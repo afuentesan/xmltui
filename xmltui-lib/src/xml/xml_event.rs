@@ -12,7 +12,33 @@ pub fn parse_event_attrs( node : Node, id : &str  ) -> anyhow::Result<Vec<RTMLEv
         ret.push( parse_enter_event( node, enter, id )? );
     }
     
+    if let Some( commands ) = node.attribute( "enter-refresh-command" ) && commands.trim() != ""
+    {
+        if let Some( callback ) = parse_refresh_commands_event( commands )
+        {
+            ret.push( RTMLEvent::Enter( callback ) );
+        }
+    }
+    
     Ok( ret )
+}
+
+fn parse_refresh_commands_event( commands : &str ) -> Option<RTMLCallback>
+{
+    let commands = commands
+    .split( ", " )
+    .filter( | s | s.trim() != "" )
+    .map( | s | s.trim().to_string() )
+    .collect::<Vec<_>>();
+
+    if commands.len() > 0
+    {
+        Some( RTMLCallback::RefreshCommand( commands ) )
+    }
+    else
+    {
+        None
+    }
 }
 
 fn parse_enter_event( node : Node, value : &str, id : &str ) -> anyhow::Result<RTMLEvent>
@@ -41,7 +67,7 @@ fn data_from_node( node : Node, id : &str ) -> Vec<String>
     nodes_from_attr( node, id, "enter-data" )
 }
 
-fn nodes_from_attr( node : Node, id : &str, attr : &str ) -> Vec<String>
+pub fn nodes_from_attr( node : Node, id : &str, attr : &str ) -> Vec<String>
 {
     let mut nodes = vec![];
 

@@ -51,5 +51,6 @@ pub enum RTMLCallbackAction
 #[derive(Debug, Clone)]
 pub enum RTMLCallback
 {
-    Command( RTMLCallbackCommand, RTMLCallbackAction )
+    Command( RTMLCallbackCommand, RTMLCallbackAction ),
+    RefreshCommand( Vec<String> )
 }

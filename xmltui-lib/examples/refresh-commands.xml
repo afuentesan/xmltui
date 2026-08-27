@@ -1,0 +1,25 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="schema.xsd">
+
+    <head>
+        <code command="echo" name="echo">
+            <args>
+                <arg-value name="nombre" />
+            </args>
+        </code>
+    </head>
+
+    <body dir="vertical" flex="center">
+        <layout flex="center" padding="1" length="3">
+            <line padding-right="1">Nombre:</line><input id="nombre" length="25" />
+        </layout>
+        <command exec="echo" id="echo" cvalue="nombre" flex="center" length="1">
+            <template>
+                <line>{{ ctx }}</line>
+            </template>
+        </command>
+        <layout flex="center" padding="1" length="3">
+            <button enter-refresh-command="echo">Refresh</button>
+        </layout>
+    </body>
+</rtml>

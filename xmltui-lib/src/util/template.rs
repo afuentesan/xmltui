@@ -2,19 +2,15 @@
 use minijinja::Environment;
 use serde_json::{Value, json};
 
-use crate::{rtml::rtml_command::RTMLCommandOutput, util::log::log_to_file};
+use crate::rtml::rtml_command::RTMLCommandOutput;
 
 
 pub fn template_to_xml( data : String, template : Option<&String>, data_type : RTMLCommandOutput ) -> anyhow::Result<String>
 {
     if template.is_none() 
     {
-        log_to_file( "Template is none" );
-
         return Ok( data ) 
     };
-
-    log_to_file( &format!( "RTMLCommandOutput: {:?}", data_type ) );
 
     match data_type
     {

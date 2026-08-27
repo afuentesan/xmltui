@@ -65,8 +65,6 @@ async fn new_repeat_command_executor(
     duration : Duration
 )
 {
-    log_to_file( &format!( "New repeat command para {}", params.node_id ) );
-    
     loop
     {
         execute_once( &params.doc_id, &params.node_id, &params.node_data, &params.node_value, &params.executors, &params.event_type ).await;
@@ -100,8 +98,6 @@ async fn new_repeat_command_executor(
         }
         
     }
-
-    log_to_file( &format!( "Se cancela el repeat command para {}", params.node_id ) );
 }
 
 async fn execute_once( 

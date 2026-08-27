@@ -41,36 +41,31 @@ pub fn horizontal_padding_from_node( node : Node ) -> HorizontalPadding
 
     if let Some( p ) = node.attribute( "padding" )
     {
-        let p = p.split( "," )
-        .flat_map(
-            | s |
+        let mut idx = 0;
+
+        for s in p.split( "," )
+        {
+            if s.trim() == "" { continue };
+
+            if let Ok( s ) = s.trim().parse::<usize>()
             {
-                if s.trim() == ""
+                if idx == 0
                 {
-                    None
+                    left = s;
+                    right = s;
                 }
-                else if let Ok( n ) = s.parse::<usize>()
+                else if idx == 1
                 {
-                    Some( n )
+                    right = s;
                 }
                 else
                 {
-                    None
+                    break;    
                 }
+
+                idx += 1;
             }
-        )
-        .collect::<Vec<_>>();
-
-        if p.len() > 0
-        {
-            left = p[ 0 ];
         }
-
-        if p.len() > 1
-        {
-            right = p[ 1 ];
-        }
-
     }
 
     if let Some( p ) = node.attribute( "padding-left" )
@@ -123,11 +118,36 @@ fn padding_all( node : Node, attr : &str ) -> [ usize; 4 ]
 {
     if let Some( p ) = node.attribute( attr )
     {
+        let mut idx = 0;
+
         let mut padding = [ 0, 0, 0, 0 ];
 
-        for ( i, s ) in p.split( "," ).enumerate()
+        for s in p.split( "," )
         {
-            padding[ i ] = parse_padding( s );
+            if let Some( n ) = parse_padding( s )
+            {
+                if idx == 0
+                {
+                    padding = [ n, n, n, n ];
+                }
+                else if idx == 1
+                {
+                    padding[ 1 ] = n;
+                    padding[ 3 ] = n;
+                }
+                else if idx == 2
+                {
+                    padding[ 2 ] = n;
+                }
+                else
+                {
+                    padding[ 3 ] = n;
+
+                    break;
+                }
+
+                idx += 1;
+            }
         }
 
         padding
@@ -142,7 +162,7 @@ fn padding_attr( node : Node, attr : &str ) -> Option<usize>
 {
     if let Some( p ) = node.attribute( attr ) && p.trim() != ""
     {
-        Some( parse_padding( p ) )
+        parse_padding( p )
     }
     else
     {
@@ -150,11 +170,11 @@ fn padding_attr( node : Node, attr : &str ) -> Option<usize>
     }
 }
 
-fn parse_padding( padding : &str ) -> usize
+fn parse_padding( padding : &str ) -> Option<usize>
 {
     match padding.trim().parse::<usize>()
     {
-        Ok( n ) => n,
-        _ => 0
+        Ok( n ) => Some( n ),
+        _ => None
     }
 }

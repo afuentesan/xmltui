@@ -24,7 +24,9 @@ pub struct RTMLCommand
     pub child : Option<XMLNodeWrapper>,
     pub template_name : Option<String>,
     pub template : Option<String>,
-    pub output : RTMLCommandOutput
+    pub output : RTMLCommandOutput,
+    pub cdata : Vec<String>,
+    pub cvalue : Vec<String>
 }
 
 impl RTMLCommand
@@ -38,7 +40,9 @@ impl RTMLCommand
         child : Option<XMLNodeWrapper>,
         template_name : Option<String>,
         template : Option<String>,
-        output : RTMLCommandOutput
+        output : RTMLCommandOutput,
+        cdata : Vec<String>,
+        cvalue : Vec<String>
     ) -> Self
     {
         Self 
@@ -51,7 +55,9 @@ impl RTMLCommand
             child,
             template_name,
             template,
-            output
+            output,
+            cdata,
+            cvalue
         }
     }
 

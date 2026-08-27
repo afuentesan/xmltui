@@ -7,22 +7,13 @@
                 ".red" : {
                     "fg" : "#ff0000"
                 },
-                "p" : {
+                ".p" : {
                     "bg" : "#222222"
                 }
             }
         </style>
         <template name="definicion">
-            <p length="25">
-                {{ ctx }}
-                <span>    Unos espacios</span>
-                <span>Que pacha</span> por tu cacha
-                tururu <span>Que pacha 2</span> <span class="red">Y que pacha     si pongo mucho mucho texto aquiii por aqui también rururu allal la</span>
-
-
-
-                
-            </p>
+            <p class="p">{{ ctx }}</p>
         </template>
         <code command="/usr/bin/bash" name="buscar">
             <envs>
@@ -40,13 +31,15 @@
             </args>
         </code>
     </head>
-    <body dir="vertical" flex="start" padding="1,1,1,1">
-        <layout flex="center" length="1">
-            <line padding-right="1">Buscar:</line>
-            <input id="palabra" length="25" enter="buscar" enter-replace-childs="definicion" enter-template="definicion" />
-        </layout>
-        <layout id="definicion" flex="center" length="5">
+    <body dir="horizontal" flex="center" padding="1">
+        <border title="Diccionario" dir="vertical" max="60" flex="start" padding-top="1">
+            <layout flex="center" length="2" padding-bottom="1">
+                <line padding-right="1">Buscar:</line>
+                <input id="palabra" length="25" enter="buscar" enter-replace-childs="definicion" enter-template="definicion" />
+            </layout>
+            <layout id="definicion" flex="center" padding="1" class="p">
 
-        </layout>
+            </layout>
+        </border>
     </body>
 </rtml>

@@ -10,6 +10,20 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <!-- Nuevo: Padding para 1 a 4 números separados por coma (ej. 10, 20, 15, 5) -->
+    <xs:simpleType name="padding1to4Base">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\d+(\s*,\s*\d+){0,3}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Nuevo: Padding para exactamente 2 números separados por coma (ej. 10, 20) -->
+    <xs:simpleType name="padding2Base">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\d+\s*,\s*\d+"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:simpleType name="alignEnum">
         <xs:restriction base="xs:string">
             <xs:enumeration value="left"/>
@@ -33,7 +47,6 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- Nuevo: title-position base -->
     <xs:simpleType name="titlePositionEnum">
         <xs:restriction base="xs:string">
             <xs:enumeration value="top"/>
@@ -41,7 +54,6 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- Nuevo: flex base -->
     <xs:simpleType name="flexEnum">
         <xs:restriction base="xs:string">
             <xs:enumeration value="start"/>
@@ -53,10 +65,8 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- Nuevo: borders base (Permite top, left, right, bottom separados por coma) -->
     <xs:simpleType name="bordersBase">
         <xs:restriction base="xs:string">
-            <!-- Patrón: Una palabra permitida, opcionalmente seguida de coma y otra palabra permitida -->
             <xs:pattern value="(top|bottom|left|right)(\s*,\s*(top|bottom|left|right))*"/>
         </xs:restriction>
     </xs:simpleType>
@@ -103,9 +113,19 @@
         <xs:union memberTypes="bordersBase jinjaAttr"/>
     </xs:simpleType>
 
+    <xs:simpleType name="padding1to4Type">
+        <xs:union memberTypes="padding1to4Base jinjaAttr"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="padding2Type">
+        <xs:union memberTypes="padding2Base jinjaAttr"/>
+    </xs:simpleType>
+
     <!-- ========================================== -->
-    <!-- GRUPOS Y ATRIBUTOS COMUNES                 -->
+    <!-- GRUPOS DE ATRIBUTOS                        -->
     <!-- ========================================== -->
+
+    <!-- Atributos base comunes a todas las etiquetas -->
     <xs:attributeGroup name="commonBodyAttributes">
         <xs:attribute name="id" type="xs:string"/>
         <xs:attribute name="class" type="xs:string"/>
@@ -120,12 +140,44 @@
         <xs:anyAttribute namespace="##any" processContents="skip"/>
     </xs:attributeGroup>
 
-    <!-- Todos los elementos anidables -->
+    <!-- Atributos de padding para layout, body, command, border -->
+    <xs:attributeGroup name="boxPaddingAttributes">
+        <xs:attribute name="padding" type="padding1to4Type"/>
+        <xs:attribute name="padding-top" type="uintType"/>
+        <xs:attribute name="padding-right" type="uintType"/>
+        <xs:attribute name="padding-bottom" type="uintType"/>
+        <xs:attribute name="padding-left" type="uintType"/>
+    </xs:attributeGroup>
+
+    <!-- Atributos de padding para span, line -->
+    <xs:attributeGroup name="inlinePaddingAttributes">
+        <xs:attribute name="padding" type="padding2Type"/>
+        <xs:attribute name="padding-left" type="uintType"/>
+        <xs:attribute name="padding-right" type="uintType"/>
+    </xs:attributeGroup>
+
+    <!-- Atributos compartidos de acciones enter para button y input -->
+    <xs:attributeGroup name="enterAttributes">
+        <xs:attribute name="enter" type="xs:string"/>
+        <xs:attribute name="enter-data" type="xs:string"/>
+        <xs:attribute name="enter-value" type="xs:string"/>
+        <xs:attribute name="enter-refresh-command" type="xs:string"/>
+        <xs:attribute name="enter-template" type="xs:string"/>
+        <xs:attribute name="enter-output" type="outputType"/>
+        <xs:attribute name="enter-replace-childs" type="xs:string"/>
+        <xs:attribute name="enter-replace-node" type="xs:string"/>
+        <xs:attribute name="enter-change-value" type="xs:string"/>
+    </xs:attributeGroup>
+
+    <!-- ========================================== -->
+    <!-- ELEMENTOS DEL BODY Y CONTENEDORES          -->
+    <!-- ========================================== -->
     <xs:group name="bodyElements">
         <xs:choice>
             <xs:element ref="layout"/>
-            <xs:element ref="border"/> <!-- Incluido aquí para que pueda anidarse en todos lados -->
+            <xs:element ref="border"/>
             <xs:element ref="line"/>
+            <xs:element ref="p"/> <!-- Añadido nuevo elemento <p> -->
             <xs:element ref="span"/>
             <xs:element ref="input"/>
             <xs:element ref="a"/>
@@ -134,9 +186,6 @@
         </xs:choice>
     </xs:group>
 
-    <!-- ========================================== -->
-    <!-- ELEMENTOS DEL BODY, LAYOUT, BORDER, TEMPLATE -->
-    <!-- ========================================== -->
     <xs:element name="template">
         <xs:complexType mixed="true">
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
@@ -149,22 +198,23 @@
         <xs:complexType mixed="true">
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
             <xs:attribute name="dir" type="dirType"/>
-            <xs:attribute name="flex" type="flexType"/> <!-- Se ha añadido flex -->
+            <xs:attribute name="flex" type="flexType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
+            <xs:attributeGroup ref="boxPaddingAttributes"/> <!-- Nuevo -->
         </xs:complexType>
     </xs:element>
 
-    <!-- Nuevo elemento border -->
     <xs:element name="border">
         <xs:complexType mixed="true">
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
             <xs:attribute name="title" type="xs:string"/>
             <xs:attribute name="title-position" type="titlePositionType"/>
-            <xs:attribute name="title-align" type="alignType"/> <!-- Comparte tipo con align -->
+            <xs:attribute name="title-align" type="alignType"/>
             <xs:attribute name="dir" type="dirType"/>
             <xs:attribute name="flex" type="flexType"/>
             <xs:attribute name="borders" type="bordersType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
+            <xs:attributeGroup ref="boxPaddingAttributes"/> <!-- Nuevo -->
         </xs:complexType>
     </xs:element>
 
@@ -175,12 +225,24 @@
             </xs:sequence>
             <xs:attribute name="align" type="alignType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
+            <xs:attributeGroup ref="inlinePaddingAttributes"/> <!-- Nuevo -->
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Nuevo elemento <p> -->
+    <xs:element name="p">
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element ref="span" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attributeGroup ref="commonBodyAttributes"/>
         </xs:complexType>
     </xs:element>
 
     <xs:element name="span">
         <xs:complexType mixed="true">
             <xs:attributeGroup ref="commonBodyAttributes"/>
+            <xs:attributeGroup ref="inlinePaddingAttributes"/> <!-- Nuevo -->
         </xs:complexType>
     </xs:element>
 
@@ -190,6 +252,7 @@
             <xs:attribute name="value" type="xs:string"/>
             <xs:attribute name="align" type="alignType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
+            <xs:attributeGroup ref="enterAttributes"/> <!-- Actualizado con el grupo -->
         </xs:complexType>
     </xs:element>
 
@@ -203,13 +266,9 @@
 
     <xs:element name="button">
         <xs:complexType mixed="true">
-            <xs:attribute name="enter" type="xs:string"/>
             <xs:attribute name="align" type="alignType"/>
-            <xs:attribute name="enter-replace-childs" type="xs:string"/>
-            <xs:attribute name="enter-replace-node" type="xs:string"/>
-            <xs:attribute name="enter-change-value" type="xs:string"/>
-            <xs:attribute name="enter-data" type="xs:string"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
+            <xs:attributeGroup ref="enterAttributes"/> <!-- Actualizado con el grupo -->
         </xs:complexType>
     </xs:element>
 
@@ -220,11 +279,19 @@
             </xs:sequence>
             <xs:attribute name="exec" type="xs:string"/>
             <xs:attribute name="template" type="xs:string"/>
+            <xs:attribute name="cvalue" type="xs:string"/> <!-- Nuevo -->
+            <xs:attribute name="cdata" type="xs:string"/> <!-- Nuevo -->
+            
             <xs:attribute name="child-type" type="xs:string"/>
             <xs:attribute name="child-align" type="alignType"/>
             <xs:attribute name="child-dir" type="dirType"/>
             <xs:attribute name="output" type="outputType"/>
+            
+            <xs:attribute name="flex" type="flexType"/>
+            <xs:attribute name="dir" type="dirType"/>
+
             <xs:attributeGroup ref="commonBodyAttributes"/>
+            <xs:attributeGroup ref="boxPaddingAttributes"/> <!-- Nuevo -->
         </xs:complexType>
     </xs:element>
 
@@ -232,13 +299,14 @@
         <xs:complexType mixed="true">
             <xs:group ref="bodyElements" minOccurs="0" maxOccurs="unbounded"/>
             <xs:attribute name="dir" type="dirType"/>
-            <xs:attribute name="flex" type="flexType"/> <!-- Se ha añadido flex -->
+            <xs:attribute name="flex" type="flexType"/>
             <xs:attributeGroup ref="commonBodyAttributes"/>
+            <xs:attributeGroup ref="boxPaddingAttributes"/> <!-- Nuevo -->
         </xs:complexType>
     </xs:element>
 
     <!-- ========================================== -->
-    <!-- ELEMENTOS DEL HEAD                         -->
+    <!-- ELEMENTOS DEL HEAD Y CÓDIGO                -->
     <!-- ========================================== -->
     <xs:element name="style">
         <xs:complexType mixed="true">
@@ -258,9 +326,23 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- Nuevo env-value -->
+    <xs:element name="env-value">
+        <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="arg" type="xs:string"/>
 
     <xs:element name="arg-data">
+        <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Nuevo arg-value -->
+    <xs:element name="arg-value">
         <xs:complexType>
             <xs:attribute name="name" type="xs:string" use="required"/>
         </xs:complexType>
@@ -271,6 +353,7 @@
             <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <xs:element ref="env"/>
                 <xs:element ref="env-data"/>
+                <xs:element ref="env-value"/> <!-- Añadido -->
             </xs:choice>
         </xs:complexType>
     </xs:element>
@@ -280,6 +363,7 @@
             <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <xs:element ref="arg"/>
                 <xs:element ref="arg-data"/>
+                <xs:element ref="arg-value"/> <!-- Añadido -->
             </xs:choice>
         </xs:complexType>
     </xs:element>

@@ -16,7 +16,11 @@ pub fn execute_callback(
                 doc,
                 command,
                 action
-            )
+            );
+        },
+        RTMLCallback::RefreshCommand( commands ) =>
+        {
+            doc.refresh_commands( commands );
         }
     }
 }
@@ -104,8 +108,6 @@ pub fn execute_callback_response(
 
                 return false;
             }
-
-            log_to_file( &format!( "Templates: {:?}", doc.templates ) );
 
             let response_xml = parse_response( &replace_data, response.response, doc );
 

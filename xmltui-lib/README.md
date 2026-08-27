@@ -8,19 +8,17 @@
 
 [] He hecho un componente párrafo pero hay que revisarlo. Se está creando el Paragraph de ratatui dos veces, una para calcular el número de líneas y otra para renderizarlo.
 
-[] Que se puedan definir estilos teniendo en cuenta los elementos que contienen a otro. Igual que en css puedes hacer "p .red", quiere decir todos los elementos que estén dentro de un p y tengan la clase red.
-
 [] Que se puedan definir estilos que tengan en cuenta varias propiedades, por ejemplo "a.blue", quiere decir todos los a que tengan la clase blue.
 
 [] Componente para tablas. 
 
-[] Poder enviar el value de un nodo a los comandos
+[x] Poder enviar el value de un nodo a los comandos
 
-[] Tener un atributo data-from-node que pueda tener una lista de ids separados por coma. Cuando se ejecute un comando se le podrán pasar los data de todos los nodos especificados.
+[x] Tener un atributo data-from-node (le he puesto cdata) que pueda tener una lista de ids separados por coma. Cuando se ejecute un comando se le podrán pasar los data de todos los nodos especificados.
 
 [] Que se puedan modificar los atributos data de un nodo desde la respuesta de un comando.
 
-[] Tener un atributo value-from-node que pueda tener una lista de ids separados por coma. Cuando se ejecute un comando se le podrán pasar los values de todos los nodos especificados.
+[x] Tener un atributo value-from-node (le he puesto cvalue) que pueda tener una lista de ids separados por coma. Cuando se ejecute un comando se le podrán pasar los values de todos los nodos especificados.
 
 [] Componente formulario
 
@@ -36,7 +34,7 @@
 
 [] Que se puedan mostrar y ocultar nodos
 
-[] Que haya un evento para poder refrescar nodos command que no tengan el atributo refresh
+[x] Que haya un evento para poder refrescar nodos command que no tengan el atributo refresh
 
 [] Que los layouts puedan ser scrolleables si el contenido es mayor que ellos
 
@@ -56,4 +54,4 @@
 
 [] Añadir más atributos en los estilos. Ahora los line y los span pueden tener padding left y right, estaría bien poder poner eso en los estilos. También pueden tener padding todos los elementos contenedores.
 
-[] Mejorar el atributo padding, cuando se ponga un solo número debe aplicarlo a los cuatro, etc... Ver doc de css https://developer.mozilla.org/es/docs/Web/CSS/Reference/Properties/padding
+[x] Mejorar el atributo padding, cuando se ponga un solo número debe aplicarlo a los cuatro, etc... Ver doc de css https://developer.mozilla.org/es/docs/Web/CSS/Reference/Properties/padding

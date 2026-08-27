@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect}, style::Style};
 use tokio_util::sync::CancellationToken;
 
-use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}}, util::log::log_to_file, xml::styles::xml_style::StyleSelector};
+use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}}, util::log::log_to_file, xml::styles::xml_style::StyleSelector};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -207,6 +207,88 @@ impl RTMLDoc
 
     fn init_commands_from_ids( &mut self, cancellation_token : CancellationToken, ids : Vec<String> )
     {
+        let tokens = self.option_refresh_commands( Some( cancellation_token ), ids, None );
+
+        for ( node_id, token ) in tokens
+        {
+            self.cancellation_tokens.insert( node_id, token );
+        }
+
+        // for node_id in ids
+        // {
+        //     if let Some( node ) = self.doc.get( &node_id )
+        //     {
+        //         match node
+        //         {
+        //             RTMLNode::Command( c ) =>
+        //             {
+        //                 if let Some( executor ) = self.executors_from_ids( &c.executors )
+        //                 {
+        //                     let global_cancel = cancellation_token.clone();
+        //                     let local_cancel = CancellationToken::new();
+        //                     let local_cancel_send = local_cancel.clone();
+
+        //                     self.cancellation_tokens.insert( node_id.clone(), local_cancel );
+
+
+        //                     let doc_id = self.doc_id.clone();
+        //                     let node_id = node_id.clone();
+        //                     let refresh = c.refresh.clone();
+        //                     let executor = executor.clone();
+                            
+        //                     let node_data = self.data_from_nodes_id( c.cdata.as_ref() );
+        //                     let node_value = self.value_from_nodes_id( c.cvalue.as_ref() );
+
+        //                     let params = CommandExecutorParams::new(
+        //                         doc_id, 
+        //                         node_id,
+        //                         node_data, 
+        //                         node_value,
+        //                         refresh, 
+        //                         executor, 
+        //                         ExecutorEventType::CommandChild, 
+        //                         Some( global_cancel ), 
+        //                         Some( local_cancel_send )
+        //                     );
+
+        //                     spawn_async_task(
+        //                         async move 
+        //                         {
+        //                             new_command_executor( params ).await
+        //                         }
+        //                     );
+        //                 }
+        //             },
+        //             RTMLNode::Input( _ ) |
+        //             RTMLNode::Layout( _ ) |
+        //             RTMLNode::Line( _ ) |
+        //             RTMLNode::Link( _ ) |
+        //             RTMLNode::Button( _ ) |
+        //             RTMLNode::Border( _ ) |
+        //             RTMLNode::Paragraph( _ ) |
+        //             RTMLNode::Span( _ ) => {}
+        //         }
+        //     }
+        // }
+    }
+
+    pub fn refresh_commands(
+        &self,
+        ids : Vec<String>
+    )
+    {
+        self.option_refresh_commands( None, ids, Some( CommandRefresh::Once ) );
+    }
+
+    fn option_refresh_commands( 
+        &self, 
+        cancellation_token : Option<CancellationToken>, 
+        ids : Vec<String>, 
+        refresh : Option<CommandRefresh> 
+    ) -> Vec<( String, CancellationToken )>
+    {
+        let mut ret = vec![];
+
         for node_id in ids
         {
             if let Some( node ) = self.doc.get( &node_id )
@@ -218,29 +300,47 @@ impl RTMLDoc
                         if let Some( executor ) = self.executors_from_ids( &c.executors )
                         {
                             let global_cancel = cancellation_token.clone();
-                            let local_cancel = CancellationToken::new();
-                            let local_cancel_send = local_cancel.clone();
 
-                            self.cancellation_tokens.insert( node_id.clone(), local_cancel );
+                            let local_cancel_send = if global_cancel.as_ref().is_some()
+                            {
+                                let local_cancel = CancellationToken::new();
+                                let local_cancel_send = Some( local_cancel.clone() );
 
+                                // self.cancellation_tokens.insert( node_id.clone(), local_cancel );
+
+                                ret.push( ( node_id.clone(), local_cancel ) );
+
+                                local_cancel_send
+                            }
+                            else
+                            {
+                                None    
+                            };
 
                             let doc_id = self.doc_id.clone();
                             let node_id = node_id.clone();
-                            let refresh = c.refresh.clone();
+
+                            let refresh = match refresh.as_ref()
+                            {
+                                Some( r ) => r.clone(),
+                                None => c.refresh.clone()
+                            };
+
                             let executor = executor.clone();
-                            let data = node.data().clone();
+                            
+                            let node_data = self.data_from_nodes_id( c.cdata.as_ref() );
+                            let node_value = self.value_from_nodes_id( c.cvalue.as_ref() );
 
                             let params = CommandExecutorParams::new(
                                 doc_id, 
                                 node_id,
-                                data, 
-                                // TODO: Hacer que los command puedan coger values de otros nodos
-                                HashMap::new(),
+                                node_data, 
+                                node_value,
                                 refresh, 
                                 executor, 
                                 ExecutorEventType::CommandChild, 
-                                Some( global_cancel ), 
-                                Some( local_cancel_send )
+                                global_cancel, 
+                                local_cancel_send
                             );
 
                             spawn_async_task(
@@ -262,6 +362,8 @@ impl RTMLDoc
                 }
             }
         }
+
+        ret
     }
 
     pub fn executors_from_ids( &self, ids : &Vec<String> ) -> Option<Vec<Executor>>
