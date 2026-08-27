@@ -1,6 +1,6 @@
 use ratatui::{buffer::Buffer, layout::Rect, style::Style, text::{Line, Span}, widgets::{Paragraph, Widget, Wrap}};
 
-use crate::{input::event::InputEvent, rtml::rtml_node::RTMLNodeCommon, util::log::log_to_file};
+use crate::{input::event::InputEvent, rtml::rtml_node::RTMLNodeCommon};
 
 #[derive(Debug)]
 pub struct RTMLParagraph 
