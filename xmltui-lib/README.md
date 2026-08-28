@@ -22,7 +22,7 @@
 
 [] Componente formulario
 
-[] Mover enum StyleSelector de xml a rtml
+[] Mover enum StyleSelector de xml a rtml. También la función merge_styles
 
 [] También dar la opción de que los comandos puedan estar limitados al directorio root.
 
@@ -55,3 +55,9 @@
 [] Añadir más atributos en los estilos. Ahora los line y los span pueden tener padding left y right, estaría bien poder poner eso en los estilos. También pueden tener padding todos los elementos contenedores.
 
 [x] Mejorar el atributo padding, cuando se ponga un solo número debe aplicarlo a los cuatro, etc... Ver doc de css https://developer.mozilla.org/es/docs/Web/CSS/Reference/Properties/padding
+
+[] Añadir focus_style para el Paragraph
+
+[] Añadir alignment para el Paragraph
+
+[] Crear componente select

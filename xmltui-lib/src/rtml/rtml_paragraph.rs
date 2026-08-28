@@ -1,20 +1,20 @@
 use ratatui::{buffer::Buffer, layout::Rect, style::Style, text::{Line, Span}, widgets::{Paragraph, Widget, Wrap}};
 
-use crate::{input::event::InputEvent, rtml::rtml_node::RTMLNodeCommon};
+use crate::{input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, util::types::TextLines}, xml::styles::xml_style::merge_styles};
 
 #[derive(Debug)]
 pub struct RTMLParagraph 
 {
     pub common : RTMLNodeCommon,
     pub style : Style,
-    pub lines : Vec<Vec<( String, Option<Style> )>>,
+    pub lines : TextLines,
     pub start_at : usize,
     pub num_lines : usize
 }
 
 impl RTMLParagraph
 {
-    pub fn new( common : RTMLNodeCommon, style : Style, lines : Vec<Vec<( String, Option<Style> )>> ) -> Self
+    pub fn new( common : RTMLNodeCommon, style : Style, lines : TextLines ) -> Self
     {
         Self { common, style, lines, start_at : 0, num_lines : 0 }
     }
@@ -73,34 +73,64 @@ pub fn create_paragraph<'a>(
     rtml_paragraph : &'a RTMLParagraph
 ) -> Paragraph<'a>
 {
-    let lines = rtml_paragraph.lines
-    .iter()
-    .map(
-        | l |
-        {
-            line_from_spans( l )
-        }
-    ).collect::<Vec<_>>();
+    let lines = lines_from_text_width_style( &rtml_paragraph.lines, None );
 
     Paragraph::new( lines )
     .style( rtml_paragraph.style )
     .wrap( Wrap { trim: false } )
 }
 
-fn line_from_spans<'a>( spans : &'a Vec<( String, Option<Style> )> ) -> Line<'a>
+pub fn lines_from_text_width_style( lines : &TextLines, style : Option<( usize, Style )> ) -> Vec<Line<'_>>
+{
+    lines
+    .iter()
+    .enumerate()
+    .map(
+        | ( i, l ) |
+        {
+            if let Some( ( selected, style ) ) = style && selected == i
+            {
+                line_from_spans( l, Some( style ) )
+            }
+            else
+            {
+                line_from_spans( l, None )    
+            }
+        }
+    ).collect::<Vec<_>>()
+}
+
+fn line_from_spans<'a>( spans : &'a Vec<( String, Option<Style> )>, next_style : Option<Style> ) -> Line<'a>
 {
     let content = spans.iter()
     .map(
         | ( text, style ) |
         {
-            match style
-            {
-                Some( s ) => Span::styled( text.as_str(), *s ),
-                None => Span::raw( text.as_str() )
-            }
+            span_from_str_and_styles( text, *style, next_style )
         }
     )
     .collect::<Vec<_>>();
 
     Line::from( content )
+}
+
+fn span_from_str_and_styles<'a>( text : &'a str, style_1 : Option<Style>, style_2 : Option<Style> ) -> Span<'a>
+{
+    match ( style_1, style_2 )
+    {
+        ( Some( s1 ), Some( s2 ) ) =>
+        {
+            let s = merge_styles( s1, s2 );
+
+            Span::styled( text, s )
+        },
+        ( Some( s ), None ) | ( None, Some( s ) ) =>
+        {
+            Span::styled( text, s )
+        },
+        ( None, None ) =>
+        {
+            Span::raw( text )
+        }
+    }
 }

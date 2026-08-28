@@ -58,7 +58,8 @@ pub enum StyleVariant
 {
     Focus,
     Border,
-    Title
+    Title,
+    Selected
 }
 
 impl ToString for StyleVariant
@@ -69,7 +70,8 @@ impl ToString for StyleVariant
         {
             StyleVariant::Focus => String::from( "focus" ),
             StyleVariant::Border => "border".to_string(),
-            StyleVariant::Title => "title".to_string()
+            StyleVariant::Title => "title".to_string(),
+            StyleVariant::Selected => "select".to_string()
         }
     }
 }
@@ -289,7 +291,7 @@ fn insert_style_selector( selector : StyleSelector, mut style : Style, styles : 
     styles.insert( selector, style ); 
 }
 
-fn merge_styles( mut current : Style, new : Style ) -> Style
+pub fn merge_styles( mut current : Style, new : Style ) -> Style
 {
     if let Some( fg ) = new.fg
     {

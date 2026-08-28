@@ -40,11 +40,19 @@ impl CallbackReplace
 }
 
 #[derive(Debug, Clone)]
+pub struct CallbackChangeSrc
+{
+    pub url : Option<String>,
+    pub output : RTMLCommandOutput
+}
+
+#[derive(Debug, Clone)]
 pub enum RTMLCallbackAction
 {
     ReplaceNode( CallbackReplace ),
     ReplaceChilds( CallbackReplace ),
     ChangeValue( RTMLNodeId ),
+    ChangeSrc( CallbackChangeSrc ),
     None
 }
 

@@ -1,6 +1,6 @@
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::event::CallbackResponse, async_app::async_app::spawn_async_task, code::event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, rtml::{rtml_command::CommandRefresh, rtml_doc::RTMLDoc, util::rtml_event::{CallbackReplace, RTMLCallback, RTMLCallbackAction, RTMLCallbackCommand}}, util::{log::log_to_file, template::template_to_xml}, xml::xml2rtml::{replace_node_childs_with_xml, replace_node_with_xml}};
+use crate::{app::event::{AppEvent, CallbackResponse, send_app_event}, async_app::async_app::spawn_async_task, code::event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, rtml::{rtml_command::CommandRefresh, rtml_doc::RTMLDoc, util::rtml_event::{CallbackChangeSrc, CallbackReplace, RTMLCallback, RTMLCallbackAction, RTMLCallbackCommand}}, util::{log::log_to_file, template::template_to_xml}, xml::xml2rtml::{replace_node_childs_with_xml, replace_node_with_xml}};
 
 
 pub fn execute_callback(
@@ -136,8 +136,36 @@ pub fn execute_callback_response(
         RTMLCallbackAction::ChangeValue( node_id ) =>
         {
             doc.replace_node_value( &node_id, response.response )
+        },
+        RTMLCallbackAction::ChangeSrc( c ) =>
+        {
+            parse_change_src( c, response.response )
         }
     }
+}
+
+fn parse_change_src( change_data : CallbackChangeSrc, response : String ) -> bool
+{
+    if let Some( url ) = change_data.url && url.trim() != ""
+    {
+        match template_to_xml( response.clone(), Some( &url ), change_data.output )
+        {
+            Ok( f ) =>
+            {
+                send_app_event( AppEvent::LoadFile( f ) );
+            },
+            Err( e ) =>
+            {
+                log_to_file( &format!( "parse_response. Fail to parse template: {:?}", e ) );
+
+                return false;
+            }
+        }
+    }
+    
+    send_app_event( AppEvent::LoadFile( response ) );
+
+    false
 }
 
 fn parse_response( replace_data : &CallbackReplace, response : String, doc : &RTMLDoc ) -> Option<String>

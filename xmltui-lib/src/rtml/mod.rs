@@ -13,3 +13,4 @@ pub mod rtml_button;
 pub mod rtml_border;
 pub mod rtml_padding;
 pub mod rtml_paragraph;
+pub mod rtml_select;

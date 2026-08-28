@@ -1,0 +1,51 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="../../xmltui-lib/examples/schema.xsd"
+>
+    <head>
+        <style>
+            {
+                ".red" : {
+                    "fg" : "#bb2222"
+                }
+            }
+        </style>
+        <code command="/usr/bin/node" name="actions">
+            <args>
+                <arg>-e</arg>
+                <arg>
+                    <![CDATA[ 
+                        const options = {
+                            options : [
+                                {
+                                    value : "new_partial",
+                                    text : "Agregar <span class='red'>parciales</span>"
+                                },
+                                {
+                                    value : "new_fx",
+                                    text : "Agregar <span class='red'>efectos</span>"
+                                }
+                            ]
+                        };
+
+                        console.log( JSON.stringify( options ) );
+                    ]]>
+                </arg>
+            </args>
+        </code>
+    </head>
+
+    <body>
+
+        <command output="json" exec="actions">
+            <template>
+                <select dropdown="false" align="center">
+                    {% for option in ctx.options %}
+                        <option value="{{ option.value }}">{{ option.text }}</option>
+                    {% endfor %}
+                </select>
+            </template>
+        </command>
+
+    </body>
+
+</rtml>

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use ratatui::{buffer::Buffer, layout::{Constraint, Rect}};
 
-use crate::{input::event::InputEvent, rtml::{rtml_attrs::CommonAttrs, rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::RTMLParagraph, rtml_span::RTMLSpan}};
+use crate::{input::event::InputEvent, rtml::{rtml_attrs::CommonAttrs, rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::RTMLParagraph, rtml_select::{RTMLSelect, render_rtml_select_focus}, rtml_span::RTMLSpan}};
 
 pub type RTMLNodeId = String;
 
@@ -48,7 +48,8 @@ pub enum RTMLNode
     Command( RTMLCommand ),
     Button( RTMLButton ),
     Border( RTMLBorder ),
-    Paragraph( RTMLParagraph )
+    Paragraph( RTMLParagraph ),
+    Select( RTMLSelect )
 }
 
 impl RTMLNode
@@ -58,6 +59,7 @@ impl RTMLNode
         match self
         {
             RTMLNode::Input( _ ) |
+            RTMLNode::Select( _ ) |
             RTMLNode::Button( _ ) |
             RTMLNode::Paragraph( _ ) |
             RTMLNode::Link( _ ) => true,
@@ -89,6 +91,10 @@ impl RTMLNode
             {
                 paragraph.focus_event( event )
             },
+            RTMLNode::Select( select ) =>
+            {
+                select.focus_event( event )
+            },
             RTMLNode::Layout( _ ) |
             RTMLNode::Line( _ ) |
             RTMLNode::Span( _ ) |
@@ -109,7 +115,8 @@ impl RTMLNode
             RTMLNode::Command( n ) => n.common.parent_id.as_ref(),
             RTMLNode::Button( n ) => n.common.parent_id.as_ref(),
             RTMLNode::Border( n ) => n.common.parent_id.as_ref(),
-            RTMLNode::Paragraph( n ) => n.common.parent_id.as_ref()
+            RTMLNode::Paragraph( n ) => n.common.parent_id.as_ref(),
+            RTMLNode::Select( n ) => n.common.parent_id.as_ref()
         }
     }
 
@@ -125,7 +132,8 @@ impl RTMLNode
             RTMLNode::Command( n ) => &n.common.childs,
             RTMLNode::Button( n ) => &n.common.childs,
             RTMLNode::Border( n ) => &n.common.childs,
-            RTMLNode::Paragraph( n ) => &n.common.childs
+            RTMLNode::Paragraph( n ) => &n.common.childs,
+            RTMLNode::Select( n ) => &n.common.childs
         }
     }
 
@@ -141,7 +149,8 @@ impl RTMLNode
             RTMLNode::Command( n ) => &mut n.common.childs,
             RTMLNode::Button( n ) => &mut n.common.childs,
             RTMLNode::Border( n ) => &mut n.common.childs,
-            RTMLNode::Paragraph( n ) => &mut n.common.childs
+            RTMLNode::Paragraph( n ) => &mut n.common.childs,
+            RTMLNode::Select( n ) => &mut n.common.childs
         }
     }
 
@@ -157,7 +166,8 @@ impl RTMLNode
             RTMLNode::Command( n ) => n.common.attrs.area = area,
             RTMLNode::Button( n ) => n.common.attrs.area = area,
             RTMLNode::Border( n ) => n.common.attrs.area = area,
-            RTMLNode::Paragraph( n ) => n.common.attrs.area = area
+            RTMLNode::Paragraph( n ) => n.common.attrs.area = area,
+            RTMLNode::Select( n ) => n.common.attrs.area = area
         }
     }
 
@@ -173,7 +183,8 @@ impl RTMLNode
             RTMLNode::Command( n ) => &n.common.attrs.constraint,
             RTMLNode::Button( n ) => &n.common.attrs.constraint,
             RTMLNode::Border( n ) => &n.common.attrs.constraint,
-            RTMLNode::Paragraph( n ) => &n.common.attrs.constraint
+            RTMLNode::Paragraph( n ) => &n.common.attrs.constraint,
+            RTMLNode::Select( n ) => &n.common.attrs.constraint
         }
     }
 
@@ -188,6 +199,7 @@ impl RTMLNode
             RTMLNode::Button( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Paragraph( _ ) |
+            RTMLNode::Select( _ ) |
             RTMLNode::Link( _ ) => None,
             RTMLNode::Command( n ) => n.child.as_ref()
         }
@@ -204,6 +216,7 @@ impl RTMLNode
             RTMLNode::Button( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Paragraph( _ ) |
+            RTMLNode::Select( _ ) |
             RTMLNode::Link( _ ) => None,
             RTMLNode::Command( n ) => n.node_template( templates )
         }
@@ -220,6 +233,7 @@ impl RTMLNode
             RTMLNode::Button( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Paragraph( _ ) |
+            RTMLNode::Select( _ ) |
             RTMLNode::Link( _ ) => RTMLCommandOutput::String,
             RTMLNode::Command( n ) => n.output
         }
@@ -237,7 +251,8 @@ impl RTMLNode
             RTMLNode::Command( n ) => &n.common.attrs.data,
             RTMLNode::Button( n ) => &n.common.attrs.data,
             RTMLNode::Border( n ) => &n.common.attrs.data,
-            RTMLNode::Paragraph( n ) => &n.common.attrs.data
+            RTMLNode::Paragraph( n ) => &n.common.attrs.data,
+            RTMLNode::Select( n ) => &n.common.attrs.data
         }
     }
 
@@ -249,6 +264,7 @@ impl RTMLNode
             RTMLNode::Button( n ) => n.replace_value( new_value ),
             RTMLNode::Link( n ) => n.replace_value( new_value ),
             RTMLNode::Span( n ) => n.replace_value( new_value ),
+            RTMLNode::Select( n ) => n.replace_value( new_value ),
             RTMLNode::Line( _ ) |
             RTMLNode::Command( _ ) |
             RTMLNode::Border( _ ) |
@@ -265,6 +281,7 @@ impl RTMLNode
             RTMLNode::Button( n ) => Some( n.value() ),
             RTMLNode::Link( n ) => Some( n.value() ),
             RTMLNode::Span( n ) => Some( n.value() ),
+            RTMLNode::Select( n ) => Some( n.value() ),
             RTMLNode::Line( _ ) |
             RTMLNode::Command( _ ) |
             RTMLNode::Border( _ ) |
@@ -284,6 +301,7 @@ pub fn render_focus_node(
         RTMLNode::Input( input ) => render_input_cursor( input, buf ),
         RTMLNode::Link( link ) => render_rtml_link_focus( link, buf ),
         RTMLNode::Button( button ) => render_rtml_button_focus( button, buf ),
+        RTMLNode::Select( select ) => render_rtml_select_focus( select, buf ),
         RTMLNode::Command( _ ) |
         RTMLNode::Layout( _ ) |
         RTMLNode::Line( _ ) |

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect}, style::Style};
 use tokio_util::sync::CancellationToken;
 
-use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}}, util::log::log_to_file, xml::styles::xml_style::StyleSelector};
+use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select}, util::log::log_to_file, xml::styles::xml_style::StyleSelector};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -358,6 +358,7 @@ impl RTMLDoc
                     RTMLNode::Button( _ ) |
                     RTMLNode::Border( _ ) |
                     RTMLNode::Paragraph( _ ) |
+                    RTMLNode::Select( _ ) |
                     RTMLNode::Span( _ ) => {}
                 }
             }
@@ -853,6 +854,12 @@ fn render_node_and_get_child_areas(
 
             Ok( vec![] )
         },
+        RTMLNode::Select( s ) =>
+        {
+            render_rtml_select( s, buf )?;
+
+            Ok( vec![] )
+        },
         RTMLNode::Line( l ) =>
         {
             render_rtml_line( l, root.childs(), area, buf, doc )?;
@@ -897,35 +904,37 @@ fn child_areas(
 
     let constraints = childs_constraint( childs, doc )?;
 
-    let childs_len = childs.len();
 
-    let constraints = match direction
-    {
-        Direction::Horizontal =>
-        {
-            if childs_len > area.width as usize
-            {
-                &constraints[ 0..( area.width as usize ) ]
-            }
-            else
-            {
-                constraints.as_slice()
-            }
-        },
-        Direction::Vertical =>
-        {
-            if childs_len > area.height as usize
-            {
-                &constraints[ 0..( area.height as usize ) ]
-            }
-            else
-            {
-                constraints.as_slice()
-            }
-        }
-    };
+    // Creo que no necesito esto, de momento lo quito
+    // let childs_len = childs.len();
 
-    let areas = calc_areas( area, direction, flex, constraints );
+    // let constraints = match direction
+    // {
+    //     Direction::Horizontal =>
+    //     {
+    //         if childs_len > area.width as usize
+    //         {
+    //             &constraints[ 0..( area.width as usize ) ]
+    //         }
+    //         else
+    //         {
+    //             constraints.as_slice()
+    //         }
+    //     },
+    //     Direction::Vertical =>
+    //     {
+    //         if childs_len > area.height as usize
+    //         {
+    //             &constraints[ 0..( area.height as usize ) ]
+    //         }
+    //         else
+    //         {
+    //             constraints.as_slice()
+    //         }
+    //     }
+    // };
+
+    let areas = calc_areas( area, direction, flex, constraints.as_slice() );
 
     Ok( areas )
 }
