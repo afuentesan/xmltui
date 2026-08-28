@@ -1,4 +1,4 @@
-use ratatui::{buffer::Buffer, layout::{Alignment, Constraint, Layout, Rect}, style::Style, widgets::{Paragraph, Widget}};
+use ratatui::{buffer::Buffer, layout::{Alignment, Constraint, Layout}, style::Style, widgets::Widget};
 
 use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, rtml_paragraph::lines_from_text_width_style, util::{rtml_event::RTMLEvent, types::TextLines}}, util::draw::clear_area};
 
