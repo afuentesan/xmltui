@@ -4,13 +4,10 @@ use roxmltree::Node;
 
 use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::style_from_container}, xml_doc::XMLDoc, xml_event::nodes_from_attr, xml_util::template_from_inner_node}};
 
-// TODO: No se si usaré los styles, quiza haga como en el layout que pinta el fondo del estilo que sea
 pub fn process_command( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    // nodos : &HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    // styles : &HashMap<StyleSelector, Style>,
     xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {

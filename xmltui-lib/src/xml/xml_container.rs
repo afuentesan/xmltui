@@ -7,10 +7,8 @@ use crate::{rtml::rtml_node::{RTMLNode, RTMLNodeId}, xml::{xml_doc::XMLDoc, xml2
 
 pub fn process_childs_container(
     xml_doc : &mut XMLDoc, 
-    node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
+    node : Node,  
     parent_id : RTMLNodeId, 
-    // styles : &HashMap<StyleSelector, Style>,
     xml : &str 
 ) -> anyhow::Result<()>
 {

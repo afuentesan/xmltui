@@ -7,9 +7,7 @@ use crate::{rtml::{rtml_line::RTMLLine, rtml_node::{RTMLNode, RTMLNodeCommon, RT
 pub fn process_line( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
-    parent_id : Option<RTMLNodeId>,
-    // styles : &HashMap<StyleSelector, Style> 
+    parent_id : Option<RTMLNodeId>
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let id = id_retry_if_exists( node, xml_doc.nodos() );

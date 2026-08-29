@@ -4,15 +4,13 @@ use ratatui::style::Style;
 use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::RTMLParagraph, util::types::TextLines}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_node}}, xml_doc::XMLDoc}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::RTMLParagraph, util::types::TextLines}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}}};
 
 
 pub fn process_paragraph( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
-    parent_id : Option<RTMLNodeId>,
-    // styles : &HashMap<StyleSelector, Style> 
+    parent_id : Option<RTMLNodeId>
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let lines = process_lines( node, xml_doc.styles() )?;
@@ -24,6 +22,8 @@ pub fn process_paragraph(
     );
 
     let id = id_retry_if_exists( node, xml_doc.nodos() );
+
+    replace_xml_doc_focus( xml_doc, node, &id );
 
     Ok(
         (

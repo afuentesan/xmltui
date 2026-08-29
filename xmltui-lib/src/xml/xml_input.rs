@@ -1,15 +1,11 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_input::RTMLInput, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::editable_value::EditableValue}, xml::{attrs::{attr_alignment, attr_value, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleVariant, style_from_node}}, xml_doc::XMLDoc, xml_event::parse_event_attrs}};
-
-// const DEFAULT_INPUT_TYPE : &str = "text";
+use crate::{rtml::{rtml_input::RTMLInput, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::editable_value::EditableValue}, xml::{attrs::{attr_alignment, attr_value, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleVariant, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs}};
 
 pub fn process_input( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
-    parent_id : Option<RTMLNodeId>,
-    // styles : &HashMap<StyleSelector, Style> 
+    parent_id : Option<RTMLNodeId>
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let id = id_retry_if_exists( node, xml_doc.nodos() );
@@ -17,6 +13,8 @@ pub fn process_input(
     let alignment = attr_alignment( node )?;
 
     let value = parse_input_value( node )?;
+
+    replace_xml_doc_focus( xml_doc, node, &id );
 
     Ok(
         (

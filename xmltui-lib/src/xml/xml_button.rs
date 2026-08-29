@@ -1,14 +1,12 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_button::RTMLButton, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_link_focus_style, default_link_normal_style}, xml_style::{StyleVariant, style_from_node}}, xml_doc::XMLDoc, xml_event::parse_event_attrs}};
+use crate::{rtml::{rtml_button::RTMLButton, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_link_focus_style, default_link_normal_style}, xml_style::{StyleVariant, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs}};
 
 
 pub fn process_button( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
-    parent_id : Option<RTMLNodeId>,
-    // styles : &HashMap<StyleSelector, Style> 
+    parent_id : Option<RTMLNodeId>
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let id = id_retry_if_exists( node, xml_doc.nodos() );
@@ -16,6 +14,8 @@ pub fn process_button(
     let alignment = attr_alignment( node )?;
 
     let text = node.text().unwrap_or( " " ).to_string();
+
+    replace_xml_doc_focus( xml_doc, node, &id );
 
     Ok(
         (

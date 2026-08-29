@@ -6,9 +6,7 @@ use crate::{rtml::{rtml_layout::RTMLLayout, rtml_node::{RTMLNode, RTMLNodeCommon
 pub fn process_body_layout( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    // styles : &HashMap<StyleSelector, Style>,
     xml : &str 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
@@ -18,9 +16,7 @@ pub fn process_body_layout(
 pub fn process_layout( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    // styles : &HashMap<StyleSelector, Style>,
     xml : &str 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
@@ -30,9 +26,7 @@ pub fn process_layout(
 fn process_container( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    // styles : &HashMap<StyleSelector, Style>,
     default_style : Style,
     xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>

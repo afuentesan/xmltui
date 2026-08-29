@@ -1,6 +1,6 @@
 use roxmltree::Node;
 
-use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::styles_from_head, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_doc::XMLDoc, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::process_line, xml_link::process_link, xml_paragraph::process_paragraph, xml_select::process_select, xml_template::templates_from_parent}};
+use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::styles_from_head, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_doc::{XMLDoc, XMLDocResult}, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::process_line, xml_link::process_link, xml_paragraph::process_paragraph, xml_select::process_select, xml_template::templates_from_parent}};
 
 pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
 {
@@ -20,13 +20,13 @@ pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
 
     let mut rtml_doc = RTMLDoc::new( styles, executors, templates );
 
-    let ( root, root_id ) = process_first_node( 
+    let ( root, root_id, focus ) = process_first_node( 
         body, 
         &mut rtml_doc, 
         None,
         &xml
     )?
-    .ok_or( anyhow::Error::msg( "No root element" ) )?;
+    .consume_with_err_if_no_root()?;
 
     rtml_doc.doc.insert( root_id.clone(), root );
 
@@ -35,6 +35,11 @@ pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
     rtml_doc.doc_id = id_retry_if_exists( doc.root_element(), &rtml_doc.doc );
 
     rtml_doc.sort_nodes();
+
+    if let Some( f ) = focus
+    {
+        rtml_doc.change_focus( &f );
+    }
 
     Ok( rtml_doc )
 }
@@ -87,17 +92,22 @@ pub fn replace_node_with_xml(
 
     rtml_doc.remove_node_and_clear_from_parent( &node_id, &parent_id );
 
-    let ( root, root_id ) = process_first_node( 
+    let ( root, root_id, focus ) = process_first_node( 
         doc.root_element(), 
         rtml_doc, 
         Some( parent_id.clone() ),
         &xml
     )?
-    .ok_or( anyhow::Error::msg( "No root element" ) )?;
+    .consume_with_err_if_no_root()?;
 
     rtml_doc.append_child_at_position( parent_id, root, root_id.clone(), position );
     
     rtml_doc.sort_nodes();
+
+    if let Some( f ) = focus
+    {
+        rtml_doc.change_focus( &f );
+    }
 
     Ok( root_id )
 }
@@ -119,17 +129,20 @@ pub fn replace_node_childs_with_xml(
 
     rtml_doc.remove_childs_nodes( &node_id );
 
-    process_first_node( 
+    let focus = process_first_node( 
         doc.root_element(), 
         rtml_doc, 
         Some( node_id.clone() ),
         &xml
-    )?;
-    //.ok_or( anyhow::Error::msg( "No root element" ) )?;
-
-    // rtml_doc.append_child( node_id, root, root_id );
+    )?
+    .consume_focus();
     
     rtml_doc.sort_nodes();
+
+    if let Some( f ) = focus
+    {
+        rtml_doc.change_focus( &f );
+    }
 
     Ok( () )
 }
@@ -154,7 +167,7 @@ fn process_first_node(
     rtml_doc : &mut RTMLDoc,
     parent_id : Option<RTMLNodeId>,
     xml : &str
-) -> anyhow::Result<Option<( RTMLNode, RTMLNodeId )>>
+) -> anyhow::Result<XMLDocResult>
 {
     let mut xml_doc = XMLDoc::new(
         &mut rtml_doc.doc, 
@@ -162,8 +175,11 @@ fn process_first_node(
         None
     );
 
-    // process_node( node, &mut rtml_doc.doc, parent_id, &rtml_doc.styles, xml )
-    process_node( &mut xml_doc, node, parent_id, xml )
+    let root = process_node( &mut xml_doc, node, parent_id, xml )?;
+
+    Ok(
+        XMLDocResult::new( root, xml_doc.consume_focus() )
+    )
 }
 
 pub fn process_node( 

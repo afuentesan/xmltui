@@ -4,15 +4,13 @@ use ratatui::style::Style;
 use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml_doc::XMLDoc, xml_event::parse_event_attrs}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs}};
 
 
 pub fn process_select( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
-    parent_id : Option<RTMLNodeId>,
-    // styles : &HashMap<StyleSelector, Style> 
+    parent_id : Option<RTMLNodeId>
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let ( selected_line, values, lines ) = process_options( node, xml_doc.styles() )?;
@@ -29,6 +27,8 @@ pub fn process_select(
     );
 
     let alignment = attr_alignment( node )?;
+
+    replace_xml_doc_focus( xml_doc, node, &id );
     
     Ok(
         (

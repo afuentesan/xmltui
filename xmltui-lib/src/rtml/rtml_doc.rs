@@ -144,6 +144,33 @@ impl RTMLDoc
         self.focus = Some( prev );
     }
 
+    pub fn change_focus( &mut self, id : &RTMLNodeId )
+    {
+        if self.sorted_nodes.len() == 0 { return };
+
+        let next_focus = self.sorted_nodes
+        .iter()
+        .enumerate()
+        .find_map(
+            | ( i, n ) |
+            {
+                if n == id
+                {
+                    Some( i )
+                }
+                else
+                {
+                    None    
+                }
+            }
+        );
+
+        if let Some( idx ) = next_focus
+        {
+            self.focus = Some( idx );
+        }
+    }
+
     pub fn current_focus( &self ) -> Option<&RTMLNode>
     {
         if let Some( idx ) = self.focus && idx < self.sorted_nodes.len()

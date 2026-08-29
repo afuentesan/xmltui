@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use ratatui::style::Style;
+use roxmltree::Node;
 
 use crate::{rtml::rtml_node::{RTMLNode, RTMLNodeId}, xml::styles::xml_style::StyleSelector};
 
@@ -23,7 +24,7 @@ impl<'a> XMLDoc<'a>
         Self { nodos, styles, focus }
     }
 
-    pub fn replace_focus( &mut self, focus : RTMLNodeId )
+    fn replace_focus( &mut self, focus : RTMLNodeId )
     {
         self.focus = Some( focus )
     }
@@ -46,5 +47,44 @@ impl<'a> XMLDoc<'a>
     pub fn styles( &self ) -> &HashMap<StyleSelector, Style>
     {
         self.styles
+    }
+
+    pub fn consume_focus( self ) -> Option<RTMLNodeId>
+    {
+        self.focus
+    }
+}
+
+pub fn replace_xml_doc_focus( xml_doc : &mut XMLDoc, node : Node, id : &str )
+{
+    if let Some( f ) = node.attribute( "set-focus" ) && f.trim() == "true"
+    {
+        xml_doc.replace_focus( id.to_string() );
+    }
+}
+
+pub struct XMLDocResult
+{
+    root : Option<( RTMLNode, RTMLNodeId )>,
+    focus : Option<RTMLNodeId>
+}
+
+impl XMLDocResult
+{
+    pub fn new( root : Option<( RTMLNode, RTMLNodeId )>, focus : Option<RTMLNodeId> ) -> Self
+    {
+        Self { root, focus }
+    }
+
+    pub fn consume_with_err_if_no_root( self ) -> anyhow::Result<( RTMLNode, RTMLNodeId, Option<RTMLNodeId> )>
+    {
+        let ( root, root_id ) = self.root.ok_or( anyhow::Error::msg( "No root element" ) )?;
+
+        Ok( ( root, root_id, self.focus ) )
+    }
+
+    pub fn consume_focus( self ) -> Option<RTMLNodeId>
+    {
+        self.focus
     }
 }

@@ -7,10 +7,8 @@ use crate::{rtml::{rtml_border::RTMLBorder, rtml_node::{RTMLNode, RTMLNodeCommon
 
 pub fn process_border(
     xml_doc : &mut XMLDoc, 
-    node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
+    node : Node,  
     parent_id : Option<RTMLNodeId>, 
-    // styles : &HashMap<StyleSelector, Style>,
     xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {

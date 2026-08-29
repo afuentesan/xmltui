@@ -68,4 +68,4 @@
 
 [x] Añadir atributo enter-src 
 
-[] Hay que hacer que un elemento pueda tener el foco al cargar la página
+[x] Hay que hacer que un elemento pueda tener el foco al cargar la página
