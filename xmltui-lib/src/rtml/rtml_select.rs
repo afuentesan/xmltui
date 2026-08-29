@@ -195,15 +195,15 @@ fn render_options(
 {
     clear_area( rtml_select.common.attrs.area, style, buf );
     
-    let mut lines = lines_from_text_width_style( 
+    let lines = lines_from_text_width_style( 
         &rtml_select.lines, 
         Some( ( rtml_select.selected_line, rtml_select.selected_style ) ) 
     );
 
-    if rtml_select.selected_line < lines.len()
-    {
-        lines[ rtml_select.selected_line ] = lines[ rtml_select.selected_line ].clone().style( rtml_select.selected_style );
-    }   
+    // if rtml_select.selected_line < lines.len()
+    // {
+    //     lines[ rtml_select.selected_line ] = lines[ rtml_select.selected_line ].clone().style( rtml_select.selected_style );
+    // }   
 
     let constraints = vec![ Constraint::Length( 1 ); lines.len() ];
 
@@ -212,8 +212,17 @@ fn render_options(
     lines.into_iter()
     .enumerate()
     .for_each( 
-        | ( idx, line ) |
+        | ( idx, mut line ) |
         {
+            if idx == rtml_select.selected_line
+            {
+                line = line.style( rtml_select.selected_style );
+            }
+            else
+            {
+                line = line.style( style );    
+            }
+
             line.alignment( rtml_select.alignment ).render( areas[ idx ], buf );
         }
     );

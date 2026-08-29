@@ -56,9 +56,9 @@
 
 [x] Mejorar el atributo padding, cuando se ponga un solo número debe aplicarlo a los cuatro, etc... Ver doc de css https://developer.mozilla.org/es/docs/Web/CSS/Reference/Properties/padding
 
-[] Añadir focus_style para el Paragraph
+[x] Añadir focus_style para el Paragraph
 
-[] Añadir alignment para el Paragraph
+[x] Añadir alignment para el Paragraph
 
 [] Barra de scroll para el Paragraph
 
@@ -69,3 +69,7 @@
 [x] Añadir atributo enter-src 
 
 [x] Hay que hacer que un elemento pueda tener el foco al cargar la página
+
+[x] Que el paragraph pueda tener padding
+
+[] Que el select pueda tener padding

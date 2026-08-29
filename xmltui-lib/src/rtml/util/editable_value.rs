@@ -20,6 +20,11 @@ impl EditableValue
         Self { cursor_position : 0, start_at : 0, value }
     }
 
+    pub fn is_empty( &self ) -> bool
+    {
+        self.value.is_empty()
+    }
+
     pub fn next_col( &mut self, width : usize ) -> bool
     {
         let len = str_len( &self.value );

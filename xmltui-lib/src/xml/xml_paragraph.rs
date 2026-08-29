@@ -4,7 +4,7 @@ use ratatui::style::Style;
 use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::RTMLParagraph, util::types::TextLines}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::RTMLParagraph, util::types::TextLines}, util::log::log_to_file, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_padding::container_padding_from_node}};
 
 
 pub fn process_paragraph( 
@@ -15,6 +15,9 @@ pub fn process_paragraph(
 {
     let lines = process_lines( node, xml_doc.styles() )?;
     let style = style_from_node( node, xml_doc.styles(), default_normal_style(), None );
+    let focus_style = style_from_node( node, xml_doc.styles(), default_focus_style( &style ), Some( StyleVariant::Focus ) );
+    let padding = container_padding_from_node( node );
+
     let common = RTMLNodeCommon::new( 
         parse_common_attrs( node )?, 
         vec![], 
@@ -23,12 +26,14 @@ pub fn process_paragraph(
 
     let id = id_retry_if_exists( node, xml_doc.nodos() );
 
+    let alignment = attr_alignment( node )?;
+
     replace_xml_doc_focus( xml_doc, node, &id );
 
     Ok(
         (
             RTMLNode::Paragraph(
-                RTMLParagraph::new( common, style, lines )
+                RTMLParagraph::new( common, padding, alignment, style, focus_style, lines )
             ),
             id
         )

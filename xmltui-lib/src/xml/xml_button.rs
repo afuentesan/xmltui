@@ -17,6 +17,10 @@ pub fn process_button(
 
     replace_xml_doc_focus( xml_doc, node, &id );
 
+    let style = style_from_node( node, xml_doc.styles(), default_link_normal_style(), None );
+
+    let focus_style = style_from_node( node, xml_doc.styles(), default_link_focus_style( &style ),Some( StyleVariant::Focus ) );
+
     Ok(
         (
             RTMLNode::Button(
@@ -24,8 +28,8 @@ pub fn process_button(
                     alignment, 
                     parse_event_attrs( node, &id )?,
                     text,
-                    style_from_node( node, xml_doc.styles(), default_link_normal_style(), None ),
-                    style_from_node( node, xml_doc.styles(), default_link_focus_style(),Some( StyleVariant::Focus ) ),
+                    style,
+                    focus_style,
                     RTMLNodeCommon::new( 
                         parse_common_attrs( node )?, 
                         vec![], 

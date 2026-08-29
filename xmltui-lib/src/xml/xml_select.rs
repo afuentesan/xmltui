@@ -16,7 +16,7 @@ pub fn process_select(
     let ( selected_line, values, lines ) = process_options( node, xml_doc.styles() )?;
     let style = style_from_node( node, xml_doc.styles(), default_normal_style(), None );
     let focus_style = style_from_node( node, xml_doc.styles(), default_normal_style(), Some( StyleVariant::Focus ) );
-    let selected_style = style_from_node( node, xml_doc.styles(), default_focus_style(), Some( StyleVariant::Selected ) );
+    let selected_style = style_from_node( node, xml_doc.styles(), default_focus_style( &style ), Some( StyleVariant::Selected ) );
     
     let id = id_retry_if_exists( node, xml_doc.nodos() );
 

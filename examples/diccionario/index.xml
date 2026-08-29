@@ -7,13 +7,13 @@
                 ".red" : {
                     "fg" : "#ff0000"
                 },
-                ".p" : {
-                    "bg" : "#222222"
+                "p:focus" : {
+                    "bg" : "#113311"
                 }
             }
         </style>
         <template name="definicion">
-            <p class="p">{{ ctx }}</p>
+            <p class="p" padding="1">{{ ctx }}</p>
         </template>
         <code command="/usr/bin/bash" name="buscar">
             <envs>
@@ -37,7 +37,7 @@
                 <line padding-right="1">Buscar:</line>
                 <input id="palabra" length="25" enter="buscar" enter-replace-childs="definicion" enter-template="definicion" />
             </layout>
-            <layout id="definicion" flex="center" padding="1" class="p">
+            <layout id="definicion" flex="center">
 
             </layout>
         </border>

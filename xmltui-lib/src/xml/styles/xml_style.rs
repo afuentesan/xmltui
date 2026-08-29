@@ -121,16 +121,6 @@ pub fn style_from_node( node : Node, styles : &HashMap<StyleSelector, Style>, de
     style
 }
 
-// pub fn classes_from_node( node : Node ) -> Vec<String>
-// {
-//     node.attribute( "class" )
-//     .unwrap_or( "" )
-//     .split( " " )
-//     .filter( | s | s.trim() != "" )
-//     .map( | s | s.to_string() )
-//     .collect()
-// }
-
 fn style_from_classes<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, Style>, variant : Option<&StyleVariant> ) -> Option<Style>
 {
     if let Some( cls ) = node.attribute( "class" ) && cls.trim() != ""

@@ -116,16 +116,23 @@ pub fn render_rtml_input(
     buf : &mut Buffer
 ) -> anyhow::Result<()>
 {
-    let spans = editable_value_to_spans( 
-        &rtml_input.value, 
-        area.width as usize, 
-        rtml_input.style, 
-        false
-    );
+    let spans = if rtml_input.value.is_empty()
+    {
+        vec![ Span::styled( " ", rtml_input.style  ) ]
+    } 
+    else 
+    {
+        editable_value_to_spans( 
+            &rtml_input.value, 
+            area.width as usize, 
+            rtml_input.style, 
+            false
+        )
+    };
 
     let spans = if spans.len() == 0
     {
-        vec![ Span::styled( " ", rtml_input.focus_style  ) ]
+        vec![ Span::styled( " ", rtml_input.style  ) ]
     }
     else
     {

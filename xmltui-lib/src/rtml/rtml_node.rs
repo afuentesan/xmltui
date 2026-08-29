@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use ratatui::{buffer::Buffer, layout::{Constraint, Rect}};
 
-use crate::{input::event::InputEvent, rtml::{rtml_attrs::CommonAttrs, rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::RTMLParagraph, rtml_select::{RTMLSelect, render_rtml_select_focus}, rtml_span::RTMLSpan}};
+use crate::{input::event::InputEvent, rtml::{rtml_attrs::CommonAttrs, rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::{RTMLParagraph, render_rtml_paragraph_focus}, rtml_select::{RTMLSelect, render_rtml_select_focus}, rtml_span::RTMLSpan}};
 
 pub type RTMLNodeId = String;
 
@@ -302,11 +302,11 @@ pub fn render_focus_node(
         RTMLNode::Link( link ) => render_rtml_link_focus( link, buf ),
         RTMLNode::Button( button ) => render_rtml_button_focus( button, buf ),
         RTMLNode::Select( select ) => render_rtml_select_focus( select, buf ),
+        RTMLNode::Paragraph( paragraph ) => render_rtml_paragraph_focus( paragraph, buf ),
         RTMLNode::Command( _ ) |
         RTMLNode::Layout( _ ) |
         RTMLNode::Line( _ ) |
         RTMLNode::Border( _ ) |
-        RTMLNode::Paragraph( _ ) |
         RTMLNode::Span( _ ) => Ok( () )
     }
 }

@@ -1,22 +1,26 @@
-use ratatui::{buffer::Buffer, layout::Rect, style::Style, text::{Line, Span}, widgets::{Paragraph, Widget, Wrap}};
+use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::{Paragraph, Widget, Wrap}};
 
-use crate::{input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, util::types::TextLines}, xml::styles::xml_style::merge_styles};
+use crate::{input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, rtml_padding::RTMLPadding, util::types::TextLines}, util::draw::clear_area, xml::styles::xml_style::merge_styles};
 
 #[derive(Debug)]
 pub struct RTMLParagraph 
 {
     pub common : RTMLNodeCommon,
+    pub padding : RTMLPadding,
+    pub alignment : Alignment,
     pub style : Style,
+    pub focus_style : Style,
     pub lines : TextLines,
     pub start_at : usize,
-    pub num_lines : usize
+    pub num_lines : usize,
+    pub inner_area : Rect
 }
 
 impl RTMLParagraph
 {
-    pub fn new( common : RTMLNodeCommon, style : Style, lines : TextLines ) -> Self
+    pub fn new( common : RTMLNodeCommon, padding : RTMLPadding, alignment : Alignment, style : Style, focus_style : Style, lines : TextLines ) -> Self
     {
-        Self { common, style, lines, start_at : 0, num_lines : 0 }
+        Self { common, padding, alignment, style, focus_style, lines, start_at : 0, num_lines : 0, inner_area : Rect::default() }
     }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> bool
@@ -33,7 +37,7 @@ impl RTMLParagraph
             },
             InputEvent::Down =>
             {
-                let max_start_at = self.num_lines.saturating_sub( self.common.attrs.area.height as usize );
+                let max_start_at = self.num_lines.saturating_sub( self.inner_area.height as usize );
 
                 if self.start_at >= max_start_at
                 {
@@ -64,7 +68,41 @@ pub fn render_rtml_paragraph(
         paragraph = paragraph.scroll( ( rtml_paragraph.start_at as u16, 0 ) );
     }
 
-    paragraph.render( area, buf );
+    paragraph = paragraph.style( rtml_paragraph.style );
+
+    render_padding( area, rtml_paragraph.style, buf );
+
+    paragraph.render( rtml_paragraph.inner_area, buf );
+
+    Ok( () )
+}
+
+fn render_padding(
+    area : Rect,
+    style : Style,
+    buf : &mut Buffer
+)
+{
+    clear_area( area, style, buf );
+}
+
+pub fn render_rtml_paragraph_focus( 
+    rtml_paragraph : &RTMLParagraph,
+    buf : &mut Buffer
+) -> anyhow::Result<()>
+{
+    let mut paragraph = create_paragraph( rtml_paragraph );
+
+    if rtml_paragraph.start_at > 0
+    {
+        paragraph = paragraph.scroll( ( rtml_paragraph.start_at as u16, 0 ) );
+    }
+
+    paragraph = paragraph.style( rtml_paragraph.focus_style );
+
+    render_padding( rtml_paragraph.common.attrs.area, rtml_paragraph.focus_style, buf );
+
+    paragraph.render( rtml_paragraph.inner_area, buf );
 
     Ok( () )
 }
@@ -76,7 +114,7 @@ pub fn create_paragraph<'a>(
     let lines = lines_from_text_width_style( &rtml_paragraph.lines, None );
 
     Paragraph::new( lines )
-    .style( rtml_paragraph.style )
+    .alignment( rtml_paragraph.alignment )
     .wrap( Wrap { trim: false } )
 }
 

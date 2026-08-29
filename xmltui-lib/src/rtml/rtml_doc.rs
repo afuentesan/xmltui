@@ -834,9 +834,12 @@ fn change_area_and_get_childs<'a, 'b>(
         {
             let p = create_paragraph( rtml_paragraph );
 
-            let num_lines = p.line_count( area.width );
+            let inner_area = area_con_padding( area, &rtml_paragraph.padding );
+
+            let num_lines = p.line_count( inner_area.width );
 
             rtml_paragraph.num_lines = num_lines;
+            rtml_paragraph.inner_area = inner_area;
         },
         _ => {}
     };
