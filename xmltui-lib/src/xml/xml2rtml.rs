@@ -230,7 +230,7 @@ pub fn process_node(
 #[cfg(test)]
 mod test
 {
-    use crate::app::app_doc::init_chroot;
+    use crate::{app::app_doc::init_chroot, util::log::log_to_file};
 
 use super::*;
 
@@ -250,7 +250,7 @@ use super::*;
         {
             let err = format!( "Err: {:?}", doc.err() );
 
-            eprintln!( "Err: {err}" );
+            log_to_file( &format!( "Err: {err}" ) );
 
             assert!( false, "rtml is err" );
 

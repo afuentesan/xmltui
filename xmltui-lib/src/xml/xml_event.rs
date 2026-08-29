@@ -1,7 +1,6 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::RTMLCommandOutput, util::rtml_event::{CallbackReplace, RTMLCallback, RTMLCallbackAction, RTMLCallbackCommand, RTMLEvent}}, xml::{attrs::attr_comands_from_str, xml_command::output_from_str}};
-
+use crate::{rtml::{rtml_command::RTMLCommandOutput, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackReplace, RTMLCallback, RTMLCallbackAction::{self}, RTMLCallbackChangeSrc, RTMLCallbackCommand, RTMLEvent}}, xml::{attrs::attr_comands_from_str, xml_command::output_from_str}};
 
 pub fn parse_event_attrs( node : Node, id : &str  ) -> anyhow::Result<Vec<RTMLEvent>>
 {
@@ -19,8 +18,27 @@ pub fn parse_event_attrs( node : Node, id : &str  ) -> anyhow::Result<Vec<RTMLEv
             ret.push( RTMLEvent::Enter( callback ) );
         }
     }
+
+    if let Some( src ) = node.attribute( "enter-src" ) && src.trim() != ""
+    {
+        ret.push( RTMLEvent::Enter( parse_change_src( node, id, src, "enter" ) ) );
+    }
     
     Ok( ret )
+}
+
+fn parse_change_src( node : Node, id : &str, src : &str, prefix : &str )-> RTMLCallback
+{
+    let data_from = data_from_node( node, id, prefix );
+    let value_from = value_from_node( node, id, prefix );
+
+    RTMLCallback::ChangeSrc(
+        RTMLCallbackChangeSrc::new(
+            src.to_string(), 
+            data_from, 
+            value_from
+        )
+    )
 }
 
 fn parse_refresh_commands_event( commands : &str ) -> Option<RTMLCallback>
@@ -45,8 +63,8 @@ fn parse_enter_event( node : Node, value : &str, id : &str ) -> anyhow::Result<R
 {
     let executors = attr_comands_from_str( value );
 
-    let data_from = data_from_node( node, id );
-    let value_from = value_from_node( node, id );
+    let data_from = data_from_node( node, id, "enter" );
+    let value_from = value_from_node( node, id, "enter" );
 
     Ok(
         RTMLEvent::Enter( RTMLCallback::Command(
@@ -57,14 +75,14 @@ fn parse_enter_event( node : Node, value : &str, id : &str ) -> anyhow::Result<R
     )
 }
 
-fn value_from_node( node : Node, id : &str ) -> Vec<String>
+fn value_from_node( node : Node, id : &str, prefix : &str ) -> Vec<String>
 {
-    nodes_from_attr( node, id, "enter-value" )
+    nodes_from_attr( node, id, &format!( "{prefix}-value" ) )
 }
 
-fn data_from_node( node : Node, id : &str ) -> Vec<String>
+fn data_from_node( node : Node, id : &str, prefix : &str ) -> Vec<String>
 {
-    nodes_from_attr( node, id, "enter-data" )
+    nodes_from_attr( node, id, &format!( "{prefix}-data" ) )
 }
 
 pub fn nodes_from_attr( node : Node, id : &str, attr : &str ) -> Vec<String>
@@ -107,10 +125,37 @@ fn parse_callback_action( node : Node, prefix : &str ) -> anyhow::Result<RTMLCal
     {
         Ok( RTMLCallbackAction::ChangeValue( node_id.to_string() ) )
     }
+    else if let Some( url ) = node.attribute( format!( "{prefix}-command-src" ).as_str() )
+    {
+        Ok( RTMLCallbackAction::ChangeSrc( callback_change_src( node, url, prefix ) ) )
+    }
     else
     {
         Ok( RTMLCallbackAction::None )    
     }
+}
+
+fn callback_change_src( node : Node, url : &str, prefix : &str ) -> CallbackChangeSrcFromCommand
+{
+    let url = if url.trim() != ""
+    {
+        Some( url.trim().to_string() )
+    }
+    else
+    {
+        None    
+    };
+
+    let output = if let Some( output ) = node.attribute( format!( "{prefix}-output" ).as_str() ) && output.trim() != ""
+    {
+        output_from_str( output )
+    }
+    else
+    {
+        RTMLCommandOutput::String
+    };
+
+    CallbackChangeSrcFromCommand::new( url, output )
 }
 
 fn callback_replace_from_node( node : Node, node_id : String, prefix : &str ) -> CallbackReplace

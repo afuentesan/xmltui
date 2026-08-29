@@ -10,7 +10,7 @@ use anyhow::{Context, bail};
 
 pub fn read_file_in_chroot_with_extension( path : &str, root_path : &PathBuf, extension : &str ) -> anyhow::Result<String>
 {
-    read_file_in_chroot_with_option_extension( path, root_path, Some( extension ) )
+    read_file_in_chroot_with_option_extension( path.trim(), root_path, Some( extension ) )
 }
 
 fn read_file_in_chroot_with_option_extension( path : &str, root_path : &PathBuf, extension : Option<&str> ) -> anyhow::Result<String>
@@ -23,7 +23,7 @@ fn read_file_in_chroot_with_option_extension( path : &str, root_path : &PathBuf,
 
     if let Some( e ) = extension && combined_path.is_dir()
     {
-        combined_path = combined_path.join( format!( "index{e}" ) );
+        combined_path = combined_path.join( format!( "index.{e}" ) );
     }
 
     if let Some( extension ) = extension
@@ -40,11 +40,11 @@ fn read_file_in_chroot_with_option_extension( path : &str, root_path : &PathBuf,
 
     let final_path = combined_path
         .canonicalize()
-        .context( "El archivo solicitado no existe o es inaccesible" )?;
+        .context( format!( "El archivo solicitado no existe o es inaccesible. Path: {:?}", combined_path ) )?;
 
     if ! final_path.starts_with( &root_path ) 
     {
-        bail!( "Acceso denegado: Intento de Path Traversal fuera de chroot." );
+        bail!( format!( "Acceso denegado: Intento de Path Traversal fuera de chroot. Path: {:?}", final_path ) );
     }
 
     Ok( fs::read_to_string( final_path )? )

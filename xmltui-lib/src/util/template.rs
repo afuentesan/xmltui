@@ -18,7 +18,7 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
         {
             let context = serde_json::Value::String( data );
 
-            xml_from_template_context( template.as_ref().unwrap(), context )
+            xml_from_template_context_ctx_parent( template.as_ref().unwrap(), context )
         },
         RTMLCommandOutput::StrVec =>
         {
@@ -36,7 +36,7 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
                 }
             };
 
-            xml_from_template_context( template.as_ref().unwrap(), serde_json::Value::Array( context ) )
+            xml_from_template_context_ctx_parent( template.as_ref().unwrap(), serde_json::Value::Array( context ) )
         },
         RTMLCommandOutput::Json =>
         {
@@ -48,12 +48,22 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
                 Err( _ ) => serde_json::Value::String( data )
             };
 
-            xml_from_template_context( template.as_ref().unwrap(), context )
+            xml_from_template_context_ctx_parent( template.as_ref().unwrap(), context )
         }
     }
 }
 
-fn xml_from_template_context( template : &str, context : Value ) -> anyhow::Result<String>
+pub fn xml_from_template_context( template : &str, context : Value ) -> anyhow::Result<String>
+{
+    xml_from_template_context_parent_key( template, context, None )
+}
+
+fn xml_from_template_context_ctx_parent( template : &str, context : Value ) -> anyhow::Result<String>
+{
+    xml_from_template_context_parent_key( template, context, Some( "ctx" ) )
+}
+
+fn xml_from_template_context_parent_key( template : &str, context : Value, parent : Option<&str> ) -> anyhow::Result<String>
 {
     let mut env = Environment::new();
 
@@ -61,7 +71,14 @@ fn xml_from_template_context( template : &str, context : Value ) -> anyhow::Resu
 
     let tmpl = env.get_template( "rtml_template" )?;
 
-    let context = json!( { "ctx" : context } );
+    let context = if let Some( p ) = parent
+    {
+        json!( { p : context } )
+    }
+    else
+    {
+        context    
+    };
 
     Ok( tmpl.render( context )? )
 }

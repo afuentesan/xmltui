@@ -1,0 +1,10 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="../../xmltui-lib/examples/schema.xsd"
+>
+    <body dir="vertical" flex="center">
+        <layout dir="vertical" length="2" flex="center">
+            <line align="center">Partials</line>
+            <a src="/" align="center">Volver a opciones</a>
+        </layout>
+    </body>
+</rtml>

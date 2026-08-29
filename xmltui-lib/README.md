@@ -60,4 +60,12 @@
 
 [] Añadir alignment para el Paragraph
 
-[] Crear componente select
+[] Barra de scroll para el Paragraph
+
+[x] Crear componente select
+
+[] Barra de scroll para el select
+
+[x] Añadir atributo enter-src 
+
+[] Hay que hacer que un elemento pueda tener el foco al cargar la página

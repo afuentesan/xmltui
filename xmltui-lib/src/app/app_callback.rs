@@ -1,6 +1,7 @@
+use serde_json::json;
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::event::{AppEvent, CallbackResponse, send_app_event}, async_app::async_app::spawn_async_task, code::event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, rtml::{rtml_command::CommandRefresh, rtml_doc::RTMLDoc, util::rtml_event::{CallbackChangeSrc, CallbackReplace, RTMLCallback, RTMLCallbackAction, RTMLCallbackCommand}}, util::{log::log_to_file, template::template_to_xml}, xml::xml2rtml::{replace_node_childs_with_xml, replace_node_with_xml}};
+use crate::{app::event::{AppEvent, CallbackResponse, send_app_event}, async_app::async_app::spawn_async_task, code::event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, rtml::{rtml_command::CommandRefresh, rtml_doc::RTMLDoc, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackReplace, RTMLCallback, RTMLCallbackAction, RTMLCallbackChangeSrc, RTMLCallbackCommand}}, util::{log::log_to_file, template::{template_to_xml, xml_from_template_context}}, xml::xml2rtml::{replace_node_childs_with_xml, replace_node_with_xml}};
 
 
 pub fn execute_callback(
@@ -21,7 +22,31 @@ pub fn execute_callback(
         RTMLCallback::RefreshCommand( commands ) =>
         {
             doc.refresh_commands( commands );
+        },
+        RTMLCallback::ChangeSrc( params ) =>
+        {
+            change_src( doc, params );
         }
+    }
+}
+
+fn change_src( doc : &RTMLDoc, params : RTMLCallbackChangeSrc )
+{
+    let node_data = doc.data_from_nodes_id( params.data_from.as_ref() );
+    let node_value = doc.value_from_nodes_id( params.value_from.as_ref() );
+
+    let context = json!( { "data" : node_data, "value" : node_value } );
+
+    match xml_from_template_context( &params.url, context )
+    {
+        Ok( s ) =>
+        {
+            send_app_event( AppEvent::LoadFile( s ) );
+        },
+        Err( e ) =>
+        {
+            log_to_file( &format!( "change_src. No se ha podido parsear el src. Url: {}, Err: {e:?}", params.url ) );
+        }    
     }
 }
 
@@ -144,7 +169,7 @@ pub fn execute_callback_response(
     }
 }
 
-fn parse_change_src( change_data : CallbackChangeSrc, response : String ) -> bool
+fn parse_change_src( change_data : CallbackChangeSrcFromCommand, response : String ) -> bool
 {
     if let Some( url ) = change_data.url && url.trim() != ""
     {

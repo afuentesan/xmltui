@@ -32,13 +32,20 @@
                 </arg>
             </args>
         </code>
+
+        <code command="echo" name="ir_a_opcion">
+            <args>
+                <arg-value name="opcion" />
+            </args>
+        </code>
     </head>
 
     <body>
 
         <command output="json" exec="actions">
             <template>
-                <select dropdown="false" align="center">
+                <!--<select dropdown="false" align="center" id="opcion" enter="ir_a_opcion" enter-command-src="">-->
+                <select dropdown="false" align="center" id="opcion" enter-src="{% raw %}{{ value.opcion }}{% endraw %}">
                     {% for option in ctx.options %}
                         <option value="{{ option.value }}">{{ option.text }}</option>
                     {% endfor %}

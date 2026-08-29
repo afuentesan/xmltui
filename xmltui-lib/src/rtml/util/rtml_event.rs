@@ -40,10 +40,34 @@ impl CallbackReplace
 }
 
 #[derive(Debug, Clone)]
-pub struct CallbackChangeSrc
+pub struct CallbackChangeSrcFromCommand
 {
     pub url : Option<String>,
     pub output : RTMLCommandOutput
+}
+
+impl CallbackChangeSrcFromCommand
+{
+    pub fn new( url : Option<String>, output : RTMLCommandOutput ) -> Self
+    {
+        Self { url, output }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct RTMLCallbackChangeSrc 
+{
+    pub url : String,
+    pub data_from : Vec<String>,
+    pub value_from : Vec<String>
+}
+
+impl RTMLCallbackChangeSrc
+{
+    pub fn new( url : String, data_from : Vec<String>, value_from : Vec<String> ) -> Self
+    {
+        Self { url, data_from, value_from }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -52,7 +76,7 @@ pub enum RTMLCallbackAction
     ReplaceNode( CallbackReplace ),
     ReplaceChilds( CallbackReplace ),
     ChangeValue( RTMLNodeId ),
-    ChangeSrc( CallbackChangeSrc ),
+    ChangeSrc( CallbackChangeSrcFromCommand ),
     None
 }
 
@@ -60,5 +84,6 @@ pub enum RTMLCallbackAction
 pub enum RTMLCallback
 {
     Command( RTMLCallbackCommand, RTMLCallbackAction ),
-    RefreshCommand( Vec<String> )
+    RefreshCommand( Vec<String> ),
+    ChangeSrc( RTMLCallbackChangeSrc )
 }

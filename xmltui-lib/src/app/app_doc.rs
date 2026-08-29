@@ -2,7 +2,7 @@ use std::{path::{Path, PathBuf}, sync::OnceLock};
 
 use anyhow::Context;
 
-use crate::{app::event::{AppEvent, send_app_event}, xml::xml2rtml::xml2rtml_doc};
+use crate::{app::event::{AppEvent, send_app_event}, util::log::log_to_file, xml::xml2rtml::xml2rtml_doc};
 
 static CHROOT : OnceLock<PathBuf> = OnceLock::new();
 
@@ -34,7 +34,7 @@ pub fn load_file( path : &str )
         },
         Err( e ) =>
         {
-            eprintln!( "Error: {:?}", e );
+            log_to_file( &format!( "Error: {:?}", e ) );
             // TODO: Mostrar algún mensaje de error
         }
     }

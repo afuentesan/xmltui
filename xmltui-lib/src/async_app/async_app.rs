@@ -1,6 +1,8 @@
 use std::sync::OnceLock;
 use tokio::runtime::Runtime;
 
+use crate::util::log::log_to_file;
+
 static ASYNC_RUNTIME: OnceLock<Runtime> = OnceLock::new();
 
 pub fn init_async_app()
@@ -23,7 +25,7 @@ where
     } 
     else 
     {
-        eprintln!( "Error: Se intentó lanzar una tarea pero el runtime no está inicializado" );
+        log_to_file( "Error: Se intentó lanzar una tarea pero el runtime no está inicializado" );
     }
 }
 
