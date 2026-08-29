@@ -1,28 +1,28 @@
 use std::collections::HashMap;
 
-use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::rtml_node::{RTMLNode, RTMLNodeId}, xml::{styles::xml_style::StyleSelector, xml2rtml::process_node}};
+use crate::{rtml::rtml_node::{RTMLNode, RTMLNodeId}, xml::{xml_doc::XMLDoc, xml2rtml::process_node}};
 
 
 pub fn process_childs_container(
+    xml_doc : &mut XMLDoc, 
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : RTMLNodeId, 
-    styles : &HashMap<StyleSelector, Style>,
+    // styles : &HashMap<StyleSelector, Style>,
     xml : &str 
 ) -> anyhow::Result<()>
 {
     for c in node.children()
     {
-        match process_node( c, nodos, Some( parent_id.clone() ), styles, xml )?
+        match process_node( xml_doc, c, Some( parent_id.clone() ), xml )?
         {
             Some( ( n, id ) ) =>
             {
-                nodos.insert( id.clone(), n );
+                xml_doc.add_node( n, id.clone() );
 
-                append_child( nodos, &parent_id, id )?;
+                append_child( xml_doc.nodos_mut(), &parent_id, id )?;
             },
             None => {}
         }

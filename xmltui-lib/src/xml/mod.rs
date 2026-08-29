@@ -16,3 +16,4 @@ pub mod xml_container;
 pub mod xml_padding;
 pub mod xml_paragraph;
 pub mod xml_select;
+pub mod xml_doc;

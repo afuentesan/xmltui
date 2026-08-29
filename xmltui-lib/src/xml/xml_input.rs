@@ -1,20 +1,18 @@
-use std::collections::HashMap;
-
-use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_input::RTMLInput, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::editable_value::EditableValue}, xml::{attrs::{attr_alignment, attr_value, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml_event::parse_event_attrs}};
+use crate::{rtml::{rtml_input::RTMLInput, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::editable_value::EditableValue}, xml::{attrs::{attr_alignment, attr_value, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleVariant, style_from_node}}, xml_doc::XMLDoc, xml_event::parse_event_attrs}};
 
 // const DEFAULT_INPUT_TYPE : &str = "text";
 
 pub fn process_input( 
+    xml_doc : &mut XMLDoc,
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>,
-    styles : &HashMap<StyleSelector, Style> 
+    // styles : &HashMap<StyleSelector, Style> 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let id = id_retry_if_exists( node, nodos );
+    let id = id_retry_if_exists( node, xml_doc.nodos() );
     
     let alignment = attr_alignment( node )?;
 
@@ -27,8 +25,8 @@ pub fn process_input(
                     alignment, 
                     parse_event_attrs( node, &id )?,
                     value, 
-                    style_from_node( node, styles, default_normal_style(), None ), 
-                    style_from_node( node, styles, default_focus_style(), Some( StyleVariant::Focus ) ), 
+                    style_from_node( node, xml_doc.styles(), default_normal_style(), None ), 
+                    style_from_node( node, xml_doc.styles(), default_focus_style(), Some( StyleVariant::Focus ) ), 
                     RTMLNodeCommon::new( 
                         parse_common_attrs( node )?, 
                         vec![], 

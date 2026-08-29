@@ -4,22 +4,23 @@ use ratatui::style::Style;
 use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml_event::parse_event_attrs}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml_doc::XMLDoc, xml_event::parse_event_attrs}};
 
 
 pub fn process_select( 
+    xml_doc : &mut XMLDoc,
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>,
-    styles : &HashMap<StyleSelector, Style> 
+    // styles : &HashMap<StyleSelector, Style> 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let ( selected_line, values, lines ) = process_options( node, styles )?;
-    let style = style_from_node( node, styles, default_normal_style(), None );
-    let focus_style = style_from_node( node, styles, default_normal_style(), Some( StyleVariant::Focus ) );
-    let selected_style = style_from_node( node, styles, default_focus_style(), Some( StyleVariant::Selected ) );
+    let ( selected_line, values, lines ) = process_options( node, xml_doc.styles() )?;
+    let style = style_from_node( node, xml_doc.styles(), default_normal_style(), None );
+    let focus_style = style_from_node( node, xml_doc.styles(), default_normal_style(), Some( StyleVariant::Focus ) );
+    let selected_style = style_from_node( node, xml_doc.styles(), default_focus_style(), Some( StyleVariant::Selected ) );
     
-    let id = id_retry_if_exists( node, nodos );
+    let id = id_retry_if_exists( node, xml_doc.nodos() );
 
     let common = RTMLNodeCommon::new( 
         parse_common_attrs( node )?, 

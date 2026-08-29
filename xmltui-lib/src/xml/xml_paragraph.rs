@@ -4,25 +4,26 @@ use ratatui::style::Style;
 use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::RTMLParagraph, util::types::TextLines}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_node}}}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::RTMLParagraph, util::types::TextLines}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_node}}, xml_doc::XMLDoc}};
 
 
 pub fn process_paragraph( 
+    xml_doc : &mut XMLDoc,
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>,
-    styles : &HashMap<StyleSelector, Style> 
+    // styles : &HashMap<StyleSelector, Style> 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let lines = process_lines( node, styles )?;
-    let style = style_from_node( node, styles, default_normal_style(), None );
+    let lines = process_lines( node, xml_doc.styles() )?;
+    let style = style_from_node( node, xml_doc.styles(), default_normal_style(), None );
     let common = RTMLNodeCommon::new( 
         parse_common_attrs( node )?, 
         vec![], 
         parent_id
     );
 
-    let id = id_retry_if_exists( node, nodos );
+    let id = id_retry_if_exists( node, xml_doc.nodos() );
 
     Ok(
         (

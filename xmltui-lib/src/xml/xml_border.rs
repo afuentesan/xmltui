@@ -1,30 +1,30 @@
-use std::collections::HashMap;
 
 use ratatui::{style::Style, widgets::{BorderType, Borders, TitlePosition}};
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_border::RTMLBorder, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment_name, attr_option, container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml2rtml::process_node}};
+use crate::{rtml::{rtml_border::RTMLBorder, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment_name, attr_option, container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleVariant, style_from_node}}, xml_doc::XMLDoc, xml2rtml::process_node}};
 
 
-pub fn process_border( 
+pub fn process_border(
+    xml_doc : &mut XMLDoc, 
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    styles : &HashMap<StyleSelector, Style>,
+    // styles : &HashMap<StyleSelector, Style>,
     xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let border_id = id_retry_if_exists( node, nodos );
+    let border_id = id_retry_if_exists( node, xml_doc.nodos() );
 
     let mut childs : Vec<RTMLNodeId> = vec![];
 
     for c in node.children()
     {
-        match process_node( c, nodos, Some( border_id.clone() ), styles, xml )?
+        match process_node( xml_doc, c, Some( border_id.clone() ), xml )?
         {
             Some( ( n, id ) ) =>
             {
-                nodos.insert( id.clone(), n );
+                xml_doc.add_node( n, id.clone() );
 
                 childs.push( id );
             },
@@ -41,9 +41,9 @@ pub fn process_border(
                     attr_option( node, "title" ),
                     title_position( node ),
                     attr_alignment_name( node, "title-align" )?,
-                    style_from_node( node, styles, default_normal_style(), None ),
-                    style_from_node( node, styles, Style::default(), Some( StyleVariant::Title ) ),
-                    style_from_node( node, styles, Style::default(), Some( StyleVariant::Border ) ),
+                    style_from_node( node, xml_doc.styles(), default_normal_style(), None ),
+                    style_from_node( node, xml_doc.styles(), Style::default(), Some( StyleVariant::Title ) ),
+                    style_from_node( node, xml_doc.styles(), Style::default(), Some( StyleVariant::Border ) ),
                     container_attrs( node )?,
                     RTMLNodeCommon::new( 
                         parse_common_attrs( node )?, 

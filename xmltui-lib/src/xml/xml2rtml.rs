@@ -1,9 +1,6 @@
-use std::collections::HashMap;
-
-use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::{StyleSelector, styles_from_head}, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::process_line, xml_link::process_link, xml_paragraph::process_paragraph, xml_select::process_select, xml_template::templates_from_parent}};
+use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::styles_from_head, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_doc::XMLDoc, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::process_line, xml_link::process_link, xml_paragraph::process_paragraph, xml_select::process_select, xml_template::templates_from_parent}};
 
 pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
 {
@@ -159,14 +156,22 @@ fn process_first_node(
     xml : &str
 ) -> anyhow::Result<Option<( RTMLNode, RTMLNodeId )>>
 {
-    process_node( node, &mut rtml_doc.doc, parent_id, &rtml_doc.styles, xml )
+    let mut xml_doc = XMLDoc::new(
+        &mut rtml_doc.doc, 
+        &rtml_doc.styles, 
+        None
+    );
+
+    // process_node( node, &mut rtml_doc.doc, parent_id, &rtml_doc.styles, xml )
+    process_node( &mut xml_doc, node, parent_id, xml )
 }
 
 pub fn process_node( 
+    xml_doc : &mut XMLDoc,
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>,
+    // nodos : &mut HashMap<String, RTMLNode>,
     parent_id : Option<RTMLNodeId>,
-    styles : &HashMap<StyleSelector, Style>,
+    // styles : &HashMap<StyleSelector, Style>,
     xml : &str
 ) -> anyhow::Result<Option<( RTMLNode, RTMLNodeId )>>
 {
@@ -174,52 +179,52 @@ pub fn process_node(
     {
         "layout" =>
         {
-            Ok( Some( process_layout( node, nodos, parent_id, styles, xml )? ) )
+            Ok( Some( process_layout( xml_doc, node, parent_id, xml )? ) )
         },
         "body" =>
         {
-            Ok( Some( process_body_layout( node, nodos, parent_id, styles, xml )? ) )
+            Ok( Some( process_body_layout( xml_doc, node, parent_id, xml )? ) )
         },
         "p" =>
         {
-            Ok( Some( process_paragraph( node, nodos, parent_id, styles )? ) )
+            Ok( Some( process_paragraph( xml_doc, node, parent_id )? ) )
         },
         "select" =>
         {
-            Ok( Some( process_select( node, nodos, parent_id, styles )? ) )
+            Ok( Some( process_select( xml_doc, node, parent_id )? ) )
         },
         "line" =>
         {
-            Ok( Some( process_line( node, nodos, parent_id, styles )? ) )
+            Ok( Some( process_line( xml_doc, node, parent_id )? ) )
         },
         "input" =>
         {
-            Ok( Some( process_input( node, nodos, parent_id, styles )? ) )
+            Ok( Some( process_input( xml_doc, node, parent_id )? ) )
         },
         "a" =>
         {
-            Ok( Some( process_link( node, nodos, parent_id, styles )? ) )
+            Ok( Some( process_link( xml_doc, node, parent_id )? ) )
         },
         "button" =>
         {
-            Ok( Some( process_button( node, nodos, parent_id, styles )? ) )
+            Ok( Some( process_button( xml_doc, node, parent_id )? ) )
         },
         "command" =>
         {
-            Ok( Some( process_command( node, nodos, parent_id, styles, xml )? ) )
+            Ok( Some( process_command( xml_doc, node, parent_id, xml )? ) )
         },
         "border" =>
         {
-            Ok( Some( process_border( node, nodos, parent_id, styles, xml )? ) )
+            Ok( Some( process_border( xml_doc, node, parent_id, xml )? ) )
         },
         "container" =>
         {
-            if parent_id.is_none() || nodos.get( parent_id.as_ref().unwrap() ).is_none()
+            if parent_id.is_none() || xml_doc.nodos().get( parent_id.as_ref().unwrap() ).is_none()
             {
                 return Err( anyhow::Error::msg( "El nodo container siempre debe tener un parent_id y debe estar ya entre los nodos." ) )
             }
 
-            process_childs_container( node, nodos, parent_id.unwrap(), styles, xml )?;
+            process_childs_container( xml_doc, node, parent_id.unwrap(), xml )?;
 
             Ok( None )
         },

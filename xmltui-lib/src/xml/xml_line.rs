@@ -1,27 +1,26 @@
-use std::collections::HashMap;
-
 use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_line::RTMLLine, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_span::RTMLSpan}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_node}}, xml_padding::horizontal_padding_from_node}};
+use crate::{rtml::{rtml_line::RTMLLine, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_span::RTMLSpan}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::style_from_node}, xml_doc::XMLDoc, xml_padding::horizontal_padding_from_node}};
 
 
 pub fn process_line( 
+    xml_doc : &mut XMLDoc,
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>,
-    styles : &HashMap<StyleSelector, Style> 
+    // styles : &HashMap<StyleSelector, Style> 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let id = id_retry_if_exists( node, nodos );
+    let id = id_retry_if_exists( node, xml_doc.nodos() );
 
     let mut childs = vec![];
 
-    let line_style = style_from_node( node, styles, default_normal_style(), None );
+    let line_style = style_from_node( node, xml_doc.styles(), default_normal_style(), None );
 
     for n in node.children()
     {
-        childs.append( &mut process_span( n, nodos, id.clone(), styles, line_style )? );
+        childs.append( &mut process_span( xml_doc, n, id.clone(), line_style )? );
     }
 
     let alignment = attr_alignment( node )?;
@@ -49,11 +48,12 @@ pub fn process_line(
     )
 }
 
-pub fn process_span( 
+pub fn process_span(
+    xml_doc : &mut XMLDoc, 
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : RTMLNodeId,
-    styles : &HashMap<StyleSelector, Style>, 
+    // styles : &HashMap<StyleSelector, Style>, 
     line_style : Style ) -> anyhow::Result<Vec<String>>
 {
     if node.is_text()
@@ -75,26 +75,24 @@ pub fn process_span(
                     padding
         );
 
-        let id = id_retry_if_exists( node, nodos );
+        let id = id_retry_if_exists( node, xml_doc.nodos() );
 
-        nodos.insert(
-            id.clone(), 
-            RTMLNode::Span( span )
-        );
+        xml_doc.add_node( RTMLNode::Span( span ), id.clone() );
 
         Ok( vec![ id ] )
     }
     else
     {
-        Ok( process_span_node( node, nodos, parent_id, styles, line_style )? )
+        Ok( process_span_node( xml_doc, node, parent_id, line_style )? )
     }
 }
 
 fn process_span_node( 
+    xml_doc : &mut XMLDoc, 
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : RTMLNodeId,
-    styles : &HashMap<StyleSelector, Style>, 
+    // styles : &HashMap<StyleSelector, Style>, 
     line_style : Style 
 ) -> anyhow::Result<Vec<String>>
 {
@@ -106,7 +104,7 @@ fn process_span_node(
 
     let text = span_text( text );
 
-    let span_style = style_from_node( node, styles, line_style, None );
+    let span_style = style_from_node( node, xml_doc.styles(), line_style, None );
 
     let padding = horizontal_padding_from_node( node );
 
@@ -123,12 +121,9 @@ fn process_span_node(
                 padding
     );
     
-    let id = id_retry_if_exists( node, nodos );
+    let id = id_retry_if_exists( node, xml_doc.nodos() );
 
-        nodos.insert(
-            id.clone(), 
-            RTMLNode::Span( span )
-        );
+    xml_doc.add_node( RTMLNode::Span( span ), id.clone() );
 
     Ok( vec![ id ] )
 }

@@ -1,52 +1,53 @@
-use std::collections::HashMap;
-
 use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_layout::RTMLLayout, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_container}}, xml2rtml::process_node}};
+use crate::{rtml::{rtml_layout::RTMLLayout, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::style_from_container}, xml_doc::XMLDoc, xml2rtml::process_node}};
 
 pub fn process_body_layout( 
+    xml_doc : &mut XMLDoc,
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    styles : &HashMap<StyleSelector, Style>,
+    // styles : &HashMap<StyleSelector, Style>,
     xml : &str 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    process_container( node, nodos, parent_id, styles, default_normal_style(), xml )
+    process_container( xml_doc, node, parent_id, default_normal_style(), xml )
 }
 
 pub fn process_layout( 
+    xml_doc : &mut XMLDoc,
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    styles : &HashMap<StyleSelector, Style>,
+    // styles : &HashMap<StyleSelector, Style>,
     xml : &str 
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    process_container( node, nodos, parent_id, styles, Style::default(), xml )
+    process_container( xml_doc, node, parent_id, Style::default(), xml )
 }
 
 fn process_container( 
+    xml_doc : &mut XMLDoc,
     node : Node, 
-    nodos : &mut HashMap<String, RTMLNode>, 
+    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    styles : &HashMap<StyleSelector, Style>,
+    // styles : &HashMap<StyleSelector, Style>,
     default_style : Style,
     xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let layout_id = id_retry_if_exists( node, nodos );
+    let layout_id = id_retry_if_exists( node, xml_doc.nodos() );
 
     let mut childs : Vec<RTMLNodeId> = vec![];
 
     for c in node.children()
     {
-        match process_node( c, nodos, Some( layout_id.clone() ), styles, xml )?
+        match process_node( xml_doc, c, Some( layout_id.clone() ), xml )?
         {
             Some( ( n, id ) ) =>
             {
-                nodos.insert( id.clone(), n );
+                xml_doc.add_node( n, id.clone() );
 
                 childs.push( id );
             },
@@ -64,7 +65,7 @@ fn process_container(
                         parent_id
                     ),
                     container_attrs( node )?,
-                    style_from_container( node, styles, default_style )
+                    style_from_container( node, xml_doc.styles(), default_style )
                 )
             ),
             layout_id

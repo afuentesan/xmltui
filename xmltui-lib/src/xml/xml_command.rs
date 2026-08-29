@@ -1,20 +1,20 @@
-use std::{collections::HashMap, time::Duration};
+use std::time::Duration;
 
-use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleSelector, style_from_container}}, xml_event::nodes_from_attr, xml_util::template_from_inner_node}};
+use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::style_from_container}, xml_doc::XMLDoc, xml_event::nodes_from_attr, xml_util::template_from_inner_node}};
 
 // TODO: No se si usaré los styles, quiza haga como en el layout que pinta el fondo del estilo que sea
 pub fn process_command( 
+    xml_doc : &mut XMLDoc,
     node : Node, 
-    nodos : &HashMap<String, RTMLNode>, 
+    // nodos : &HashMap<String, RTMLNode>, 
     parent_id : Option<RTMLNodeId>, 
-    styles : &HashMap<StyleSelector, Style>,
+    // styles : &HashMap<StyleSelector, Style>,
     xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let command_id = id_retry_if_exists( node, nodos );
+    let command_id = id_retry_if_exists( node, xml_doc.nodos() );
 
     let executors = attr_commands( node, "exec" )?;
 
@@ -30,7 +30,7 @@ pub fn process_command(
                         parent_id
                     ),
                     container_attrs( node )?,
-                    style_from_container( node, styles, default_normal_style() ),
+                    style_from_container( node, xml_doc.styles(), default_normal_style() ),
                     wrapper_from_node( node ),
                     attr_option( node, "template" ),
                     template_from_inner_node( node, xml ),

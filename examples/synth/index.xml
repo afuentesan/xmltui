@@ -44,8 +44,7 @@
 
         <command output="json" exec="actions">
             <template>
-                <!--<select dropdown="false" align="center" id="opcion" enter="ir_a_opcion" enter-command-src="">-->
-                <select dropdown="false" align="center" id="opcion" enter-src="{% raw %}{{ value.opcion }}{% endraw %}">
+                <select dropdown="false" align="center" id="opcion" enter-src="{% raw %}{{ value.opcion }}{% endraw %}" set-focus="true">
                     {% for option in ctx.options %}
                         <option value="{{ option.value }}">{{ option.text }}</option>
                     {% endfor %}
