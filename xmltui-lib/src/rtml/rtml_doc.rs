@@ -841,6 +841,10 @@ fn change_area_and_get_childs<'a, 'b>(
             rtml_paragraph.num_lines = num_lines;
             rtml_paragraph.inner_area = inner_area;
         },
+        RTMLNode::Select( rtml_select ) =>
+        {
+            rtml_select.inner_area = area_con_padding( area, &rtml_select.padding );
+        }
         _ => {}
     };
 

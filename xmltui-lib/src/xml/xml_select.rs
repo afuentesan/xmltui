@@ -4,7 +4,7 @@ use ratatui::style::Style;
 use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_padding::container_padding_from_node}};
 
 
 pub fn process_select( 
@@ -17,6 +17,7 @@ pub fn process_select(
     let style = style_from_node( node, xml_doc.styles(), default_normal_style(), None );
     let focus_style = style_from_node( node, xml_doc.styles(), default_normal_style(), Some( StyleVariant::Focus ) );
     let selected_style = style_from_node( node, xml_doc.styles(), default_focus_style( &style ), Some( StyleVariant::Selected ) );
+    let padding = container_padding_from_node( node );
     
     let id = id_retry_if_exists( node, xml_doc.nodos() );
 
@@ -35,6 +36,7 @@ pub fn process_select(
             RTMLNode::Select(
                 RTMLSelect::new( 
                     common, 
+                    padding,
                     alignment,
                     style, 
                     focus_style,

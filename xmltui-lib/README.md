@@ -72,4 +72,4 @@
 
 [x] Que el paragraph pueda tener padding
 
-[] Que el select pueda tener padding
+[x] Que el select pueda tener padding

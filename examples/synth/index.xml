@@ -12,6 +12,9 @@
                 },
                 "select:focus" : {
                     "bg" : "#444444"
+                },
+                "select:select" : {
+                    "bg" : "#555555"
                 }
 
             }
@@ -30,6 +33,26 @@
                                 {
                                     value : "new_fx",
                                     text : "Agregar <span class='red'>efectos</span>"
+                                },
+                                {
+                                    value : "new_fx",
+                                    text : "Agregar 2 <span class='red'>efectos</span>"
+                                },
+                                {
+                                    value : "new_fx",
+                                    text : "Agregar 3 <span class='red'>efectos</span>"
+                                },
+                                {
+                                    value : "new_fx",
+                                    text : "Agregar 4 <span class='red'>efectos</span>"
+                                },
+                                {
+                                    value : "new_fx",
+                                    text : "Agregar 5 <span class='red'>efectos</span>"
+                                },
+                                {
+                                    value : "new_fx",
+                                    text : "Agregar 6 <span class='red'>efectos</span>"
                                 }
                             ]
                         };
@@ -49,18 +72,14 @@
 
     <body dir="vertical">
 
-        <command output="json" exec="actions">
+        <command output="json" exec="actions" dir="horizontal" flex="center">
             <template>
-                <select dropdown="false" align="center" id="opcion" enter-src="{% raw %}{{ value.opcion }}{% endraw %}" set-focus="true">
+                <select length="25" padding="1" dropdown="false" align="center" id="opcion" enter-src="{% raw %}{{ value.opcion }}{% endraw %}" set-focus="true">
                     {% for option in ctx.options %}
                         <option value="{{ option.value }}">{{ option.text }}</option>
                     {% endfor %}
                 </select>
             </template>
         </command>
-        <layout padding="1">
-            <input />
-        </layout>
     </body>
-
 </rtml>

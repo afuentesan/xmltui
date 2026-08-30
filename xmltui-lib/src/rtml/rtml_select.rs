@@ -1,11 +1,12 @@
-use ratatui::{buffer::Buffer, layout::{Alignment, Constraint, Layout}, style::Style, widgets::Widget};
+use ratatui::{buffer::Buffer, layout::{Alignment, Constraint, Layout, Rect}, style::Style, widgets::Widget};
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, rtml_paragraph::lines_from_text_width_style, util::{rtml_event::RTMLEvent, types::TextLines}}, util::draw::clear_area};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, rtml_padding::RTMLPadding, rtml_paragraph::lines_from_text_width_style, util::{rtml_event::RTMLEvent, types::TextLines}}, util::draw::clear_area};
 
 #[derive(Debug)]
 pub struct RTMLSelect 
 {
     pub common : RTMLNodeCommon,
+    pub padding : RTMLPadding,
     pub alignment : Alignment,
     pub style : Style,
     pub focus_style : Style,
@@ -14,13 +15,15 @@ pub struct RTMLSelect
     pub values : Vec<String>,
     pub events : Vec<RTMLEvent>,
     selected_line : usize,
-    start_at : usize
+    start_at : usize,
+    pub inner_area : Rect
 }
 
 impl RTMLSelect
 {
     pub fn new( 
         common : RTMLNodeCommon, 
+        padding : RTMLPadding,
         alignment : Alignment, 
         style : Style, 
         focus_style : Style, 
@@ -31,7 +34,7 @@ impl RTMLSelect
         selected_line : usize
     ) -> Self
     {
-        Self { common, alignment, style, focus_style, selected_style, lines, values, events, selected_line, start_at : 0 }
+        Self { common, padding, alignment, style, focus_style, selected_style, lines, values, events, selected_line, start_at : 0, inner_area : Rect::default() }
     }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> bool
@@ -72,7 +75,7 @@ impl RTMLSelect
             self.start_at = self.selected_line;
         }
 
-        let min_start_at = ( self.selected_line + 1 ).saturating_sub( self.common.attrs.area.height as usize );
+        let min_start_at = ( self.selected_line + 1 ).saturating_sub( self.inner_area.height as usize );
 
         if self.start_at < min_start_at
         {
@@ -200,30 +203,29 @@ fn render_options(
         Some( ( rtml_select.selected_line, rtml_select.selected_style ) ) 
     );
 
-    // if rtml_select.selected_line < lines.len()
-    // {
-    //     lines[ rtml_select.selected_line ] = lines[ rtml_select.selected_line ].clone().style( rtml_select.selected_style );
-    // }   
+    let line_overflow = rtml_select.start_at + rtml_select.inner_area.height as usize;
 
-    let constraints = vec![ Constraint::Length( 1 ); lines.len() ];
+    let constraints = vec![ Constraint::Length( 1 ); rtml_select.inner_area.height as usize ];
 
-    let areas = rtml_select.common.attrs.area.layout_vec( &Layout::vertical( constraints ) );
+    let areas = rtml_select.inner_area.layout_vec( &Layout::vertical( constraints ) );
 
-    lines.into_iter()
-    .enumerate()
-    .for_each( 
-        | ( idx, mut line ) |
+    let mut area_idx = 0;
+
+    for ( idx, mut line ) in lines.into_iter().enumerate().skip( rtml_select.start_at )
+    {
+        if idx >= line_overflow { break };
+
+        if idx == rtml_select.selected_line
         {
-            if idx == rtml_select.selected_line
-            {
-                line = line.style( rtml_select.selected_style );
-            }
-            else
-            {
-                line = line.style( style );    
-            }
-
-            line.alignment( rtml_select.alignment ).render( areas[ idx ], buf );
+            line = line.style( rtml_select.selected_style );
         }
-    );
+        else
+        {
+            line = line.style( style );    
+        }
+
+        line.alignment( rtml_select.alignment ).render( areas[ area_idx ], buf );
+
+        area_idx += 1;
+    }
 }
