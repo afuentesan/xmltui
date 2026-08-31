@@ -4,7 +4,6 @@ use convert_case::ccase;
 use ratatui::layout::{Alignment, Constraint, Direction, Flex, Rect};
 use regex::regex;
 use roxmltree::Node;
-use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::{rtml::{rtml_attrs::{CommonAttrs, ContainerAttrs}, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource}, xml::styles::xml_padding::{container_padding_from_node, node_text_len_y_horizontal_padding}};
