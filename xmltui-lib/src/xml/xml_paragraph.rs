@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
-use ratatui::style::Style;
 use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::RTMLParagraph, util::types::TextLines}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_padding::container_padding_from_node, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::RTMLParagraph, util::types::TextLines}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_paragraph( 
@@ -14,19 +13,18 @@ pub fn process_paragraph(
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let lines = process_lines( node, xml_doc.styles() )?;
-    let style = style_from_node( node, xml_doc.styles(), default_normal_style(), None );
-    let focus_style = style_from_node( node, xml_doc.styles(), default_focus_style( &style ), Some( StyleVariant::Focus ) );
-    let padding = container_padding_from_node( node );
+    
+    let ( constraint, style, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
+
+    let focus_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
 
     let common = RTMLNodeCommon::new( 
-        parse_common_attrs( node )?, 
+        parse_common_attrs( node, constraint )?, 
         vec![], 
         parent_id
     );
 
     let id = id_retry_if_exists( node, xml_doc.nodos() );
-
-    let alignment = attr_alignment( node )?;
 
     replace_xml_doc_focus( xml_doc, node, &id );
 
@@ -42,7 +40,7 @@ pub fn process_paragraph(
 
 fn process_lines(
     node : Node,
-    styles : &HashMap<StyleSelector, Style>   
+    styles : &HashMap<StyleSelector, XMLStyle>   
 ) -> anyhow::Result<TextLines>
 {
     let mut ret = vec![];
@@ -69,7 +67,7 @@ fn process_lines(
 
 fn process_node_text_or_span( 
     child : Node,
-    styles : &HashMap<StyleSelector, Style>,
+    styles : &HashMap<StyleSelector, XMLStyle>,
     ret : &mut TextLines
 )
 {
@@ -113,7 +111,8 @@ fn process_node_text_or_span(
     {
         if let Some( t ) = child.text() && ! t.is_empty()
         {
-            let style = style_from_node( child, styles, default_normal_style(), None );
+            let style = style_from_styles( child, styles, None, None );
+
             let text = t.replace( "\n", " " );
 
             let val = ( text, Some( style ) );

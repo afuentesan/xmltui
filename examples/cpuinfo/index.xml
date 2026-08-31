@@ -118,15 +118,15 @@
                     "bg" : "#aa3333"
                 },
                 ".label-cpu" : {
-                    "bg" : "#333333",
-                    "fg" : "#aaaaff"
+                    "bg" : "#000011",
+                    "fg" : "#bbbbff"
                 },
                 "border" : {
-                    "bg" : "#333333",
+                    "bg" : "#000011",
                     "fg" : "#aaffaa"
                 },
                 "line, layout, body" : {
-                    "bg" : "#333333"
+                    "bg" : "#000011"
                 }
             }
         </style>
@@ -137,7 +137,7 @@
                 <layout dir="horizontal" flex="center" length="{{ ( ctx | length ) + 4 }}">
                     <border title="Cpuinfo" dir="vertical" max="111" flex="center" padding="1,1,1,1">
                         {% for uso in ctx %}
-                        <layout flex="start" length="1">
+                        <layout flex="start" length="1" dir="horizontal">
                             <line length="6" align="right" class="label-cpu" padding="0,1">
                                 {% if uso.cpu == "cpu" %}
                                     all:

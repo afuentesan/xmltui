@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
-use ratatui::style::Style;
 use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_focus_style, default_normal_style}, xml_padding::container_padding_from_node, xml_style::{StyleSelector, StyleVariant, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_select( 
@@ -14,20 +13,27 @@ pub fn process_select(
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let ( selected_line, values, lines ) = process_options( node, xml_doc.styles() )?;
-    let style = style_from_node( node, xml_doc.styles(), default_normal_style(), None );
-    let focus_style = style_from_node( node, xml_doc.styles(), default_normal_style(), Some( StyleVariant::Focus ) );
-    let selected_style = style_from_node( node, xml_doc.styles(), default_focus_style( &style ), Some( StyleVariant::Selected ) );
-    let padding = container_padding_from_node( node );
     
-    let id = id_retry_if_exists( node, xml_doc.nodos() );
+    let ( constraint, style, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
+
+    let focus_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( style ) );
+    let selected_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Selected ), Some( default_focus_style( &focus_style ) ) );
 
     let common = RTMLNodeCommon::new( 
-        parse_common_attrs( node )?, 
+        parse_common_attrs( node, constraint )?, 
         vec![], 
         parent_id
     );
+    
+    let id = id_retry_if_exists( node, xml_doc.nodos() );
 
-    let alignment = attr_alignment( node )?;
+    // let common = RTMLNodeCommon::new( 
+    //     parse_common_attrs( node )?, 
+    //     vec![], 
+    //     parent_id
+    // );
+
+    // let alignment = attr_alignment( node )?;
 
     replace_xml_doc_focus( xml_doc, node, &id );
     
@@ -52,7 +58,7 @@ pub fn process_select(
     )
 }
 
-fn process_options( node : Node, styles : &HashMap<StyleSelector, Style> ) -> anyhow::Result<( usize, Vec<String>, TextLines )>
+fn process_options( node : Node, styles : &HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<( usize, Vec<String>, TextLines )>
 {
     let mut selected = 0;
     let mut values = vec![];
@@ -78,7 +84,7 @@ fn process_options( node : Node, styles : &HashMap<StyleSelector, Style> ) -> an
 
 fn process_option( 
     option : Node, 
-    styles : &HashMap<StyleSelector, Style>
+    styles : &HashMap<StyleSelector, XMLStyle>
 ) -> ( bool, String, TextLine )
 {
     let selected = if let Some( sel ) = option.attribute( "selected" ) && sel.trim() == "true"
@@ -96,7 +102,7 @@ fn process_option(
 
 fn process_option_text( 
     option : Node,
-    styles : &HashMap<StyleSelector, Style>
+    styles : &HashMap<StyleSelector, XMLStyle>
 ) -> TextLine
 {
     let mut ret = vec![];
@@ -111,7 +117,7 @@ fn process_option_text(
 
 fn process_node_text_or_span( 
     child : Node,
-    styles : &HashMap<StyleSelector, Style>,
+    styles : &HashMap<StyleSelector, XMLStyle>,
     ret : &mut TextLine
 )
 {
@@ -127,7 +133,8 @@ fn process_node_text_or_span(
     {
         if let Some( t ) = child.text() && ! t.is_empty()
         {
-            let style = style_from_node( child, styles, default_normal_style(), None );
+            let style = style_from_styles( child, styles, None, None );
+
             let text = t.replace( "\n", " " );
 
             let val = ( text, Some( style ) );

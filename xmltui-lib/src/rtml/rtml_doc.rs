@@ -14,8 +14,7 @@ pub struct RTMLDoc
     pub focus : Option<usize>,
     pub sorted_nodes : Vec<RTMLNodeId>,
     pub style : Style,
-    pub styles : HashMap<StyleSelector, Style>,
-    pub styles_2 : HashMap<StyleSelector, XMLStyle>,
+    pub styles : HashMap<StyleSelector, XMLStyle>,
     pub executors : HashMap<String, Executor>,
     pub cancellation_tokens : HashMap<String, CancellationToken>,
     pub templates : HashMap<String, String>
@@ -24,8 +23,7 @@ pub struct RTMLDoc
 impl RTMLDoc
 {
     pub fn new(
-        styles : HashMap<StyleSelector, Style>,
-        styles_2 : HashMap<StyleSelector, XMLStyle>,
+        styles : HashMap<StyleSelector, XMLStyle>,
         executors : HashMap<String, Executor>,
         templates : HashMap<String, String>
     ) -> Self
@@ -33,7 +31,6 @@ impl RTMLDoc
         let mut doc = Self::empty();
 
         doc.styles = styles;
-        doc.styles_2 = styles_2;
         doc.executors = executors;
         doc.templates = templates;
 
@@ -45,7 +42,6 @@ impl RTMLDoc
         Self 
         { 
             styles : HashMap::new(), 
-            styles_2 : HashMap::new(), 
             style : Style::default(), 
             doc_id : "".to_string(), 
             doc : HashMap::new(), 
@@ -941,7 +937,6 @@ fn child_areas(
     let area = area_con_padding( area, padding );
 
     let constraints = childs_constraint( childs, doc )?;
-
 
     // Creo que no necesito esto, de momento lo quito
     // let childs_len = childs.len();

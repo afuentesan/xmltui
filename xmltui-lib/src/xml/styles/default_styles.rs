@@ -1,10 +1,5 @@
 use ratatui::style::{Color, Style};
 
-pub fn default_normal_style() -> Style
-{
-    Style::default()
-}
-
 pub fn default_focus_style( not_focus : &Style ) -> Style
 {
     match not_focus.bg.as_ref()
@@ -83,14 +78,4 @@ fn adjust_rgb( r: u8, g: u8, b: u8 ) -> Color
             b.saturating_sub( step ),
         )
     }
-}
-
-pub fn default_link_normal_style() -> Style
-{
-    Style::default().underlined()
-}
-
-pub fn default_link_focus_style( not_focus : &Style ) -> Style
-{
-    default_focus_style( not_focus )
 }

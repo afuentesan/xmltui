@@ -4,7 +4,7 @@ use ratatui::{layout::{Alignment, Constraint, Direction, Flex}, style::{Color, M
 use roxmltree::Node;
 use serde::Deserialize;
 
-use crate::{app::app_doc::chroot, rtml::rtml_padding::{HorizontalPadding, VerticalPadding}, util::{deserialize::{deserialize_kebab_string_or_type, deserialize_string_or_type}, file::read_file_in_chroot_with_extension}, xml::{attrs::{attr_constraint_2, attr_to_type, attr_to_type_kebab}, styles::{xml_constraint::XMLConstraint, xml_padding::{XMLPadding, padding_from_str}}}};
+use crate::{app::app_doc::chroot, rtml::rtml_padding::{HorizontalPadding, VerticalPadding}, util::{deserialize::{deserialize_kebab_string_or_type, deserialize_string_or_type}, file::read_file_in_chroot_with_extension}, xml::{attrs::{attr_constraint, attr_to_type, attr_to_type_kebab}, styles::{xml_constraint::XMLConstraint, xml_padding::{XMLPadding, padding_from_str}}}};
 
 #[derive(Debug, PartialEq, Hash, Eq)]
 pub enum StyleSelector
@@ -293,60 +293,23 @@ pub struct XMLStyle
     pub inner_padding : XMLPadding
 }
 
-
-pub fn style_from_container( node : Node, styles : &HashMap<StyleSelector, Style>, default_style : Style ) -> Option<Style>
+pub fn style_from_node( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> XMLStyle
 {
-    let style = style_from_node( node, styles, default_style, None );
-
-    if style == Style::default()
-    {
-        None
-    }
-    else
-    {
-        Some( style )    
-    }
-}
-
-pub fn style_from_node( node : Node, styles : &HashMap<StyleSelector, Style>, default_style : Style, variant : Option<StyleVariant> ) -> Style
-{
-    let mut style = default_style;
+    let mut style = XMLStyle::default();
 
     if let Some( s ) = style_from_tagname( node, styles, variant.as_ref() )
     {
-        style = merge_styles( style, *s );
+        style = merge_xml_styles( style, s.clone() );
     }
 
     if let Some( s ) = style_from_classes( node, styles, variant.as_ref() )
     {
-        style = merge_styles( style, s );
+        style = merge_xml_styles( style, s );
     }
 
     if let Some( s ) = style_from_id( node, styles, variant.as_ref() )
     {
-        style = merge_styles( style, *s );
-    }
-
-    style
-}
-
-pub fn style_from_node_2( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> XMLStyle
-{
-    let mut style = XMLStyle::default();
-
-    if let Some( s ) = style_from_tagname_2( node, styles, variant.as_ref() )
-    {
-        style = merge_styles_2( style, s.clone() );
-    }
-
-    if let Some( s ) = style_from_classes_2( node, styles, variant.as_ref() )
-    {
-        style = merge_styles_2( style, s );
-    }
-
-    if let Some( s ) = style_from_id_2( node, styles, variant.as_ref() )
-    {
-        style = merge_styles_2( style, s.clone() );
+        style = merge_xml_styles( style, s.clone() );
     }
 
     overwrite_styles_from_node( node, style )
@@ -513,7 +476,7 @@ fn overwrite_padding_from_node( node : Node, mut style : XMLStyle ) -> XMLStyle
 
 fn overwrite_constraint_from_node( node : Node, mut style : XMLStyle ) -> XMLStyle
 {
-    if let Some( c ) = attr_constraint_2( node )
+    if let Some( c ) = attr_constraint( node )
     {
         style.constraint.0 = Some( c );
     }
@@ -521,7 +484,7 @@ fn overwrite_constraint_from_node( node : Node, mut style : XMLStyle ) -> XMLSty
     style
 }
 
-fn style_from_classes<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, Style>, variant : Option<&StyleVariant> ) -> Option<Style>
+fn style_from_classes<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, XMLStyle>, variant : Option<&StyleVariant> ) -> Option<XMLStyle>
 {
     if let Some( cls ) = node.attribute( "class" ) && cls.trim() != ""
     {
@@ -535,48 +498,13 @@ fn style_from_classes<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b Has
                 {
                     if style.is_none()
                     {
-                        style = Some( *s );
-                    }
-                    else
-                    {
-                        let current = style.unwrap();
-
-                        style = Some( merge_styles( current, *s ) );
-                    }
-                },
-                None => continue    
-            }
-        }
-
-        style
-    }
-    else
-    {
-        None
-    }
-}
-
-fn style_from_classes_2<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, XMLStyle>, variant : Option<&StyleVariant> ) -> Option<XMLStyle>
-{
-    if let Some( cls ) = node.attribute( "class" ) && cls.trim() != ""
-    {
-        let mut style = None;
-
-        for cls in cls.split( " " )
-        {
-            match style_from_classname_2( cls, styles, variant )
-            {
-                Some( s ) =>
-                {
-                    if style.is_none()
-                    {
                         style = Some( s.clone() );
                     }
                     else
                     {
                         let current = style.unwrap();
 
-                        style = Some( merge_styles_2( current, s.clone() ) );
+                        style = Some( merge_xml_styles( current, s.clone() ) );
                     }
                 },
                 None => continue    
@@ -591,21 +519,14 @@ fn style_from_classes_2<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b H
     }
 }
 
-fn style_from_classname<'a, 'b>( classname : &'a str, styles : &'b HashMap<StyleSelector, Style>, variant : Option<&StyleVariant> ) -> Option<&'b Style>
+fn style_from_classname<'a, 'b>( classname : &'a str, styles : &'b HashMap<StyleSelector, XMLStyle>, variant : Option<&StyleVariant> ) -> Option<&'b XMLStyle>
 {
     let key = StyleSelector::Class( calc_variant( classname, variant ) );
 
     styles.get( &key )
 }
 
-fn style_from_classname_2<'a, 'b>( classname : &'a str, styles : &'b HashMap<StyleSelector, XMLStyle>, variant : Option<&StyleVariant> ) -> Option<&'b XMLStyle>
-{
-    let key = StyleSelector::Class( calc_variant( classname, variant ) );
-
-    styles.get( &key )
-}
-
-fn style_from_id<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, Style>, variant : Option<&StyleVariant> ) -> Option<&'b Style>
+fn style_from_id<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, XMLStyle>, variant : Option<&StyleVariant> ) -> Option<&'b XMLStyle>
 {
     if let Some( id ) = node.attribute( "id" ) && id.trim() != ""
     {
@@ -621,23 +542,7 @@ fn style_from_id<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<
     }
 }
 
-fn style_from_id_2<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, XMLStyle>, variant : Option<&StyleVariant> ) -> Option<&'b XMLStyle>
-{
-    if let Some( id ) = node.attribute( "id" ) && id.trim() != ""
-    {
-        let key = StyleSelector::Id( 
-            calc_variant( id, variant )
-        );
-
-        styles.get( &key )
-    }
-    else
-    {
-        None    
-    }
-}
-
-fn style_from_tagname<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, Style>, variant : Option<&StyleVariant> ) -> Option<&'b Style>
+fn style_from_tagname<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, XMLStyle>, variant : Option<&StyleVariant> ) -> Option<&'b XMLStyle>
 {
     let key = StyleSelector::TagName( 
         calc_variant(
@@ -649,19 +554,7 @@ fn style_from_tagname<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b Has
     styles.get( &key )
 }
 
-fn style_from_tagname_2<'a, 'input, 'b>( node : Node<'a, 'input>, styles : &'b HashMap<StyleSelector, XMLStyle>, variant : Option<&StyleVariant> ) -> Option<&'b XMLStyle>
-{
-    let key = StyleSelector::TagName( 
-        calc_variant(
-            node.tag_name().name(), 
-            variant
-        )
-    );
-
-    styles.get( &key )
-}
-
-pub fn styles_from_head( node : Option<Node> ) -> anyhow::Result<HashMap<StyleSelector, Style>>
+pub fn styles_from_head( node : Option<Node> ) -> anyhow::Result<HashMap<StyleSelector, XMLStyle>>
 {
     let mut ret = HashMap::new();
 
@@ -677,23 +570,7 @@ pub fn styles_from_head( node : Option<Node> ) -> anyhow::Result<HashMap<StyleSe
     Ok( ret )
 }
 
-pub fn styles_from_head_2( node : Option<Node> ) -> anyhow::Result<HashMap<StyleSelector, XMLStyle>>
-{
-    let mut ret = HashMap::new();
-
-    if node.is_none() { return Ok( ret ) };
-
-    let node = node.unwrap();
-
-    for child in node.children()
-    {
-        add_styles_2( child, &mut ret )?;
-    }
-
-    Ok( ret )
-}
-
-fn add_styles( node : Node, styles : &mut HashMap<StyleSelector, Style> ) -> anyhow::Result<()>
+fn add_styles( node : Node, styles : &mut HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<()>
 {
     if node.tag_name().name() != "style" { return Ok( () ) };
 
@@ -707,21 +584,7 @@ fn add_styles( node : Node, styles : &mut HashMap<StyleSelector, Style> ) -> any
     }
 }
 
-fn add_styles_2( node : Node, styles : &mut HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<()>
-{
-    if node.tag_name().name() != "style" { return Ok( () ) };
-
-    if node.has_attribute( "src" )
-    {
-        add_styles_from_file_2( node.attribute( "src" ).unwrap(), styles )
-    }
-    else
-    {
-        add_styles_from_content_2( node, styles )
-    }
-}
-
-fn add_styles_from_file( path : &str, styles : &mut HashMap<StyleSelector, Style> ) -> anyhow::Result<()>
+fn add_styles_from_file( path : &str, styles : &mut HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<()>
 {
     let str_styles = read_file_in_chroot_with_extension( path, chroot(), "json" )?;
 
@@ -730,16 +593,7 @@ fn add_styles_from_file( path : &str, styles : &mut HashMap<StyleSelector, Style
     add_styles_from_str( str_styles.as_str(), styles )
 }
 
-fn add_styles_from_file_2( path : &str, styles : &mut HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<()>
-{
-    let str_styles = read_file_in_chroot_with_extension( path, chroot(), "json" )?;
-
-    if str_styles.trim() == "" { return Ok( () ) };
-
-    add_styles_from_str_2( str_styles.as_str(), styles )
-}
-
-fn add_styles_from_content( node : Node, styles : &mut HashMap<StyleSelector, Style> ) -> anyhow::Result<()>
+fn add_styles_from_content( node : Node, styles : &mut HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<()>
 {
     match node.text()
     {
@@ -748,30 +602,14 @@ fn add_styles_from_content( node : Node, styles : &mut HashMap<StyleSelector, St
     }
 }
 
-fn add_styles_from_content_2( node : Node, styles : &mut HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<()>
+fn add_styles_from_str( str_styles: &str, styles : &mut HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<()>
 {
-    match node.text()
-    {
-        Some( s ) if s.trim() != "" => add_styles_from_str_2( s, styles ),
-        _ => Ok( () )
-    }
-}
-
-fn add_styles_from_str( str_styles: &str, styles : &mut HashMap<StyleSelector, Style> ) -> anyhow::Result<()>
-{
-    let map_styles : HashMap<String, Style> = serde_json::from_str( str_styles )?;
+    let map_styles : HashMap<String, XMLStyle> = serde_json::from_str( str_styles )?;
 
     add_styles_from_map( map_styles, styles )
 }
 
-fn add_styles_from_str_2( str_styles: &str, styles : &mut HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<()>
-{
-    let map_styles : HashMap<String, XMLStyle> = serde_json::from_str( str_styles )?;
-
-    add_styles_from_map_2( map_styles, styles )
-}
-
-fn add_styles_from_map( map_styles : HashMap<String, Style>, styles : &mut HashMap<StyleSelector, Style> ) -> anyhow::Result<()>
+fn add_styles_from_map( map_styles : HashMap<String, XMLStyle>, styles : &mut HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<()>
 {
     for ( selectors, style ) in map_styles
     {
@@ -783,65 +621,30 @@ fn add_styles_from_map( map_styles : HashMap<String, Style>, styles : &mut HashM
     Ok( () )
 }
 
-fn add_styles_from_map_2( map_styles : HashMap<String, XMLStyle>, styles : &mut HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<()>
-{
-    for ( selectors, style ) in map_styles
-    {
-        let selectors = style_selectors( &selectors )?;
-
-        insert_style_selectors_2( selectors, style, styles );
-    }
-
-    Ok( () )
-}
-
-fn insert_style_selectors( selectors : Vec<StyleSelector>, style : Style, styles : &mut HashMap<StyleSelector, Style> )
+fn insert_style_selectors( selectors : Vec<StyleSelector>, style : XMLStyle, styles : &mut HashMap<StyleSelector, XMLStyle> )
 {
     selectors.into_iter()
     .for_each(
         | s |
         {
-            insert_style_selector( s, style, styles );
+            insert_style_selector( s, style.clone(), styles );
         }
     );
 }
 
-fn insert_style_selectors_2( selectors : Vec<StyleSelector>, style : XMLStyle, styles : &mut HashMap<StyleSelector, XMLStyle> )
-{
-    selectors.into_iter()
-    .for_each(
-        | s |
-        {
-            insert_style_selector_2( s, style.clone(), styles );
-        }
-    );
-}
-
-fn insert_style_selector( selector : StyleSelector, mut style : Style, styles : &mut HashMap<StyleSelector, Style> )
+fn insert_style_selector( selector : StyleSelector, mut style : XMLStyle, styles : &mut HashMap<StyleSelector, XMLStyle> )
 {
     if styles.contains_key( &selector )
     {
         let current = styles.remove( &selector ).unwrap();
 
-        style = merge_styles( current, style );
+        style = merge_xml_styles( current, style );
     }
     
     styles.insert( selector, style ); 
 }
 
-fn insert_style_selector_2( selector : StyleSelector, mut style : XMLStyle, styles : &mut HashMap<StyleSelector, XMLStyle> )
-{
-    if styles.contains_key( &selector )
-    {
-        let current = styles.remove( &selector ).unwrap();
-
-        style = merge_styles_2( current, style );
-    }
-    
-    styles.insert( selector, style ); 
-}
-
-pub fn merge_styles_2( mut current : XMLStyle, new : XMLStyle ) -> XMLStyle
+pub fn merge_xml_styles( mut current : XMLStyle, new : XMLStyle ) -> XMLStyle
 {
     current = merge_xml_style( current, new.style.0 );
     current = merge_xml_constraint( current, new.constraint.0 );

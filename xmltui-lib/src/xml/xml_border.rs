@@ -1,8 +1,8 @@
 
-use ratatui::{style::Style, widgets::{BorderType, Borders, TitlePosition}};
+use ratatui::widgets::{BorderType, Borders, TitlePosition};
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_border::RTMLBorder, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment_name, attr_option, container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::{StyleVariant, style_from_node}}, xml_doc::XMLDoc, xml2rtml::process_node}};
+use crate::{rtml::{rtml_border::RTMLBorder, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment_name, attr_option, id_retry_if_exists, parse_common_attrs}, styles::xml_style::StyleVariant, xml_doc::XMLDoc, xml_util::{container_styles, style_from_styles}, xml2rtml::process_node}};
 
 
 pub fn process_border(
@@ -30,6 +30,11 @@ pub fn process_border(
         }
     }
 
+    let ( constraint, style, container_attrs ) = container_styles( node, xml_doc.styles(), None );
+
+    let title_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Title ), None );
+    let border_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Border ), None );
+    
     Ok(
         (
             RTMLNode::Border(
@@ -39,12 +44,12 @@ pub fn process_border(
                     attr_option( node, "title" ),
                     title_position( node ),
                     attr_alignment_name( node, "title-align" )?,
-                    style_from_node( node, xml_doc.styles(), default_normal_style(), None ),
-                    style_from_node( node, xml_doc.styles(), Style::default(), Some( StyleVariant::Title ) ),
-                    style_from_node( node, xml_doc.styles(), Style::default(), Some( StyleVariant::Border ) ),
-                    container_attrs( node )?,
+                    style,
+                    title_style,
+                    border_style,
+                    container_attrs,
                     RTMLNodeCommon::new( 
-                        parse_common_attrs( node )?, 
+                        parse_common_attrs( node, constraint )?, 
                         childs, 
                         parent_id
                     )

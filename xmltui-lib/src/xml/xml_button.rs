@@ -1,6 +1,6 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_button::RTMLButton, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::{default_link_focus_style, default_link_normal_style}, xml_style::{StyleVariant, style_from_node}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs}};
+use crate::{rtml::{rtml_button::RTMLButton, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style , xml_style::StyleVariant}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_util::{input_like_styles, style_from_styles}}};
 
 
 pub fn process_button( 
@@ -11,15 +11,19 @@ pub fn process_button(
 {
     let id = id_retry_if_exists( node, xml_doc.nodos() );
     
-    let alignment = attr_alignment( node )?;
+    let ( constraint, style, alignment ) = input_like_styles( node, xml_doc.styles(), None );
+    
+    let focus_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
+
+    let common = RTMLNodeCommon::new( 
+        parse_common_attrs( node, constraint )?, 
+        vec![], 
+        parent_id
+    );
 
     let text = node.text().unwrap_or( " " ).to_string();
 
     replace_xml_doc_focus( xml_doc, node, &id );
-
-    let style = style_from_node( node, xml_doc.styles(), default_link_normal_style(), None );
-
-    let focus_style = style_from_node( node, xml_doc.styles(), default_link_focus_style( &style ),Some( StyleVariant::Focus ) );
 
     Ok(
         (
@@ -30,11 +34,7 @@ pub fn process_button(
                     text,
                     style,
                     focus_style,
-                    RTMLNodeCommon::new( 
-                        parse_common_attrs( node )?, 
-                        vec![], 
-                        parent_id
-                    )
+                    common
                 )
             ),
             id

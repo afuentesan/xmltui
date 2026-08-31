@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, container_attrs, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::style_from_container}, xml_doc::XMLDoc, xml_event::nodes_from_attr, xml_util::template_from_inner_node}};
+use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, id_retry_if_exists, parse_common_attrs}, xml_doc::XMLDoc, xml_event::nodes_from_attr, xml_util::{container_styles, template_from_inner_node}}};
 
 pub fn process_command( 
     xml_doc : &mut XMLDoc,
@@ -15,19 +15,23 @@ pub fn process_command(
 
     let executors = attr_commands( node, "exec" )?;
 
+    let ( constraint, style, container_attrs ) = container_styles( node, xml_doc.styles(), None );
+
+    let common = RTMLNodeCommon::new( 
+        parse_common_attrs( node, constraint )?, 
+        vec![], 
+        parent_id
+    );
+    
     Ok(
         (
             RTMLNode::Command(
                 RTMLCommand::new(
                     executors, 
                     refresh_from_node( node ),
-                    RTMLNodeCommon::new( 
-                        parse_common_attrs( node )?, 
-                        vec![], 
-                        parent_id
-                    ),
-                    container_attrs( node )?,
-                    style_from_container( node, xml_doc.styles(), default_normal_style() ),
+                    common,
+                    container_attrs,
+                    Some( style ),
                     wrapper_from_node( node ),
                     attr_option( node, "template" ),
                     template_from_inner_node( node, xml ),

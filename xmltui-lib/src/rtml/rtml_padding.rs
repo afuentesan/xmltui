@@ -62,16 +62,7 @@ pub struct RTMLPadding
 
 impl RTMLPadding
 {
-    pub fn new( top : usize, right : usize, bottom : usize, left : usize ) -> Self
-    {
-        Self 
-        { 
-            horizontal : HorizontalPadding::new( left, right ), 
-            vertical : VerticalPadding::new( top, bottom )
-        }
-    }
-
-    pub fn new_parts( horizontal : HorizontalPadding, vertical : VerticalPadding ) -> Self
+    pub fn new( horizontal : HorizontalPadding, vertical : VerticalPadding ) -> Self
     {
         Self { horizontal, vertical }
     }

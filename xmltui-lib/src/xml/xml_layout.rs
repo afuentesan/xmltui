@@ -1,6 +1,6 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_layout::RTMLLayout, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{id_retry_if_exists, parse_common_attrs_2}, xml_doc::XMLDoc, xml_util::container_styles, xml2rtml::process_node}};
+use crate::{rtml::{rtml_layout::RTMLLayout, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, xml_doc::XMLDoc, xml_util::container_styles, xml2rtml::process_node}};
 
 pub fn process_body_layout( 
     xml_doc : &mut XMLDoc,
@@ -47,14 +47,14 @@ fn process_container(
         }
     }
 
-    let ( constraint, style, container_attrs ) = container_styles( node, xml_doc.styles_2(), None );
+    let ( constraint, style, container_attrs ) = container_styles( node, xml_doc.styles(), None );
 
     Ok(
         (
             RTMLNode::Layout(
                 RTMLLayout::new( 
                     RTMLNodeCommon::new( 
-                        parse_common_attrs_2( node, constraint )?, 
+                        parse_common_attrs( node, constraint )?, 
                         childs, 
                         parent_id
                     ),
@@ -66,69 +66,4 @@ fn process_container(
         )
     )
 }
-
-// fn container_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> ( Constraint, Style, ContainerAttrs )
-// {
-//     let styles = style_from_node_2( node, styles, variant );
-
-//     let constraint = if let Some( c ) = styles.constraint.0
-//     {
-//         c
-//     }
-//     else
-//     {
-//         Constraint::default()    
-//     };
-
-//     let style = if let Some( s ) = styles.style.0
-//     {
-//         s
-//     }
-//     else
-//     {
-//         Style::default()    
-//     };
-
-//     let direction = if let Some( d ) = styles.direction
-//     {
-//         d
-//     }
-//     else
-//     {
-//         Direction::default()    
-//     };
-
-//     let flex = if let Some( f ) = styles.flex
-//     {
-//         f
-//     }
-//     else
-//     {
-//         Flex::default()    
-//     };
-
-//     let horizontal = if let Some( h ) = styles.inner_padding.0.0
-//     {
-//         h
-//     }
-//     else
-//     {
-//         HorizontalPadding::default()    
-//     };
-
-//     let vertical = if let Some( v ) = styles.inner_padding.0.1
-//     {
-//         v
-//     }
-//     else
-//     {
-//         VerticalPadding::default()    
-//     };
-
-//     let padding = RTMLPadding::new_parts( horizontal, vertical );
-
-//     let container_attrs = ContainerAttrs::new( direction, flex, padding );
-
-//     ( constraint, style, container_attrs )
-// }
 

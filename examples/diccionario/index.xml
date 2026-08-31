@@ -9,7 +9,12 @@
                 },
                 "p:focus" : {
                     "bg" : "#113311"
-                }
+                },
+                "layout" : {
+                    "dir" : "horizontal"
+                },
+                "line" : { "length" : 12, "padding-left" : 4 },
+                "input" : { "align" : "left" }
             }
         </style>
         <template name="definicion">
@@ -34,10 +39,10 @@
     <body dir="horizontal" flex="center" padding="1">
         <border title="Diccionario" dir="vertical" max="60" flex="start" padding-top="1">
             <layout flex="center" length="2" padding-bottom="1">
-                <line padding-right="1">Buscar:</line>
-                <input id="palabra" length="25" enter="buscar" enter-replace-childs="definicion" enter-template="definicion" />
+                <line>Buscar:</line>
+                <input id="palabra" enter="buscar" enter-replace-childs="definicion" enter-template="definicion" />
             </layout>
-            <layout id="definicion" flex="center">
+            <layout id="definicion" flex="center" dir="vertical">
 
             </layout>
         </border>

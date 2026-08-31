@@ -16,6 +16,30 @@
                     "flex" : "space-between",
                     "dir" : "vertical"
                 },
+                "layout" : {
+                    "dir" : "horizontal",
+                    "flex" : "center"
+                },
+                "line" : {
+                    "align" : "center"
+                }
+            }
+        </style>
+        <!--
+        <style>
+            {
+                ".red" : {
+                    "fg" : "#bb2222"
+                },
+                "input, select" : {
+                    "bg" : "#333333",
+                    "fill" : "1",
+                    "align" : "center",
+                    "padding-top" : 3,
+                    "padding-left" : "2",
+                    "flex" : "space-between",
+                    "dir" : "vertical"
+                },
                 "select:focus" : {
                     "bg" : "#444444"
                 },
@@ -32,6 +56,7 @@
 
             }
         </style>
+        -->
         <code command="/usr/bin/node" name="actions">
             <args>
                 <arg>-e</arg>

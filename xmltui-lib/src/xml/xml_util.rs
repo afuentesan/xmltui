@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
-use ratatui::{layout::Constraint , style::Style};
+use ratatui::{layout::{Alignment, Constraint}, style::Style};
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_padding::RTMLPadding}, xml::styles::xml_style::{StyleSelector, StyleVariant, XMLStyle, style_from_node_2}};
+use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_padding::RTMLPadding}, xml::styles::xml_style::{StyleSelector, StyleVariant, XMLStyle, style_from_node}};
 
+const DEFAULT_CONSTRAINT : Constraint = Constraint::Percentage(100);
 
 pub fn template_from_inner_node( node : Node, xml : &str ) -> Option<String>
 {
@@ -51,9 +52,9 @@ pub fn template_from_node( node : Node, xml : &str ) -> Option<String>
 
 pub fn container_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> ( Constraint, Style, ContainerAttrs )
 {
-    let styles = style_from_node_2( node, styles, variant );
+    let styles = style_from_node( node, styles, variant );
 
-    let constraint = styles.constraint.0.unwrap_or_default();
+    let constraint = styles.constraint.0.unwrap_or( DEFAULT_CONSTRAINT );
 
     let style = styles.style.0.unwrap_or_default();
 
@@ -65,9 +66,69 @@ pub fn container_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>
 
     let vertical = styles.inner_padding.0.1.unwrap_or_default();
 
-    let padding = RTMLPadding::new_parts( horizontal, vertical );
+    let padding = RTMLPadding::new( horizontal, vertical );
 
     let container_attrs = ContainerAttrs::new( direction, flex, padding );
 
     ( constraint, style, container_attrs )
+}
+
+pub fn span_like_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> ( Constraint, Style, RTMLPadding )
+{
+    let styles = style_from_node( node, styles, variant );
+
+    let constraint = styles.constraint.0.unwrap_or( DEFAULT_CONSTRAINT );
+
+    let style = styles.style.0.unwrap_or_default();
+
+    let horizontal = styles.inner_padding.0.0.unwrap_or_default();
+
+    let vertical = styles.inner_padding.0.1.unwrap_or_default();
+
+    let padding = RTMLPadding::new( horizontal, vertical );
+
+    ( constraint, style, padding )
+}
+
+pub fn paragraph_like_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> ( Constraint, Style, RTMLPadding, Alignment )
+{
+    let styles = style_from_node( node, styles, variant );
+
+    let constraint = styles.constraint.0.unwrap_or( DEFAULT_CONSTRAINT );
+
+    let style = styles.style.0.unwrap_or_default();
+
+    let horizontal = styles.inner_padding.0.0.unwrap_or_default();
+
+    let vertical = styles.inner_padding.0.1.unwrap_or_default();
+
+    let padding = RTMLPadding::new( horizontal, vertical );
+
+    let alignment = styles.alignment.unwrap_or_default();
+
+    ( constraint, style, padding, alignment )
+}
+
+pub fn input_like_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> ( Constraint, Style, Alignment )
+{
+    let styles = style_from_node( node, styles, variant );
+
+    let constraint = styles.constraint.0.unwrap_or( DEFAULT_CONSTRAINT );
+
+    let style = styles.style.0.unwrap_or_default();
+
+    let alignment = styles.alignment.unwrap_or_default();
+
+    ( constraint, style, alignment )
+}
+
+pub fn style_from_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant>, default_style : Option<Style> ) -> Style
+{
+    let styles = style_from_node( node, styles, variant );
+
+    match default_style
+    {
+        Some( s ) => styles.style.0.unwrap_or( s ),
+        None => styles.style.0.unwrap_or_default()
+    }
 }

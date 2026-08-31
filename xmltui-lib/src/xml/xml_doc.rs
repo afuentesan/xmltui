@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use ratatui::style::Style;
 use roxmltree::Node;
 
 use crate::{rtml::rtml_node::{RTMLNode, RTMLNodeId}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
@@ -9,8 +8,7 @@ use crate::{rtml::rtml_node::{RTMLNode, RTMLNodeId}, xml::styles::xml_style::{St
 pub struct XMLDoc<'a>
 {
     nodos : &'a mut HashMap<RTMLNodeId, RTMLNode>,
-    styles : &'a HashMap<StyleSelector, Style>,
-    styles_2 : &'a HashMap<StyleSelector, XMLStyle>,
+    styles : &'a HashMap<StyleSelector, XMLStyle>,
     focus : Option<RTMLNodeId>
 }
 
@@ -18,12 +16,11 @@ impl<'a> XMLDoc<'a>
 {
     pub fn new( 
         nodos : &'a mut HashMap<RTMLNodeId, RTMLNode>, 
-        styles : &'a HashMap<StyleSelector, Style>, 
-        styles_2 : &'a HashMap<StyleSelector, XMLStyle>, 
+        styles : &'a HashMap<StyleSelector, XMLStyle>, 
         focus : Option<RTMLNodeId> 
     ) -> Self
     {
-        Self { nodos, styles, styles_2, focus }
+        Self { nodos, styles, focus }
     }
 
     fn replace_focus( &mut self, focus : RTMLNodeId )
@@ -46,14 +43,9 @@ impl<'a> XMLDoc<'a>
         self.nodos
     }
 
-    pub fn styles( &self ) -> &HashMap<StyleSelector, Style>
+    pub fn styles( &self ) -> &HashMap<StyleSelector, XMLStyle>
     {
         self.styles
-    }
-
-    pub fn styles_2( &self ) -> &HashMap<StyleSelector, XMLStyle>
-    {
-        self.styles_2
     }
 
     pub fn consume_focus( self ) -> Option<RTMLNodeId>

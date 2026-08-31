@@ -18,7 +18,7 @@
 					"fg" : "#AA3333"
 				},
 				".blue" : {
-					"fg" : "#3333AA"
+					"fg" : "#6666AA"
 				},
 				".title" : {
 					"add_modifier" : "UNDERLINED"
@@ -28,6 +28,10 @@
 				},
 				".border:border" : {
 					"fg" : "#3333AA"
+				},
+				"layout, body" : {
+					"dir" : "horizontal",
+					"bg" : "#001100"
 				}
 			}
 		</style>
@@ -41,6 +45,7 @@
 						align="{{ 'right' if loop.index0 == 0 else 'left' }}"
 						class="{{ 'blue' if loop.index0 == 0 else 'red' }}"
 						padding-right="1"
+						min="1"
 					>
 						{{ column | trim }}{{ ': ' if loop.index0 == 0 else '' }}
 					</line>

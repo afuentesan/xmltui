@@ -1,10 +1,24 @@
 <rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
       xsi:noNamespaceSchemaLocation="../../xmltui-lib/examples/schema.xsd"
 >
+    <head>
+        <style>
+            {
+                "line" : {
+                    "bg" : "#000000"
+                },
+                "a" : {
+                    "bg" : "#ff0000"
+                }
+            }
+        </style>
+    </head>
     <body dir="vertical" flex="center">
-        <layout dir="vertical" length="2" flex="center">
+        <layout dir="vertical" length="2" flex="center" id="container">
+            
             <line align="center">FX</line>
             <a src="/" align="center">Volver a opciones</a>
+            
         </layout>
     </body>
 </rtml>

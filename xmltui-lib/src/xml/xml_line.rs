@@ -1,7 +1,7 @@
 use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_line::RTMLLine, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_span::RTMLSpan}, xml::{attrs::{attr_alignment, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_normal_style, xml_style::style_from_node, xml_padding::horizontal_padding_from_node}, xml_doc::XMLDoc}};
+use crate::{rtml::{rtml_line::RTMLLine, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_span::RTMLSpan}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::xml_style::merge_styles, xml_doc::XMLDoc, xml_util::{paragraph_like_styles, span_like_styles}}};
 
 
 pub fn process_line( 
@@ -14,18 +14,20 @@ pub fn process_line(
 
     let mut childs = vec![];
 
-    let line_style = style_from_node( node, xml_doc.styles(), default_normal_style(), None );
+    let ( constraint, line_style, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
 
     for n in node.children()
     {
         childs.append( &mut process_span( xml_doc, n, id.clone(), line_style )? );
     }
 
-    let alignment = attr_alignment( node )?;
+    let padding = padding.horizontal;
 
-    let padding = horizontal_padding_from_node( node );
-
-    let common_attrs = parse_common_attrs( node )?;
+    let common = RTMLNodeCommon::new( 
+        parse_common_attrs( node, constraint )?, 
+        childs, 
+        parent_id
+    );
 
     Ok(
         (
@@ -34,11 +36,7 @@ pub fn process_line(
                     alignment, 
                     line_style,
                     padding,
-                    RTMLNodeCommon::new( 
-                        common_attrs, 
-                        childs, 
-                        parent_id
-                    )
+                    common
                 )
             ),
             id
@@ -49,28 +47,26 @@ pub fn process_line(
 pub fn process_span(
     xml_doc : &mut XMLDoc, 
     node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : RTMLNodeId,
-    // styles : &HashMap<StyleSelector, Style>, 
     line_style : Style ) -> anyhow::Result<Vec<String>>
 {
     if node.is_text()
     {
         let text = span_text( node.text().unwrap_or( "" ) );
 
-        let padding = horizontal_padding_from_node( node );
+        let ( constraint, _, padding ) = span_like_styles( node, xml_doc.styles(), None );
 
-        let common = parse_common_attrs( node )?;
+        let common = RTMLNodeCommon::new( 
+            parse_common_attrs( node, constraint )?, 
+            vec![], 
+            Some( parent_id )
+        );
 
         let span = RTMLSpan::new( 
             text,
-            RTMLNodeCommon::new( 
-                        common, 
-                        vec![], 
-                        Some( parent_id )
-                    ),
-                    line_style,
-                    padding
+            common,
+            line_style,
+            padding.horizontal
         );
 
         let id = id_retry_if_exists( node, xml_doc.nodos() );
@@ -88,9 +84,7 @@ pub fn process_span(
 fn process_span_node( 
     xml_doc : &mut XMLDoc, 
     node : Node, 
-    // nodos : &mut HashMap<String, RTMLNode>, 
     parent_id : RTMLNodeId,
-    // styles : &HashMap<StyleSelector, Style>, 
     line_style : Style 
 ) -> anyhow::Result<Vec<String>>
 {
@@ -102,21 +96,21 @@ fn process_span_node(
 
     let text = span_text( text );
 
-    let span_style = style_from_node( node, xml_doc.styles(), line_style, None );
+    let ( constraint, span_style, padding ) = span_like_styles( node, xml_doc.styles(), None );
 
-    let padding = horizontal_padding_from_node( node );
+    let span_style = merge_styles( line_style, span_style );
 
-    let common = parse_common_attrs( node )?;
+    let common = RTMLNodeCommon::new( 
+        parse_common_attrs( node, constraint )?, 
+        vec![], 
+        Some( parent_id )
+    );
 
     let span = RTMLSpan::new( 
         text,
-        RTMLNodeCommon::new( 
-                    common, 
-                    vec![], 
-                    Some( parent_id )
-                ),
-                span_style,
-                padding
+        common,
+        span_style,
+        padding.horizontal
     );
     
     let id = id_retry_if_exists( node, xml_doc.nodos() );
