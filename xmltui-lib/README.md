@@ -73,3 +73,9 @@
 [x] Que el paragraph pueda tener padding
 
 [x] Que el select pueda tener padding
+
+[] Revisar como se calcula el tamaño por defecto en los componentes que ocupan una línea, line, input, etc... Le estoy poniendo el length del texto que contienen pero cuando están dentro de un contenedor con dirección vertical no habría que hacerlo así, el length debería ser para el ancho. O quizá lo borre todo y le ponga un fill(1) igual que a los contenedores.
+
+[] Al deserializar los estilos tener cuidado con el padding, ahora si pones un único atributo vertical u horizontal te mapea los dos. Quiza haya que crear un XMLHorizontalPadding y vertical con los atributos opcionales.
+
+[] Revisar la lógica del padding cuando se ponen solo dos números. Como algunos elementos pueden tener solo padding horizontal quizá haya que cambiar el orden cuando se ponen solo 2 números y hacer que el primer y segundo número sean right y left.

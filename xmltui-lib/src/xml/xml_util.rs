@@ -1,4 +1,9 @@
+use std::collections::HashMap;
+
+use ratatui::{layout::{Constraint, Direction, Flex}, style::Style};
 use roxmltree::Node;
+
+use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_padding::{HorizontalPadding, RTMLPadding, VerticalPadding}}, xml::styles::xml_style::{StyleSelector, StyleVariant, XMLStyle, style_from_node_2}};
 
 
 pub fn template_from_inner_node( node : Node, xml : &str ) -> Option<String>
@@ -43,3 +48,26 @@ pub fn template_from_node( node : Node, xml : &str ) -> Option<String>
 // {
 //     xml[ node.range() ].to_string()
 // }
+
+pub fn container_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> ( Constraint, Style, ContainerAttrs )
+{
+    let styles = style_from_node_2( node, styles, variant );
+
+    let constraint = styles.constraint.0.unwrap_or_default();
+
+    let style = styles.style.0.unwrap_or_default();
+
+    let direction = styles.direction.unwrap_or_default();
+
+    let flex = styles.flex.unwrap_or_default();
+
+    let horizontal = styles.inner_padding.0.0.unwrap_or_default();
+
+    let vertical = styles.inner_padding.0.1.unwrap_or_default();
+
+    let padding = RTMLPadding::new_parts( horizontal, vertical );
+
+    let container_attrs = ContainerAttrs::new( direction, flex, padding );
+
+    ( constraint, style, container_attrs )
+}

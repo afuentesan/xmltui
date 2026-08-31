@@ -1,11 +1,13 @@
 use std::{collections::HashMap, str::FromStr};
 
+use convert_case::ccase;
 use ratatui::layout::{Alignment, Constraint, Direction, Flex, Rect};
 use regex::regex;
 use roxmltree::Node;
+use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{rtml::{rtml_attrs::{CommonAttrs, ContainerAttrs}, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource}, xml::xml_padding::{container_padding_from_node, node_text_len_y_horizontal_padding}};
+use crate::{rtml::{rtml_attrs::{CommonAttrs, ContainerAttrs}, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource}, xml::styles::xml_padding::{container_padding_from_node, node_text_len_y_horizontal_padding}};
 
 const DEFAULT_DIRECTION : Direction = Direction::Horizontal;
 const DEFAULT_FLEX : Flex = Flex::Legacy;
@@ -53,6 +55,18 @@ pub fn parse_common_attrs( node : Node ) -> anyhow::Result<CommonAttrs>
         {
             area : Rect::ZERO,
             constraint : attr_constraint( node )?,
+            data : attr_data( node )
+        }
+    )
+}
+
+pub fn parse_common_attrs_2( node : Node, constraint : Constraint ) -> anyhow::Result<CommonAttrs>
+{
+    Ok(
+        CommonAttrs
+        {
+            area : Rect::ZERO,
+            constraint,
             data : attr_data( node )
         }
     )
@@ -115,6 +129,29 @@ fn attr_constraint( node : Node ) -> anyhow::Result<Constraint>
     Ok( default )
 }
 
+pub fn attr_constraint_2( node : Node ) -> Option<Constraint>
+{
+    let attrs = [ "fill", "percentage", "min", "max", "length", "ratio" ];
+
+    for attr in attrs
+    {
+        match node.attribute( attr )
+        {
+            Some( val ) =>
+            {
+                match parse_attr_constraint_2( attr, val )
+                {
+                    Some( c ) => return Some( c ),
+                    None => continue
+                }
+            },
+            None => continue
+        }
+    }
+
+    None
+}
+
 fn horizontal_text_length_from_node( node : Node ) -> Option<usize>
 {
     let len = node_text_len_y_horizontal_padding( node );
@@ -158,6 +195,40 @@ fn parse_attr_constraint( attr : &str, val : &str ) -> anyhow::Result<Constraint
             let numbers = pair_str_to_pair_of_uints::<u32>( val )?;
 
             Ok( Constraint::Ratio( numbers.0, numbers.1 ) )
+        },
+        _ => unreachable!()
+    }
+}
+
+fn parse_attr_constraint_2( attr : &str, val : &str ) -> Option<Constraint>
+{
+    match attr
+    {
+        "fill" =>
+        {
+            Some( Constraint::Fill( str_to_uint::<u16>( val ).ok()? ) )
+        },
+        "percentage" =>
+        {
+            Some( Constraint::Percentage( str_to_uint::<u16>( val ).ok()? ) )
+        },
+        "min" =>
+        {
+            Some( Constraint::Min( str_to_uint::<u16>( val ).ok()? ) )
+        },
+        "max" =>
+        {
+            Some( Constraint::Max( str_to_uint::<u16>( val ).ok()? ) )
+        },
+        "length" =>
+        {
+            Some( Constraint::Length( str_to_uint::<u16>( val ).ok()? ) )
+        },
+        "ratio" =>
+        {
+            let numbers = pair_str_to_pair_of_uints::<u32>( val ).ok()?;
+
+            Some( Constraint::Ratio( numbers.0, numbers.1 ) )
         },
         _ => unreachable!()
     }
@@ -366,4 +437,36 @@ pub fn attr_source( node : Node ) -> anyhow::Result<RTMLSource>
 pub fn container_attrs( node : Node ) -> anyhow::Result<ContainerAttrs>
 {
     Ok( ContainerAttrs::new( attr_direction( node )?, attr_flex( node )?, container_padding_from_node( node ) ) )
+}
+
+pub fn attr_to_type_kebab<T: FromStr>( node : Node, attr : &str ) -> Option<T>
+{
+    match node.attribute( attr )
+    {
+        Some( val ) =>
+        {
+            match ccase!( pascal, val.trim() ).parse::<T>()
+                {
+                    Ok( n ) => Some( n ),
+                    Err( _ ) => None
+                }
+        },
+        None => None
+    }
+}
+
+pub fn attr_to_type<T: FromStr>( node : Node, attr : &str ) -> Option<T>
+{
+    match node.attribute( attr )
+    {
+        Some( val ) =>
+        {
+            match val.trim().parse::<T>()
+                {
+                    Ok( n ) => Some( n ),
+                    Err( _ ) => None
+                }
+        },
+        None => None
+    }
 }

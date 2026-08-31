@@ -1,8 +1,12 @@
+use serde::Deserialize;
 
-#[derive(Debug)]
+
+#[derive(Deserialize, Debug, Clone)]
 pub struct HorizontalPadding
 {
+    #[serde(default, rename = "padding-left" )]
     pub left : usize,
+    #[serde(default, rename = "padding-right" )]
     pub right : usize
 }
 
@@ -14,10 +18,20 @@ impl HorizontalPadding
     }
 }
 
-#[derive(Debug)]
+impl Default for HorizontalPadding
+{
+    fn default() -> Self 
+    {
+        Self { left : Default::default(), right : Default::default() }
+    }
+}
+
+#[derive(Deserialize, Debug, Clone)]
 pub struct VerticalPadding
 {
+    #[serde(default, rename = "padding-top" )]
     pub top : usize,
+    #[serde(default, rename = "padding-bottom" )]
     pub bottom : usize
 }
 
@@ -29,10 +43,20 @@ impl VerticalPadding
     }
 }
 
-#[derive(Debug)]
+impl Default for VerticalPadding
+{
+    fn default() -> Self 
+    {
+        Self { top : Default::default(), bottom : Default::default() }
+    }
+}
+
+#[derive(Deserialize, Debug)]
 pub struct RTMLPadding 
 {
+    #[serde(flatten, default)]
     pub horizontal : HorizontalPadding,
+    #[serde(flatten, default)]
     pub vertical : VerticalPadding
 }
 
@@ -45,5 +69,18 @@ impl RTMLPadding
             horizontal : HorizontalPadding::new( left, right ), 
             vertical : VerticalPadding::new( top, bottom )
         }
+    }
+
+    pub fn new_parts( horizontal : HorizontalPadding, vertical : VerticalPadding ) -> Self
+    {
+        Self { horizontal, vertical }
+    }
+}
+
+impl Default for RTMLPadding
+{
+    fn default() -> Self 
+    {
+        Self { horizontal : Default::default(), vertical : Default::default() }
     }
 }
