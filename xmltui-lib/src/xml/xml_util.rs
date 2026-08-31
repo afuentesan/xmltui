@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use ratatui::{layout::{Constraint, Direction, Flex}, style::Style};
+use ratatui::{layout::Constraint , style::Style};
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_padding::{HorizontalPadding, RTMLPadding, VerticalPadding}}, xml::styles::xml_style::{StyleSelector, StyleVariant, XMLStyle, style_from_node_2}};
+use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_padding::RTMLPadding}, xml::styles::xml_style::{StyleSelector, StyleVariant, XMLStyle, style_from_node_2}};
 
 
 pub fn template_from_inner_node( node : Node, xml : &str ) -> Option<String>
