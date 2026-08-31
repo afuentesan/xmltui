@@ -42,7 +42,7 @@
 
 [] sse para los command y que el comando se ejecute cada vez que llegue un evento. El evento hay que pasarlo como parámetro al comando. Quizá con un atributo refresh-sse.
 
-[] Poder definir estilos directamente en los nodos con atributos fg, bg, etc...
+[x] Poder definir estilos directamente en los nodos con atributos fg, bg, etc...
 
 [] Añadir eventos focus y blur para todos los nodos que sean focusables.
 
@@ -52,7 +52,7 @@
 
 [] Mensajes toast
 
-[] Añadir más atributos en los estilos. Ahora los line y los span pueden tener padding left y right, estaría bien poder poner eso en los estilos. También pueden tener padding todos los elementos contenedores.
+[x] Añadir más atributos en los estilos. Ahora los line y los span pueden tener padding left y right, estaría bien poder poner eso en los estilos. También pueden tener padding todos los elementos contenedores.
 
 [x] Mejorar el atributo padding, cuando se ponga un solo número debe aplicarlo a los cuatro, etc... Ver doc de css https://developer.mozilla.org/es/docs/Web/CSS/Reference/Properties/padding
 
