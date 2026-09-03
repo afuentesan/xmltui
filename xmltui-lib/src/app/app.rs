@@ -168,6 +168,7 @@ fn hidrate_command(
     {
         Ok( _ ) =>
         {
+            rtml_doc.init_state_from_childs( &hidrate.node_id );
             rtml_doc.init_commands_for_childs( cancellation_token, &hidrate.node_id );
 
             rtml_to_terminal( terminal, rtml_doc );

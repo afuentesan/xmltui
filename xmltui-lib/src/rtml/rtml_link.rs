@@ -1,6 +1,6 @@
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, rtml_source::RTMLSource}, util::draw::clear_area};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_source::RTMLSource}, util::draw::clear_area};
 
 
 #[derive(Debug)]
@@ -28,7 +28,7 @@ impl RTMLLink
         Self { common, alignment, style, focus_style, source, text }
     }
 
-    pub fn focus_event( &mut self, event : &InputEvent ) -> bool
+    pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
     {
         match event
         {
@@ -38,9 +38,9 @@ impl RTMLLink
                     AppEvent::LoadFile( self.source.source().to_string() )
                 );
 
-                false
+                FocusEventResponse::new_without_state( false )
             },
-            _ => false
+            _ => FocusEventResponse::new_without_state( false )
         }
     }
 

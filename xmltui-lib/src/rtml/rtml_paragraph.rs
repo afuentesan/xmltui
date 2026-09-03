@@ -1,6 +1,6 @@
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::{Paragraph, Widget, Wrap}};
 
-use crate::{input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, rtml_padding::RTMLPadding, util::types::TextLines}, util::draw::clear_area, xml::styles::xml_style::merge_styles};
+use crate::{input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, util::types::TextLines}, util::draw::clear_area, xml::styles::xml_style::merge_styles};
 
 #[derive(Debug)]
 pub struct RTMLParagraph 
@@ -23,17 +23,17 @@ impl RTMLParagraph
         Self { common, padding, alignment, style, focus_style, lines, start_at : 0, num_lines : 0, inner_area : Rect::default() }
     }
 
-    pub fn focus_event( &mut self, event : &InputEvent ) -> bool
+    pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
     {
         match event
         {
             InputEvent::Up =>
             {
-                if self.start_at == 0 { return false };
+                if self.start_at == 0 { return FocusEventResponse::new_without_state( false ) };
 
                 self.start_at -= 1;
 
-                true
+                FocusEventResponse::new_without_state( true )
             },
             InputEvent::Down =>
             {
@@ -41,16 +41,16 @@ impl RTMLParagraph
 
                 if self.start_at >= max_start_at
                 {
-                    false
+                    FocusEventResponse::new_without_state( false )
                 }
                 else
                 {
                     self.start_at += 1;
 
-                    true    
+                    FocusEventResponse::new_without_state( true )    
                 }
             },
-            _ => false
+            _ => FocusEventResponse::new_without_state( false )
         }
     }
 }

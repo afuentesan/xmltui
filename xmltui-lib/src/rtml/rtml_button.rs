@@ -1,6 +1,6 @@
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, util::rtml_event::RTMLEvent}, util::draw::clear_area};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, util::rtml_event::RTMLEvent}, util::draw::clear_area};
 
 
 #[derive(Debug)]
@@ -28,7 +28,7 @@ impl RTMLButton
         Self { common, alignment, style, focus_style, events, text }
     }
 
-    pub fn focus_event( &mut self, event : &InputEvent ) -> bool
+    pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
     {
         match event
         {
@@ -36,11 +36,11 @@ impl RTMLButton
             {
                 self.enter_event()
             },
-            _ => false
+            _ => FocusEventResponse::new_without_state( false )
         }
     }
 
-    fn enter_event( &mut self ) -> bool
+    fn enter_event( &mut self ) -> FocusEventResponse
     {
         for ev in &self.events
         {
@@ -55,7 +55,7 @@ impl RTMLButton
             }
         }
 
-        false
+        FocusEventResponse::new_without_state( false )
     }
 
     pub fn replace_value( &mut self, new_value : String ) -> bool

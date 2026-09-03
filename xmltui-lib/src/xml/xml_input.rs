@@ -1,6 +1,6 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_input::RTMLInput, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::editable_value::EditableValue}, xml::{attrs::{attr_value, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::StyleVariant}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_util::{input_like_styles, style_from_styles}}};
+use crate::{rtml::{rtml_input::RTMLInput, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::editable_value::EditableValue}, xml::{attrs::{attr_value, field_attrs_from_node_and_id, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::StyleVariant}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_util::{input_like_styles, style_from_styles}}};
 
 pub fn process_input( 
     xml_doc : &mut XMLDoc,
@@ -22,6 +22,8 @@ pub fn process_input(
 
     let value = parse_input_value( node )?;
 
+    let field = field_attrs_from_node_and_id( node, &id );
+
     replace_xml_doc_focus( xml_doc, node, &id );
 
     Ok(
@@ -33,7 +35,8 @@ pub fn process_input(
                     value, 
                     style, 
                     focus_style, 
-                    common
+                    common,
+                    field
                 )
             ),
             id

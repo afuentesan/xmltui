@@ -1,0 +1,31 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="schema.xsd">
+    
+    <head>
+
+        <code command="echo" name="echo">
+            <args>
+                <st-arg name="saludo" />
+                <arg> </arg>
+                <st-arg name="nombre" />
+            </args>
+        </code>
+
+        <template name="line-echo">
+            <line>{{ctx}}</line>
+        </template>
+    </head>
+
+    <state>
+        <st-var path="/saludo" value="Hola" type="str" />
+    </state>
+
+    <body>
+        <input id="txt" value="tururu" enter="echo" enter-template="line-echo" enter-replace-childs="line-container" enter-args="saludo,nombre:txt" />
+
+        <layout id="line-container">
+            <line>Que pasa</line>
+        </layout>
+    </body>
+
+</rtml>

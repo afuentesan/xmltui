@@ -156,7 +156,17 @@ fn arg_env_value( value : &str, acc : &mut HashMap<String, String> )
         key    
     };
 
-    acc.insert( key.to_string(), path.to_string() );
+    acc.insert( 
+        key.to_string(), 
+        if path.starts_with( "/" )
+        {
+            path.to_string()
+        }
+        else
+        {
+            format!( "/{path}" )    
+        }
+    );
 }
 
 fn state_common_from_node( node : Node, output : Option<&RTMLCommandOutput> ) -> Option<( CommonState, Option<String> )>

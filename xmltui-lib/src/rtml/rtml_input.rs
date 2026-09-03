@@ -1,6 +1,7 @@
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
+use serde_json::Value;
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, util::{editable_value::{EditableValue, editable_value_to_spans}, rtml_event::RTMLEvent}}};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_form::FieldAttrs, rtml_node::{FocusEventResponse, RTMLNodeCommon}, util::{editable_value::{EditableValue, editable_value_to_spans}, rtml_event::RTMLEvent}}};
 
 
 #[derive(Debug)]
@@ -11,7 +12,8 @@ pub struct RTMLInput
     value : EditableValue,
     pub style : Style,
     pub focus_style : Style,
-    pub events : Vec<RTMLEvent>
+    pub events : Vec<RTMLEvent>,
+    pub field : FieldAttrs
 }
 
 impl RTMLInput
@@ -22,13 +24,14 @@ impl RTMLInput
         value : EditableValue, 
         style : Style, 
         focus_style : Style, 
-        common : RTMLNodeCommon 
+        common : RTMLNodeCommon,
+        field : FieldAttrs
     ) -> Self
     {
-        Self { alignment, events, value, style, focus_style, common }
+        Self { alignment, events, value, style, focus_style, common, field }
     }
 
-    pub fn focus_event( &mut self, event : &InputEvent ) -> bool
+    pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
     {
         match event
         {
@@ -40,11 +43,11 @@ impl RTMLInput
             InputEvent::End => self.end( self.common.attrs.area ),
             InputEvent::Home => self.home(),
             InputEvent::Enter => self.enter_event(),
-            _ => false
+            _ => FocusEventResponse::new_without_state( false )
         }
     }
 
-    fn enter_event( &mut self ) -> bool
+    fn enter_event( &mut self ) -> FocusEventResponse
     {
         for ev in &self.events
         {
@@ -59,7 +62,7 @@ impl RTMLInput
             }
         }
 
-        false
+        FocusEventResponse::new_without_state( false )
     }
     
     pub fn replace_value( &mut self, new_value : String ) -> bool
@@ -74,39 +77,75 @@ impl RTMLInput
         &self.value.value
     }
 
-    fn add_char( &mut self, char : char, area : Rect ) -> bool
+    pub fn state_value( &self ) -> ( String, Value )
     {
-        self.value.add_char( char, area.width as usize )
+        (
+            self.field.path.clone(),
+            Value::String( self.value.value.clone() )
+        )
     }
 
-    fn move_cursor_right( &mut self, area : Rect ) -> bool
+    fn add_char( &mut self, char : char, area : Rect ) -> FocusEventResponse
     {
-        self.value.next_col( area.width as usize )
+        if self.value.add_char( char, area.width as usize )
+        {
+            self.create_focus_event_response_with_state()
+        }
+        else
+        {
+            FocusEventResponse::new_without_state( false )    
+        }
     }
 
-    fn move_cursor_left( &mut self ) -> bool
+    fn create_focus_event_response_with_state( &self ) -> FocusEventResponse
     {
-        self.value.prev_col()
+        let ( path, val ) = self.state_value();
+
+        FocusEventResponse::new( true, Some( ( path, val ) ) )
     }
 
-    fn backspace( &mut self, area : Rect ) -> bool
+    fn move_cursor_right( &mut self, area : Rect ) -> FocusEventResponse
     {
-        self.value.backspace( area.width as usize )      
+        FocusEventResponse::new_without_state( self.value.next_col( area.width as usize ) )
     }
 
-    fn delete( &mut self, area : Rect ) -> bool
+    fn move_cursor_left( &mut self ) -> FocusEventResponse
     {
-        self.value.delete( area.width as usize )
+        FocusEventResponse::new_without_state( self.value.prev_col() )
     }
 
-    fn end( &mut self, area : Rect ) -> bool
+    fn backspace( &mut self, area : Rect ) -> FocusEventResponse
     {
-        self.value.end( area.width as usize )
+        if self.value.backspace( area.width as usize )
+        {
+            self.create_focus_event_response_with_state()
+        }
+        else
+        {
+            FocusEventResponse::new_without_state( false )    
+        }
     }
 
-    fn home( &mut self ) -> bool
+    fn delete( &mut self, area : Rect ) -> FocusEventResponse
     {
-        self.value.home()
+        if self.value.delete( area.width as usize )
+        {
+            self.create_focus_event_response_with_state()
+        }
+        else
+        {
+            FocusEventResponse::new_without_state( false )    
+        }
+    }
+
+    fn end( &mut self, area : Rect ) -> FocusEventResponse
+    {
+        FocusEventResponse::new_without_state( self.value.end( area.width as usize ) )
+    }
+
+    fn home( &mut self ) -> FocusEventResponse
+    {
+        FocusEventResponse::new_without_state( self.value.home() )
     }
 }
 

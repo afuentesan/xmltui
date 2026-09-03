@@ -1,6 +1,7 @@
 use ratatui::{buffer::Buffer, layout::{Alignment, Constraint, Layout, Rect}, style::Style, widgets::Widget};
+use serde_json::Value;
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::RTMLNodeCommon, rtml_padding::RTMLPadding, rtml_paragraph::lines_from_text_width_style, util::{rtml_event::RTMLEvent, types::TextLines}}, util::draw::clear_area};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_form::FieldAttrs, rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, rtml_paragraph::lines_from_text_width_style, util::{rtml_event::RTMLEvent, types::TextLines}}, util::draw::clear_area};
 
 #[derive(Debug)]
 pub struct RTMLSelect 
@@ -16,7 +17,8 @@ pub struct RTMLSelect
     pub events : Vec<RTMLEvent>,
     selected_line : usize,
     start_at : usize,
-    pub inner_area : Rect
+    pub inner_area : Rect,
+    pub field : FieldAttrs
 }
 
 impl RTMLSelect
@@ -31,13 +33,14 @@ impl RTMLSelect
         lines : TextLines, 
         values : Vec<String>,
         events : Vec<RTMLEvent>,
-        selected_line : usize
+        selected_line : usize,
+        field : FieldAttrs
     ) -> Self
     {
-        Self { common, padding, alignment, style, focus_style, selected_style, lines, values, events, selected_line, start_at : 0, inner_area : Rect::default() }
+        Self { common, padding, alignment, style, focus_style, selected_style, lines, values, events, selected_line, start_at : 0, inner_area : Rect::default(), field }
     }
 
-    pub fn focus_event( &mut self, event : &InputEvent ) -> bool
+    pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
     {
         match event
         {
@@ -46,13 +49,13 @@ impl RTMLSelect
             InputEvent::Enter => self.enter_event(),
             InputEvent::End => self.move_last(),
             InputEvent::Home => self.move_first(),
-            _ => false
+            _ => FocusEventResponse::new_without_state( false )
         }
     }
 
-    fn move_down( &mut self ) -> bool
+    fn move_down( &mut self ) -> FocusEventResponse
     {
-        if self.values.len() == 0 { return false };
+        if self.values.len() == 0 { return FocusEventResponse::new_without_state( false ) };
 
         let last = self.values.len() - 1;
 
@@ -65,7 +68,7 @@ impl RTMLSelect
 
         self.move_start_at();
 
-        true
+        self.create_focus_event_response_with_state()
     }
 
     fn move_start_at( &mut self )
@@ -83,9 +86,9 @@ impl RTMLSelect
         }
     }
 
-    fn move_up( &mut self ) -> bool
+    fn move_up( &mut self ) -> FocusEventResponse
     {
-        if self.values.len() == 0 { return false };
+        if self.values.len() == 0 { return FocusEventResponse::new_without_state( false ) };
 
         if self.selected_line == 0
         {
@@ -96,35 +99,42 @@ impl RTMLSelect
 
         self.move_start_at();
 
-        true
+        self.create_focus_event_response_with_state()
     }
 
-    fn move_first( &mut self ) -> bool
+    fn create_focus_event_response_with_state( &self ) -> FocusEventResponse
     {
-        if self.values.len() == 0 || self.selected_line == 0 { return false };
+        let ( path, val ) = self.state_value();
+
+        FocusEventResponse::new( true, Some( ( path, val ) ) )
+    }
+
+    fn move_first( &mut self ) -> FocusEventResponse
+    {
+        if self.values.len() == 0 || self.selected_line == 0 { return FocusEventResponse::new_without_state( false ) };
 
         self.start_at = 0;
         self.selected_line = 0;
 
-        true
+        self.create_focus_event_response_with_state()
     }
 
-    fn move_last( &mut self ) -> bool
+    fn move_last( &mut self ) -> FocusEventResponse
     {
         let last = self.values.len() - 1;
 
-        if self.values.len() == 0 || self.selected_line == last { return false };
+        if self.values.len() == 0 || self.selected_line == last { return FocusEventResponse::new_without_state( false ) };
 
         self.selected_line = last;
 
         self.move_start_at();
 
-        true
+        self.create_focus_event_response_with_state()
     }
 
-    fn enter_event( &mut self ) -> bool
+    fn enter_event( &mut self ) -> FocusEventResponse
     {
-        if self.values.len() == 0 { return false };
+        if self.values.len() == 0 { return FocusEventResponse::new_without_state( false ) };
         
         for ev in &self.events
         {
@@ -139,7 +149,7 @@ impl RTMLSelect
             }
         }
 
-        false
+        FocusEventResponse::new_without_state( false )
     }
 
     pub fn replace_value( &mut self, new_value : String ) -> bool
@@ -167,6 +177,14 @@ impl RTMLSelect
         {
             ""    
         }
+    }
+
+    pub fn state_value( &self ) -> ( String, Value )
+    {
+        (
+            self.field.path.clone(),
+            Value::String( self.value().to_string() )
+        )
     }
 }
 

@@ -6,7 +6,7 @@ use regex::regex;
 use roxmltree::Node;
 use uuid::Uuid;
 
-use crate::rtml::{rtml_attrs::CommonAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource};
+use crate::rtml::{rtml_attrs::CommonAttrs, rtml_form::FieldAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource};
 
 const DEFAULT_ALIGNMENT : Alignment = Alignment::Left;
 
@@ -345,4 +345,27 @@ pub fn attr_to_type<T: FromStr>( node : Node, attr : &str ) -> Option<T>
         },
         None => None
     }
+}
+
+pub fn field_attrs_from_node_and_id( node : Node, id : &str ) -> FieldAttrs
+{
+    let path = if let Some( p ) = node.attribute( "path" ) && p.trim() != ""
+    {
+        p
+    }
+    else
+    {
+        id    
+    }
+    .trim();
+
+    if path.starts_with( "/" )
+    {
+        FieldAttrs::new( path.to_string() )
+    }
+    else
+    {
+        FieldAttrs::new( format!( "/{path}" ) )
+    }
+    
 }

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_util::{paragraph_like_styles, style_from_styles}}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{field_attrs_from_node_and_id, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_select( 
@@ -27,13 +27,7 @@ pub fn process_select(
     
     let id = id_retry_if_exists( node, xml_doc.nodos() );
 
-    // let common = RTMLNodeCommon::new( 
-    //     parse_common_attrs( node )?, 
-    //     vec![], 
-    //     parent_id
-    // );
-
-    // let alignment = attr_alignment( node )?;
+    let field = field_attrs_from_node_and_id( node, &id );
 
     replace_xml_doc_focus( xml_doc, node, &id );
     
@@ -50,7 +44,8 @@ pub fn process_select(
                     lines,
                     values,
                     parse_event_attrs( node, &id )?,
-                    selected_line
+                    selected_line,
+                    field
                 )
             ),
             id

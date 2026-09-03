@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use ratatui::{buffer::Buffer, layout::{Constraint, Rect}};
+use serde_json::Value;
 
 use crate::{input::event::InputEvent, rtml::{rtml_attrs::CommonAttrs, rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::{RTMLParagraph, render_rtml_paragraph_focus}, rtml_select::{RTMLSelect, render_rtml_select_focus}, rtml_span::RTMLSpan}};
 
@@ -18,6 +19,25 @@ impl XMLNodeWrapper
     pub fn new( prefix : String, suffix : String ) -> Self
     {
         Self { prefix, suffix }
+    }
+}
+
+pub struct FocusEventResponse
+{
+    pub changed : bool,
+    pub state : Option<( String, Value )>
+}
+
+impl FocusEventResponse
+{
+    pub fn new( changed : bool, state : Option<( String, Value )> ) -> Self
+    {
+        Self { changed, state }
+    }
+
+    pub fn new_without_state( changed : bool ) -> Self
+    {
+        Self { changed, state : None }
     }
 }
 
@@ -71,7 +91,7 @@ impl RTMLNode
         }
     }
 
-    pub fn focus_event( &mut self, event : &InputEvent ) -> bool
+    pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
     {
         match self
         {
@@ -99,7 +119,7 @@ impl RTMLNode
             RTMLNode::Line( _ ) |
             RTMLNode::Span( _ ) |
             RTMLNode::Border( _ ) |
-            RTMLNode::Command( _ ) => false
+            RTMLNode::Command( _ ) => FocusEventResponse::new_without_state( false )
         }
     }
 
@@ -282,6 +302,23 @@ impl RTMLNode
             RTMLNode::Link( n ) => Some( n.value() ),
             RTMLNode::Span( n ) => Some( n.value() ),
             RTMLNode::Select( n ) => Some( n.value() ),
+            RTMLNode::Line( _ ) |
+            RTMLNode::Command( _ ) |
+            RTMLNode::Border( _ ) |
+            RTMLNode::Paragraph( _ ) |
+            RTMLNode::Layout( _ ) => None
+        }
+    }
+
+    pub fn state_value( &self ) -> Option<( String, Value )>
+    {
+        match self
+        {
+            RTMLNode::Input( n ) => Some( n.state_value() ),
+            RTMLNode::Select( n ) => Some( n.state_value() ),
+            RTMLNode::Button( _ ) |
+            RTMLNode::Link( _ ) |
+            RTMLNode::Span( _ ) |
             RTMLNode::Line( _ ) |
             RTMLNode::Command( _ ) |
             RTMLNode::Border( _ ) |

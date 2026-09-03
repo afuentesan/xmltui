@@ -65,6 +65,8 @@ fn execute_callback_command(
         let args = doc.state_from_key_path( &command.args );
         let envs = doc.state_from_key_path( &command.envs );
 
+        log_to_file( &format!( "Args:\n\n{:?}\n\nEnvs:\n\n{:?}\n\n\n", command.args, command.envs ) );
+
         let params = CommandExecutorParams::new(
             doc_id, 
             node_id, 
@@ -117,6 +119,8 @@ pub fn execute_callback_response(
             {
                 Ok( _ ) =>
                 {
+                    doc.init_state_from_childs( &replace_data.node_id );
+
                     doc.init_commands_for_childs( cancellation_token, &replace_data.node_id );
 
                     true
@@ -150,6 +154,7 @@ pub fn execute_callback_response(
             {
                 Ok( new_node_id ) =>
                 {
+                    doc.init_state_for_node_and_childs( &new_node_id );
                     doc.init_commands_for_node_and_childs( cancellation_token, &new_node_id );
 
                     true

@@ -4,7 +4,7 @@ use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect
 use serde_json::{Map, Value};
 use tokio_util::sync::CancellationToken;
 
-use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, util::rtml_event::{CallbackChangeState, RTMLCallbackAction}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::json_value_to_string, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
+use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, util::rtml_event::{CallbackChangeState, RTMLCallbackAction}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -186,7 +186,7 @@ impl RTMLDoc
         }
         else
         {
-            None    
+            None
         }
     }
 
@@ -210,14 +210,34 @@ impl RTMLDoc
         {
             Some( n ) =>
             {
-                n.focus_event( event )
+                let response = n.focus_event( event );
+
+                self.process_focus_event_response( response )
             },
             None => false
         }
     }
 
+    fn process_focus_event_response( &mut self, response : FocusEventResponse ) -> bool
+    {
+        match response.state
+        {
+            Some( ( path, val ) ) =>
+            {
+                create_or_replace_path( path.as_str(), &mut self.state, val );
+
+                response.changed
+            },
+            None => response.changed 
+        }
+    }
+
     pub fn init_state( &mut self )
     {
+        let ids = self.doc.keys().map( | k | k.to_string() ).collect::<Vec<_>>();
+
+        self.sincronize_state_from_ids( ids );
+
         for ( _, val ) in &self.state_executors
         {
             match val
@@ -276,6 +296,41 @@ impl RTMLDoc
                     new_command_executor( params ).await
                 }
             );
+        }
+    }
+
+    pub fn init_state_from_childs( &mut self, parent_id : &RTMLNodeId )
+    {
+        let ids = self.all_childs_ids( parent_id );
+
+        self.sincronize_state_from_ids( ids );
+    }
+
+    pub fn init_state_for_node_and_childs( &mut self, node_id : &RTMLNodeId )
+    {
+        let mut ids = self.all_childs_ids( node_id );
+
+        ids.push( node_id.clone() );
+
+        self.sincronize_state_from_ids( ids );
+    }
+
+    fn sincronize_state_from_ids( &mut self, ids : Vec<String> )
+    {
+        for id in ids
+        {
+            self.sincronize_state_from_id( &id );
+        }
+    }
+
+    fn sincronize_state_from_id( &mut self, id : &str )
+    {
+        if let Some( n ) = self.doc.get( id )
+        {
+            if let Some( ( p, v ) ) = n.state_value()
+            {
+                create_or_replace_path( p.as_str(), &mut self.state, v );
+            }
         }
     }
 
@@ -672,7 +727,16 @@ impl RTMLDoc
     {
         if let Some( n ) = self.doc.get_mut( node_id )
         {
-            n.replace_value( new_value )
+            if n.replace_value( new_value )
+            {
+                self.sincronize_state_from_id( node_id );
+                
+                true
+            }
+            else
+            {
+                false    
+            }
         }
         else
         {
