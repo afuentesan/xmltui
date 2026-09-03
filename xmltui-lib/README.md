@@ -50,11 +50,9 @@
 
 [] Que todos (o la mayoría) de los atributos de los componentes puedan ejecutar templates para calcular su valor. A esos templates hay que pasarles el estado.
 
-[] Componente state similar a command, no lanzará comando pero tendrá un template que se recalculará cada vez que cambie el estado.
+[x] Poder inicializar el estado.
 
-[] Poder inicializar el estado.
-
-[] En la respuesta de los comandos también se tiene que poder acceder al estado.
+[x] En la respuesta de los comandos también se tiene que poder acceder al estado.
 
 [x] En los eventos en los atributos {prefix}-data y {prefix}-value que se pueda especificar el nombre del parámetro poniendo ":" y después el nombre que se buscará en el comando. Si no se ponen los dos puntos sigue funcionando igual que ahora. (Estoy pensando que lo voy a hacer todo con el estado. Quitaré todo lo que sea atributos {prefix}-data y {prefix}-value).
 
