@@ -54,7 +54,7 @@ fn process_container(
             RTMLNode::Layout(
                 RTMLLayout::new( 
                     RTMLNodeCommon::new( 
-                        parse_common_attrs( node, constraint )?, 
+                        parse_common_attrs( constraint )?, 
                         childs, 
                         parent_id
                     ),

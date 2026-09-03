@@ -32,10 +32,7 @@ pub fn execute_callback(
 
 fn change_src( doc : &RTMLDoc, params : RTMLCallbackChangeSrc )
 {
-    let node_data = doc.data_from_nodes_id( params.data_from.as_ref() );
-    let node_value = doc.value_from_nodes_id( params.value_from.as_ref() );
-
-    let context = json!( { "data" : node_data, "value" : node_value } );
+    let context = json!( { "st" : &doc.state } );
 
     match xml_from_template_context( &params.url, context )
     {
@@ -60,8 +57,6 @@ fn execute_callback_command(
     {
         let doc_id = doc.doc_id.clone();
         let node_id = doc.root_id.clone();
-        let node_data = doc.data_from_nodes_id( command.data_from.as_ref() );
-        let node_value = doc.value_from_nodes_id( command.value_from.as_ref() );
         let args = doc.state_from_key_path( &command.args );
         let envs = doc.state_from_key_path( &command.envs );
 
@@ -70,8 +65,6 @@ fn execute_callback_command(
         let params = CommandExecutorParams::new(
             doc_id, 
             node_id, 
-            node_data, 
-            node_value,
             args,
             envs,
             CommandRefresh::Once, 
@@ -173,7 +166,7 @@ pub fn execute_callback_response(
         },
         RTMLCallbackAction::ChangeSrc( c ) =>
         {
-            parse_change_src( c, response.response )
+            parse_change_src( c, response.response, doc )
         },
         RTMLCallbackAction::ChangeState( s ) =>
         {
@@ -213,11 +206,11 @@ fn parse_change_state(
     change_var_state( &params, &mut doc.state )
 }
 
-fn parse_change_src( change_data : CallbackChangeSrcFromCommand, response : String ) -> bool
+fn parse_change_src( change_data : CallbackChangeSrcFromCommand, response : String, doc : &RTMLDoc ) -> bool
 {
     if let Some( url ) = change_data.url && url.trim() != ""
     {
-        match template_to_xml( response.clone(), Some( &url ), change_data.output )
+        match template_to_xml( response.clone(), Some( &url ), change_data.output, &doc.state )
         {
             Ok( f ) =>
             {
@@ -239,26 +232,6 @@ fn parse_change_src( change_data : CallbackChangeSrcFromCommand, response : Stri
 
 fn parse_response( replace_data : &CallbackReplace, response : String, doc : &RTMLDoc ) -> Option<String>
 {
-    // let response_xml = if let Some( template ) = replace_data.template.as_ref() && doc.templates.contains_key( template )
-    // {
-    //     match template_to_xml( response, doc.templates.get( template ), replace_data.output )
-    //     {
-    //         Ok( r ) => r,
-    //         Err( e ) =>
-    //         {
-    //             log_to_file( &format!( "parse_response. Fail to parse template: {:?}", e ) );
-
-    //             return None;
-    //         }
-    //     }
-    // }
-    // else
-    // {
-    //     response    
-    // };
-
-    // Some( response_xml )
-
     parse_response_from_template_and_output( replace_data.template.as_ref(), replace_data.output, response, doc )
 }
 
@@ -266,7 +239,7 @@ fn parse_response_from_template_and_output( template : Option<&String>, output :
 {
     let response_xml = if let Some( template ) = template && doc.templates.contains_key( template )
     {
-        match template_to_xml( response, doc.templates.get( template ), output )
+        match template_to_xml( response, doc.templates.get( template ), output, &doc.state )
         {
             Ok( r ) => r,
             Err( e ) =>

@@ -72,11 +72,6 @@ impl RTMLInput
         true
     }
 
-    pub fn value( &self ) -> &str
-    {
-        &self.value.value
-    }
-
     pub fn state_value( &self ) -> ( String, Value )
     {
         (

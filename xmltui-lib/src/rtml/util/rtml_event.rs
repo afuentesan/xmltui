@@ -13,8 +13,6 @@ pub enum RTMLEvent
 pub struct RTMLCallbackCommand
 {
     pub name : Vec<String>,
-    pub data_from : Vec<String>,
-    pub value_from : Vec<String>,
     pub args : HashMap<String, String>,
     pub envs : HashMap<String, String>
 }
@@ -23,13 +21,11 @@ impl RTMLCallbackCommand
 {
     pub fn new( 
         name : Vec<String>, 
-        data_from : Vec<String>, 
-        value_from : Vec<String>, 
         args : HashMap<String, String>, 
         envs : HashMap<String, String> 
     ) -> Self
     {
-        Self { name, data_from, value_from, args, envs }
+        Self { name, args, envs }
     }
 }
 
@@ -67,16 +63,14 @@ impl CallbackChangeSrcFromCommand
 #[derive(Debug, Clone)]
 pub struct RTMLCallbackChangeSrc 
 {
-    pub url : String,
-    pub data_from : Vec<String>,
-    pub value_from : Vec<String>
+    pub url : String
 }
 
 impl RTMLCallbackChangeSrc
 {
-    pub fn new( url : String, data_from : Vec<String>, value_from : Vec<String> ) -> Self
+    pub fn new( url : String ) -> Self
     {
-        Self { url, data_from, value_from }
+        Self { url }
     }
 }
 

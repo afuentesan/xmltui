@@ -49,7 +49,7 @@ pub fn process_border(
                     border_style,
                     container_attrs,
                     RTMLNodeCommon::new( 
-                        parse_common_attrs( node, constraint )?, 
+                        parse_common_attrs( constraint )?, 
                         childs, 
                         parent_id
                     )

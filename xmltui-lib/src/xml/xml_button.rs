@@ -16,7 +16,7 @@ pub fn process_button(
     let focus_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
 
     let common = RTMLNodeCommon::new( 
-        parse_common_attrs( node, constraint )?, 
+        parse_common_attrs( constraint )?, 
         vec![], 
         parent_id
     );
@@ -30,7 +30,7 @@ pub fn process_button(
             RTMLNode::Button(
                 RTMLButton::new( 
                     alignment, 
-                    parse_event_attrs( node, &id )?,
+                    parse_event_attrs( node )?,
                     text,
                     style,
                     focus_style,

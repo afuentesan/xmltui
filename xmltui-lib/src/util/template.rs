@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 use crate::rtml::rtml_command::RTMLCommandOutput;
 
 
-pub fn template_to_xml( data : String, template : Option<&String>, data_type : RTMLCommandOutput ) -> anyhow::Result<String>
+pub fn template_to_xml( data : String, template : Option<&String>, data_type : RTMLCommandOutput, state : &Value ) -> anyhow::Result<String>
 {
     if template.is_none() 
     {
@@ -18,7 +18,9 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
         {
             let context = serde_json::Value::String( data );
 
-            xml_from_template_context_ctx_parent( template.as_ref().unwrap(), context )
+            let context = json!( { "ctx" : context, "st" : state } );
+
+            xml_from_template_context( template.as_ref().unwrap(), context )
         },
         RTMLCommandOutput::StrVec =>
         {
@@ -36,7 +38,9 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
                 }
             };
 
-            xml_from_template_context_ctx_parent( template.as_ref().unwrap(), serde_json::Value::Array( context ) )
+            let context = json!( { "ctx" : serde_json::Value::Array( context ), "st" : state } );
+
+            xml_from_template_context( template.as_ref().unwrap(), context )
         },
         RTMLCommandOutput::Json =>
         {
@@ -48,7 +52,9 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
                 Err( _ ) => serde_json::Value::String( data )
             };
 
-            xml_from_template_context_ctx_parent( template.as_ref().unwrap(), context )
+            let context = json!( { "ctx" : context, "st" : state } );
+
+            xml_from_template_context( template.as_ref().unwrap(), context )
         }
     }
 }
@@ -56,11 +62,6 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
 pub fn xml_from_template_context( template : &str, context : Value ) -> anyhow::Result<String>
 {
     xml_from_template_context_parent_key( template, context, None )
-}
-
-fn xml_from_template_context_ctx_parent( template : &str, context : Value ) -> anyhow::Result<String>
-{
-    xml_from_template_context_parent_key( template, context, Some( "ctx" ) )
 }
 
 fn xml_from_template_context_parent_key( template : &str, context : Value, parent : Option<&str> ) -> anyhow::Result<String>

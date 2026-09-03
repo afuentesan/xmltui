@@ -20,7 +20,7 @@
         </template>
         <code command="/usr/bin/bash" name="buscar">
             <envs>
-                <env-value name="palabra" />
+                <st-env name="palabra" />
             </envs>
             <args>
                 <arg>-c</arg>
@@ -38,7 +38,7 @@
         <border title="Diccionario" dir="vertical" max="60" flex="start" padding-top="1">
             <layout flex="center" length="2" padding-bottom="1">
                 <line>Buscar:</line>
-                <input id="palabra" enter="buscar" enter-replace-childs="definicion" enter-template="definicion" />
+                <input id="palabra" enter="buscar" enter-envs="palabra" enter-replace-childs="definicion" enter-template="definicion" />
             </layout>
             <layout id="definicion" flex="center" dir="vertical">
 

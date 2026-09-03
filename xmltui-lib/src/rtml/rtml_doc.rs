@@ -262,16 +262,12 @@ impl RTMLDoc
         {
             let doc_id: String = self.doc_id.clone();
             let node_id = self.root_id.clone();
-            let node_data = HashMap::new();
-            let node_value = HashMap::new();
             let args = self.state_from_key_path( &state.args );
             let envs = self.state_from_key_path( &state.envs );
 
             let params = CommandExecutorParams::new(
                 doc_id, 
                 node_id, 
-                node_data, 
-                node_value,
                 args,
                 envs,
                 CommandRefresh::Once, 
@@ -423,17 +419,12 @@ impl RTMLDoc
 
                             let executor = executor.clone();
                             
-                            let node_data = self.data_from_nodes_id( c.cdata.as_ref() );
-                            let node_value = self.value_from_nodes_id( c.cvalue.as_ref() );
-
                             let args = self.state_from_key_path( &c.args );
                             let envs = self.state_from_key_path( &c.envs );
 
                             let params = CommandExecutorParams::new(
                                 doc_id, 
                                 node_id,
-                                node_data, 
-                                node_value,
                                 args,
                                 envs,
                                 refresh, 
@@ -675,51 +666,6 @@ impl RTMLDoc
             Some( n ) => n.command_output(),
             None => RTMLCommandOutput::String
         }
-    }
-
-    pub fn data_from_nodes_id( &self, nodes_id : &Vec<String> ) -> HashMap<String, String>
-    {
-        let mut ret = HashMap::new();
-
-        for node_id in nodes_id
-        {
-            match self.doc.get( node_id )
-            {
-                Some( n ) =>
-                {
-                    for ( key, value ) in n.data()
-                    {
-                        ret.insert( key.to_string(), value.to_string() );
-                    }
-                },
-                None => continue
-            }
-        }
-
-        ret
-    }
-
-    pub fn value_from_nodes_id( &self, nodes_id : &Vec<String> ) -> HashMap<String, String>
-    {
-        let mut ret = HashMap::new();
-
-        for node_id in nodes_id
-        {
-            match self.doc.get( node_id )
-            {
-                Some( n ) =>
-                {
-                    match n.value()
-                    {
-                        Some( v ) => ret.insert( node_id.clone(), v.to_string() ),
-                        None => continue
-                    };
-                },
-                None => continue
-            }
-        }
-
-        ret
     }
 
     pub fn replace_node_value( &mut self, node_id : &str, new_value : String ) -> bool

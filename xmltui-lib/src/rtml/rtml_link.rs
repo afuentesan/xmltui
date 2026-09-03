@@ -50,11 +50,6 @@ impl RTMLLink
 
         true
     }
-
-    pub fn value( &self ) -> &str
-    {
-        &self.text
-    }
 }
 
 pub fn render_rtml_link( 

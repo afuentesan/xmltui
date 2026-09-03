@@ -18,8 +18,6 @@
 
 [] Ver si se pueden lanzar los comandos con timeout.
 
-[] Poder reemplazar el value de un line. Seguramente habrá que hacerlo desde el doc para reemplazar el valor de su primer hijo y borrar el resto. Habrá que hacerlo así para que se conserven los estilos del span. Si no tiene ningún hijo se creará un nuevo span.
-
 [] Cuando lanzo un comando desde un botón no estoy enviando el id del botón. Tengo que ver si aporta algo enviarlo.
 
 [] Que se puedan mostrar y ocultar nodos
@@ -58,6 +56,8 @@
 
 [] En la respuesta de los comandos también se tiene que poder acceder al estado.
 
-[] En los eventos en los atributos {prefix}-data y {prefix}-value que se pueda especificar el nombre del parámetro poniendo ":" y después el nombre que se buscará en el comando. Si no se ponen los dos puntos sigue funcionando igual que ahora. (Estoy pensando que lo voy a hacer todo con el estado. Quitaré todo lo que sea atributos {prefix}-data y {prefix}-value).
+[x] En los eventos en los atributos {prefix}-data y {prefix}-value que se pueda especificar el nombre del parámetro poniendo ":" y después el nombre que se buscará en el comando. Si no se ponen los dos puntos sigue funcionando igual que ahora. (Estoy pensando que lo voy a hacer todo con el estado. Quitaré todo lo que sea atributos {prefix}-data y {prefix}-value).
 
-[x] Cambiar la forma de pintar el contenido del componente line. Que funcione igual que el paragraph o el contenido de los options del select. Lo mismo para link y button, estos ahora solo tienen un String.
+[x] Cambiar la forma de pintar el contenido del componente line. Que funcione igual que el paragraph o el contenido de los options del select. 
+
+[] Hacer que los button y los link calculen su contenido igual que el line, ahora solo tienen un string.

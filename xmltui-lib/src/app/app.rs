@@ -148,7 +148,7 @@ fn hidrate_command(
 {
     if hidrate.doc_id != rtml_doc.doc_id { return };
 
-    let mut response = match template_to_xml( hidrate.response, rtml_doc.node_template( &hidrate.node_id ), rtml_doc.command_output( &hidrate.node_id ) )
+    let mut response = match template_to_xml( hidrate.response, rtml_doc.node_template( &hidrate.node_id ), rtml_doc.command_output( &hidrate.node_id ), &rtml_doc.state )
     {
         Ok( r ) => r,
         Err( e ) =>

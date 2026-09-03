@@ -248,22 +248,6 @@ impl RTMLNode
         }
     }
 
-    pub fn data( &self ) -> &HashMap<String, String>
-    {
-        match self
-        {
-            RTMLNode::Layout( n ) => &n.common.attrs.data,
-            RTMLNode::Line( n ) => &n.common.attrs.data,
-            RTMLNode::Input( n ) => &n.common.attrs.data,
-            RTMLNode::Link( n ) => &n.common.attrs.data,
-            RTMLNode::Command( n ) => &n.common.attrs.data,
-            RTMLNode::Button( n ) => &n.common.attrs.data,
-            RTMLNode::Border( n ) => &n.common.attrs.data,
-            RTMLNode::Paragraph( n ) => &n.common.attrs.data,
-            RTMLNode::Select( n ) => &n.common.attrs.data
-        }
-    }
-
     pub fn replace_value( &mut self, new_value : String ) -> bool
     {
         match self
@@ -277,22 +261,6 @@ impl RTMLNode
             RTMLNode::Border( _ ) |
             RTMLNode::Paragraph( _ ) |
             RTMLNode::Layout( _ ) => false
-        }
-    }
-
-    pub fn value( &self ) -> Option<&str>
-    {
-        match self
-        {
-            RTMLNode::Input( n ) => Some( n.value() ),
-            RTMLNode::Button( n ) => Some( n.value() ),
-            RTMLNode::Link( n ) => Some( n.value() ),
-            RTMLNode::Select( n ) => Some( n.value() ),
-            RTMLNode::Line( _ ) |
-            RTMLNode::Command( _ ) |
-            RTMLNode::Border( _ ) |
-            RTMLNode::Paragraph( _ ) |
-            RTMLNode::Layout( _ ) => None
         }
     }
 

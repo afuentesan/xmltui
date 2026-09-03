@@ -85,7 +85,7 @@
 
         <command output="json" exec="actions" dir="horizontal" flex="center" length="15">
             <template>
-                <select length="25" padding="1" dropdown="false" align="center" id="opcion" enter-src="{% raw %}{{ value.opcion }}{% endraw %}" set-focus="true">
+                <select length="25" padding="1" dropdown="false" align="center" id="opcion" enter-src="{% raw %}{{ st.opcion }}{% endraw %}" set-focus="true">
                     {% for option in ctx.options %}
                         <option value="{{ option.value }}">{{ option.text }}</option>
                     {% endfor %}

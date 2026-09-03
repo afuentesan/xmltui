@@ -19,7 +19,7 @@ pub fn process_select(
     let selected_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Selected ), Some( default_focus_style( &focus_style ) ) );
 
     let common = RTMLNodeCommon::new( 
-        parse_common_attrs( node, constraint )?, 
+        parse_common_attrs( constraint )?, 
         vec![], 
         parent_id
     );
@@ -42,7 +42,7 @@ pub fn process_select(
                     selected_style,
                     lines,
                     values,
-                    parse_event_attrs( node, &id )?,
+                    parse_event_attrs( node )?,
                     selected_line,
                     field
                 )

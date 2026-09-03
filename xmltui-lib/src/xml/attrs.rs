@@ -44,74 +44,16 @@ pub fn id_retry_if_exists( node : Node, nodos : &HashMap<String, RTMLNode> ) -> 
     default_id()
 }
 
-pub fn parse_common_attrs( node : Node, constraint : Constraint ) -> anyhow::Result<CommonAttrs>
+pub fn parse_common_attrs( constraint : Constraint ) -> anyhow::Result<CommonAttrs>
 {
     Ok(
         CommonAttrs
         {
             area : Rect::ZERO,
-            constraint,
-            data : attr_data( node )
+            constraint
         }
     )
 }
-
-fn attr_data( node : Node ) -> HashMap<String, String>
-{
-    node.attributes()
-    .fold(
-        HashMap::new(),
-        | mut acc, attr |
-        {
-            let name = attr.name().trim();
-
-            if name.starts_with( "data-" ) && 
-               name != "data-from-node" &&
-               name.len() > 5
-            {
-                let val = attr.value();
-
-                let name = &name[5..];
-
-                acc.insert( name.to_string(), val.to_string() );
-            }
-            
-            acc
-        }
-    )
-}
-
-// fn attr_constraint( node : Node ) -> anyhow::Result<Constraint>
-// {
-//     let attrs = [ "fill", "percentage", "min", "max", "length", "ratio" ];
-
-//     for attr in attrs
-//     {
-//         match node.attribute( attr )
-//         {
-//             Some( val ) =>
-//             {
-//                 return parse_attr_constraint( attr, val )
-//             },
-//             None => continue
-//         }
-//     }
-
-//     let default = match node.tag_name().name()
-//     {
-//         "line" | "span" | "button" | "a" =>
-//         {
-//             match horizontal_text_length_from_node( node )
-//             {
-//                 Some( l ) => Constraint::Length( l as u16 ),
-//                 None => DEFAULT_CONSTRAINT    
-//             }
-//         },
-//         _ => DEFAULT_CONSTRAINT
-//     };
-
-//     Ok( default )
-// }
 
 pub fn attr_constraint( node : Node ) -> Option<Constraint>
 {

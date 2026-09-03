@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use ratatui::layout::{Constraint, Direction, Flex, Rect};
 
 use crate::rtml::rtml_padding::RTMLPadding;
@@ -9,8 +7,7 @@ use crate::rtml::rtml_padding::RTMLPadding;
 pub struct CommonAttrs
 {
     pub area : Rect,
-    pub constraint : Constraint,
-    pub data : HashMap<String, String>
+    pub constraint : Constraint
 }
 
 #[derive(Debug)]
