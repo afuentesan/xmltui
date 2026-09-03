@@ -293,6 +293,13 @@ pub fn attr_option( node : Node, attr : &str ) -> Option<String>
     )
 }
 
+pub fn attr_option_str<'a, 'b>( node : Node<'a, '_>, attr : &'b str ) -> Option<&'a str>
+{
+    Some(
+        node.attribute( attr )?
+    )
+}
+
 pub fn attr_source( node : Node ) -> anyhow::Result<RTMLSource>
 {
     let source = node.attribute( "src" )

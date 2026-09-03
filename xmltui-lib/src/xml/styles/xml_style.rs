@@ -4,7 +4,7 @@ use ratatui::{layout::{Alignment, Constraint, Direction, Flex}, style::{Color, M
 use roxmltree::Node;
 use serde::Deserialize;
 
-use crate::{app::app_doc::chroot, rtml::rtml_padding::{HorizontalPadding, VerticalPadding}, util::{deserialize::{deserialize_kebab_string_or_type, deserialize_string_or_type}, file::read_file_in_chroot_with_extension}, xml::{attrs::{attr_constraint, attr_to_type, attr_to_type_kebab}, styles::{xml_constraint::XMLConstraint, xml_padding::{XMLPadding, padding_from_str}}}};
+use crate::{app::app_doc::chroot, rtml::rtml_padding::{HorizontalPadding, VerticalPadding}, util::{json::{deserialize_kebab_string_or_type, deserialize_string_or_type}, file::read_file_in_chroot_with_extension}, xml::{attrs::{attr_constraint, attr_to_type, attr_to_type_kebab}, styles::{xml_constraint::XMLConstraint, xml_padding::{XMLPadding, padding_from_str}}}};
 
 #[derive(Debug, PartialEq, Hash, Eq)]
 pub enum StyleSelector
@@ -597,7 +597,18 @@ fn add_styles_from_content( node : Node, styles : &mut HashMap<StyleSelector, XM
 {
     match node.text()
     {
-        Some( s ) if s.trim() != "" => add_styles_from_str( s, styles ),
+        Some( s ) if s.trim() != "" => 
+        {
+            if s.trim().starts_with( "{" )
+            {
+                add_styles_from_str( s, styles )
+            }
+            else
+            {
+                add_styles_from_str( &format!( "{{{s}}}" ), styles )
+            }
+            
+        }
         _ => Ok( () )
     }
 }

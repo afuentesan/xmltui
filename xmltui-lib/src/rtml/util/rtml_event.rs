@@ -1,4 +1,6 @@
-use crate::rtml::{rtml_command::RTMLCommandOutput, rtml_node::RTMLNodeId};
+use std::collections::HashMap;
+
+use crate::{rtml::{rtml_command::RTMLCommandOutput, rtml_node::RTMLNodeId}, state::state_executor::TypeState};
 
 
 #[derive(Debug)]
@@ -12,14 +14,22 @@ pub struct RTMLCallbackCommand
 {
     pub name : Vec<String>,
     pub data_from : Vec<String>,
-    pub value_from : Vec<String>
+    pub value_from : Vec<String>,
+    pub args : HashMap<String, String>,
+    pub envs : HashMap<String, String>
 }
 
 impl RTMLCallbackCommand
 {
-    pub fn new( name : Vec<String>, data_from : Vec<String>, value_from : Vec<String> ) -> Self
+    pub fn new( 
+        name : Vec<String>, 
+        data_from : Vec<String>, 
+        value_from : Vec<String>, 
+        args : HashMap<String, String>, 
+        envs : HashMap<String, String> 
+    ) -> Self
     {
-        Self { name, data_from, value_from }
+        Self { name, data_from, value_from, args, envs }
     }
 }
 
@@ -71,12 +81,30 @@ impl RTMLCallbackChangeSrc
 }
 
 #[derive(Debug, Clone)]
+pub struct CallbackChangeState
+{
+    pub path : String,
+    pub stype : TypeState,
+    pub template : Option<String>,
+    pub output : RTMLCommandOutput
+}
+
+impl CallbackChangeState
+{
+    pub fn new( path : String, stype : TypeState, template : Option<String>, output : RTMLCommandOutput ) -> Self
+    {
+        Self { path, stype, template, output }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum RTMLCallbackAction
 {
     ReplaceNode( CallbackReplace ),
     ReplaceChilds( CallbackReplace ),
     ChangeValue( RTMLNodeId ),
     ChangeSrc( CallbackChangeSrcFromCommand ),
+    ChangeState( CallbackChangeState ),
     None
 }
 

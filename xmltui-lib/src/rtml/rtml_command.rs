@@ -26,7 +26,9 @@ pub struct RTMLCommand
     pub template : Option<String>,
     pub output : RTMLCommandOutput,
     pub cdata : Vec<String>,
-    pub cvalue : Vec<String>
+    pub cvalue : Vec<String>,
+    pub args : HashMap<String, String>,
+    pub envs : HashMap<String, String>
 }
 
 impl RTMLCommand
@@ -42,7 +44,9 @@ impl RTMLCommand
         template : Option<String>,
         output : RTMLCommandOutput,
         cdata : Vec<String>,
-        cvalue : Vec<String>
+        cvalue : Vec<String>,
+        args : HashMap<String, String>,
+        envs : HashMap<String, String>
     ) -> Self
     {
         Self 
@@ -57,7 +61,9 @@ impl RTMLCommand
             template,
             output,
             cdata,
-            cvalue
+            cvalue,
+            args,
+            envs
         }
     }
 

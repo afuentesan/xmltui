@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use roxmltree::Node;
 
-use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::styles_from_head, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_doc::{XMLDoc, XMLDocResult}, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::process_line, xml_link::process_link, xml_paragraph::process_paragraph, xml_select::process_select, xml_template::templates_from_parent}};
+use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::styles_from_head, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_doc::{XMLDoc, XMLDocResult}, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::process_line, xml_link::process_link, xml_paragraph::process_paragraph, xml_select::process_select, xml_state::states_map, xml_template::templates_from_parent}};
 
 pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
 {
@@ -18,7 +20,16 @@ pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
 
     let templates = templates_from_parent( head, &xml )?;
 
-    let mut rtml_doc = RTMLDoc::new( styles, executors, templates );
+    let state_executors = if let Some( n ) = find_state( doc.root_element() )
+    {
+        states_map( n )
+    }
+    else
+    {
+        HashMap::new()
+    };
+
+    let mut rtml_doc = RTMLDoc::new( styles, executors, templates, state_executors );
 
     let ( root, root_id, focus ) = process_first_node( 
         body, 
@@ -151,6 +162,13 @@ fn find_head<'a, 'input>( node : Node<'a, 'input> ) -> Option<Node<'a, 'input>>
 {
     node.children().find(
         | n | n.tag_name().name() == "head"
+    )
+}
+
+fn find_state<'a, 'input>( node : Node<'a, 'input> ) -> Option<Node<'a, 'input>>
+{
+    node.children().find(
+        | n | n.tag_name().name() == "state"
     )
 }
 

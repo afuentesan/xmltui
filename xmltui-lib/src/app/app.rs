@@ -58,6 +58,8 @@ pub fn init_app( initial_path : &str ) -> anyhow::Result<()>
                                 
                                 app.change_doc( doc );
 
+                                app.doc.init_state();
+
                                 app.doc.init_commands( cancellation_token.as_ref().unwrap().clone() );
 
                                 rtml_to_terminal( &mut terminal, &mut app.doc );

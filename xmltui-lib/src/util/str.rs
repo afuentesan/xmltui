@@ -48,3 +48,8 @@ pub fn substr( text : &str, from : usize, to : usize ) -> &str
 
     &text[ start_byte..end_byte ]
 }
+
+pub fn is_uint( s: &str ) -> bool 
+{
+    ! s.is_empty() && s.chars().all( | c | c.is_ascii_digit() )
+}

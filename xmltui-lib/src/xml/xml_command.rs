@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, id_retry_if_exists, parse_common_attrs}, xml_doc::XMLDoc, xml_event::nodes_from_attr, xml_util::{container_styles, template_from_inner_node}}};
+use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, id_retry_if_exists, parse_common_attrs}, xml_doc::XMLDoc, xml_event::nodes_from_attr, xml_state::parse_args_envs_from_node, xml_util::{container_styles, template_from_inner_node}}};
 
 pub fn process_command( 
     xml_doc : &mut XMLDoc,
@@ -37,7 +37,9 @@ pub fn process_command(
                     template_from_inner_node( node, xml ),
                     output_from_node( node ),
                     nodes_from_attr( node, &command_id, "cdata" ),
-                    nodes_from_attr( node, &command_id, "cvalue" )
+                    nodes_from_attr( node, &command_id, "cvalue" ),
+                    parse_args_envs_from_node( node, "args" ),
+                    parse_args_envs_from_node( node, "envs" )
                 )
             ),
             command_id
@@ -45,7 +47,7 @@ pub fn process_command(
     )
 }
 
-fn output_from_node( node : Node ) -> RTMLCommandOutput
+pub fn output_from_node( node : Node ) -> RTMLCommandOutput
 {
     match node.attribute( "output" )
     {

@@ -7,6 +7,7 @@ mod input;
 mod util;
 mod code;
 mod async_app;
+mod state;
 
 pub fn run_app( 
     chroot : &str,

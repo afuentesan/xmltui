@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect}, style::Style};
+use serde_json::{Map, Value};
 use tokio_util::sync::CancellationToken;
 
-use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select}, util::log::log_to_file, xml::styles::xml_style::{StyleSelector, XMLStyle}};
+use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, util::rtml_event::{CallbackChangeState, RTMLCallbackAction}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::json_value_to_string, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -17,7 +18,9 @@ pub struct RTMLDoc
     pub styles : HashMap<StyleSelector, XMLStyle>,
     pub executors : HashMap<String, Executor>,
     pub cancellation_tokens : HashMap<String, CancellationToken>,
-    pub templates : HashMap<String, String>
+    pub templates : HashMap<String, String>,
+    pub state : Value,
+    pub state_executors : HashMap<String, StateExecutor>
 }
 
 impl RTMLDoc
@@ -25,7 +28,8 @@ impl RTMLDoc
     pub fn new(
         styles : HashMap<StyleSelector, XMLStyle>,
         executors : HashMap<String, Executor>,
-        templates : HashMap<String, String>
+        templates : HashMap<String, String>,
+        state_executors : HashMap<String, StateExecutor>
     ) -> Self
     {
         let mut doc = Self::empty();
@@ -33,6 +37,7 @@ impl RTMLDoc
         doc.styles = styles;
         doc.executors = executors;
         doc.templates = templates;
+        doc.state_executors = state_executors;
 
         doc
     }
@@ -50,8 +55,10 @@ impl RTMLDoc
             sorted_nodes : vec![], 
             executors : HashMap::new(),
             cancellation_tokens : HashMap::new(),
-            templates : HashMap::new()
-         }
+            templates : HashMap::new(),
+            state : Value::Object( Map::new() ),
+            state_executors : HashMap::new()
+        }
     }
 
     pub fn node_mut_by_id( &mut self, id : &str ) -> Option<&mut RTMLNode>
@@ -209,6 +216,69 @@ impl RTMLDoc
         }
     }
 
+    pub fn init_state( &mut self )
+    {
+        for ( _, val ) in &self.state_executors
+        {
+            match val
+            {
+                StateExecutor::Var( v ) =>
+                {
+                    change_var_state( v, &mut self.state );
+                },
+                StateExecutor::Command( c ) =>
+                {
+                    if ! c.on_init { continue };
+
+                    self.exec_command_state( c );
+                }
+            }
+        }
+    }
+
+    fn exec_command_state( &self, state : &CommandState )
+    {
+        if let Some( executors ) = self.executors_from_ids( &state.executors )
+        {
+            let doc_id: String = self.doc_id.clone();
+            let node_id = self.root_id.clone();
+            let node_data = HashMap::new();
+            let node_value = HashMap::new();
+            let args = self.state_from_key_path( &state.args );
+            let envs = self.state_from_key_path( &state.envs );
+
+            let params = CommandExecutorParams::new(
+                doc_id, 
+                node_id, 
+                node_data, 
+                node_value,
+                args,
+                envs,
+                CommandRefresh::Once, 
+                executors, 
+                ExecutorEventType::Callback(
+                    RTMLCallbackAction::ChangeState(
+                        CallbackChangeState::new(
+                            state.common.path.clone(),  
+                            state.common.stype.clone(),
+                            state.template.clone(),
+                            state.output.clone()
+                        )
+                    )
+                ), 
+                None, 
+                None
+            );
+
+            spawn_async_task(
+                async move 
+                {
+                    new_command_executor( params ).await
+                }
+            );
+        }
+    }
+
     pub fn init_commands( &mut self, cancellation_token : CancellationToken )
     {
         let ids = self.doc.keys().map( | k | k.to_string() ).collect::<Vec<_>>();
@@ -240,63 +310,6 @@ impl RTMLDoc
         {
             self.cancellation_tokens.insert( node_id, token );
         }
-
-        // for node_id in ids
-        // {
-        //     if let Some( node ) = self.doc.get( &node_id )
-        //     {
-        //         match node
-        //         {
-        //             RTMLNode::Command( c ) =>
-        //             {
-        //                 if let Some( executor ) = self.executors_from_ids( &c.executors )
-        //                 {
-        //                     let global_cancel = cancellation_token.clone();
-        //                     let local_cancel = CancellationToken::new();
-        //                     let local_cancel_send = local_cancel.clone();
-
-        //                     self.cancellation_tokens.insert( node_id.clone(), local_cancel );
-
-
-        //                     let doc_id = self.doc_id.clone();
-        //                     let node_id = node_id.clone();
-        //                     let refresh = c.refresh.clone();
-        //                     let executor = executor.clone();
-                            
-        //                     let node_data = self.data_from_nodes_id( c.cdata.as_ref() );
-        //                     let node_value = self.value_from_nodes_id( c.cvalue.as_ref() );
-
-        //                     let params = CommandExecutorParams::new(
-        //                         doc_id, 
-        //                         node_id,
-        //                         node_data, 
-        //                         node_value,
-        //                         refresh, 
-        //                         executor, 
-        //                         ExecutorEventType::CommandChild, 
-        //                         Some( global_cancel ), 
-        //                         Some( local_cancel_send )
-        //                     );
-
-        //                     spawn_async_task(
-        //                         async move 
-        //                         {
-        //                             new_command_executor( params ).await
-        //                         }
-        //                     );
-        //                 }
-        //             },
-        //             RTMLNode::Input( _ ) |
-        //             RTMLNode::Layout( _ ) |
-        //             RTMLNode::Line( _ ) |
-        //             RTMLNode::Link( _ ) |
-        //             RTMLNode::Button( _ ) |
-        //             RTMLNode::Border( _ ) |
-        //             RTMLNode::Paragraph( _ ) |
-        //             RTMLNode::Span( _ ) => {}
-        //         }
-        //     }
-        // }
     }
 
     pub fn refresh_commands(
@@ -358,11 +371,16 @@ impl RTMLDoc
                             let node_data = self.data_from_nodes_id( c.cdata.as_ref() );
                             let node_value = self.value_from_nodes_id( c.cvalue.as_ref() );
 
+                            let args = self.state_from_key_path( &c.args );
+                            let envs = self.state_from_key_path( &c.envs );
+
                             let params = CommandExecutorParams::new(
                                 doc_id, 
                                 node_id,
                                 node_data, 
                                 node_value,
+                                args,
+                                envs,
                                 refresh, 
                                 executor, 
                                 ExecutorEventType::CommandChild, 
@@ -390,6 +408,27 @@ impl RTMLDoc
                 }
             }
         }
+
+        ret
+    }
+
+    pub fn state_from_key_path( &self, keys : &HashMap<String, String> ) -> HashMap<String, String>
+    {
+        let mut ret = HashMap::new();
+
+        keys.iter()
+        .flat_map(
+            | ( k, v ) |
+            {
+                Some( ( k, json_value_to_string( self.state.pointer( v )? ) ) )
+            }
+        )
+        .for_each(
+            | ( k, v ) |
+            {
+                ret.insert( k.to_string(), v );
+            }
+        );
 
         ret
     }

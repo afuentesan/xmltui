@@ -1,6 +1,6 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::RTMLCommandOutput, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackReplace, RTMLCallback, RTMLCallbackAction::{self}, RTMLCallbackChangeSrc, RTMLCallbackCommand, RTMLEvent}}, xml::{attrs::attr_comands_from_str, xml_command::output_from_str}};
+use crate::{rtml::{rtml_command::RTMLCommandOutput, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackReplace, RTMLCallback, RTMLCallbackAction::{self}, RTMLCallbackChangeSrc, RTMLCallbackCommand, RTMLEvent}}, xml::{attrs::attr_comands_from_str, xml_command::output_from_str, xml_state::parse_args_envs_from_node}};
 
 pub fn parse_event_attrs( node : Node, id : &str  ) -> anyhow::Result<Vec<RTMLEvent>>
 {
@@ -65,10 +65,12 @@ fn parse_enter_event( node : Node, value : &str, id : &str ) -> anyhow::Result<R
 
     let data_from = data_from_node( node, id, "enter" );
     let value_from = value_from_node( node, id, "enter" );
+    let args = parse_args_envs_from_node( node, "enter-args" );
+    let envs = parse_args_envs_from_node( node, "enter-envs" );
 
     Ok(
         RTMLEvent::Enter( RTMLCallback::Command(
-                RTMLCallbackCommand::new( executors, data_from, value_from ),
+                RTMLCallbackCommand::new( executors, data_from, value_from, args, envs ),
                 parse_callback_action( node, "enter" )?
             )
         )

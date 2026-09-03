@@ -3,19 +3,17 @@
 >
     <head>
         <style>
-            {
-                ".red" : {
-                    "fg" : "#ff0000"
-                },
-                "p:focus" : {
-                    "bg" : "#113311"
-                },
-                "layout" : {
-                    "dir" : "horizontal"
-                },
-                "line" : { "length" : 12, "padding-left" : 4 },
-                "input" : { "align" : "left" }
-            }
+            ".red" : {
+                "fg" : "#ff0000"
+            },
+            "p:focus" : {
+                "bg" : "#113311"
+            },
+            "layout" : {
+                "dir" : "horizontal"
+            },
+            "line" : { "length" : 12, "padding-left" : 4 },
+            "input" : { "align" : "left" }
         </style>
         <template name="definicion">
             <p class="p" padding="1">{{ ctx }}</p>

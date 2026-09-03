@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::{rtml::rtml_padding::{HorizontalPadding, VerticalPadding}, util::deserialize::deserialize_string_or_type};
+use crate::{rtml::rtml_padding::{HorizontalPadding, VerticalPadding}, util::json::deserialize_string_or_type};
 
 #[derive(Deserialize, Default)]
 pub struct PaddingBuilder 

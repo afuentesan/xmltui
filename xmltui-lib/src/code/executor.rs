@@ -22,7 +22,8 @@ pub enum ExecutorEnv
 {
     Var( ExecutorEnvVar ),
     Data( String ),
-    Value( String )
+    Value( String ),
+    State( String )
 }
 
 #[derive(Debug, Clone)]
@@ -30,7 +31,8 @@ pub enum ExecutorArg
 {
     Text( String ),
     Data( String ),
-    Value( String )
+    Value( String ),
+    State( String )
 }
 
 #[derive(Debug, Clone)]
@@ -139,10 +141,12 @@ impl ExecutorBuilder
 async fn execute_command( 
     executor: &Executor,
     node_data : &HashMap<String, String>,
-    node_value : &HashMap<String, String>
+    node_value : &HashMap<String, String>,
+    args : &HashMap<String, String>,
+    envs : &HashMap<String, String>
 ) -> anyhow::Result<ExecutorOutput> 
 {
-    let mut command = build_command( executor, node_data, node_value );
+    let mut command = build_command( executor, node_data, node_value, args, envs );
 
     command.stderr( Stdio::piped() );
 
@@ -154,12 +158,14 @@ async fn execute_command(
 pub async fn execute_commands( 
     executors : &Vec<Executor>,
     node_data : &HashMap<String, String>,
-    node_value : &HashMap<String, String>
+    node_value : &HashMap<String, String>,
+    args : &HashMap<String, String>,
+    envs : &HashMap<String, String>
 ) -> anyhow::Result<ExecutorOutput> 
 {
     if executors.is_empty() { return Err( anyhow::Error::msg( "execute_commands. Se necesita por lo menos 1 executor." ) ) }
 
-    if executors.len() == 1 { return execute_command( &executors[ 0 ], node_data, node_value ).await }
+    if executors.len() == 1 { return execute_command( &executors[ 0 ], node_data, node_value, args, envs ).await }
 
     let ( last_executor, init_executors ) = executors.split_last().unwrap();
 
@@ -168,14 +174,14 @@ pub async fn execute_commands(
 
     for executor in init_executors
     {
-        let ( stdio, child ) = execute_piped_command( executor, node_data, node_value, stdin ).await?;
+        let ( stdio, child ) = execute_piped_command( executor, node_data, node_value, args, envs, stdin ).await?;
 
         stdin = Some( stdio );
 
         children.push( child );
     }
 
-    let mut last_command = build_command( last_executor, node_data, node_value );
+    let mut last_command = build_command( last_executor, node_data, node_value, args, envs );
     
     last_command.stdout( Stdio::piped() ); 
 
@@ -203,10 +209,12 @@ async fn execute_piped_command(
     executor: &Executor,
     node_data : &HashMap<String, String>,
     node_value : &HashMap<String, String>,
+    args : &HashMap<String, String>,
+    envs : &HashMap<String, String>,
     stdin : Option<Stdio>
 ) -> anyhow::Result<( Stdio, Child )>
 {
-    let mut command = build_command( executor, node_data, node_value );
+    let mut command = build_command( executor, node_data, node_value, args, envs );
 
     command.stdout( Stdio::piped() );
 
@@ -231,7 +239,9 @@ async fn execute_piped_command(
 fn build_command(
     executor : &Executor,
     node_data : &HashMap<String, String>,
-    node_value : &HashMap<String, String>
+    node_value : &HashMap<String, String>,
+    args : &HashMap<String, String>,
+    envs : &HashMap<String, String>
 ) -> Command
 {
     let mut command = Command::new( &executor.command );
@@ -255,6 +265,13 @@ fn build_command(
                 ExecutorArg::Value( key ) =>
                 {
                     if let Some( val ) = node_value.get( key )
+                    {
+                        command.arg( val );
+                    }
+                },
+                ExecutorArg::State( key ) =>
+                {
+                    if let Some( val ) = args.get( key )
                     {
                         command.arg( val );
                     }
@@ -286,6 +303,13 @@ fn build_command(
                 ExecutorEnv::Value( key ) =>
                 {
                     if let Some( val ) = node_value.get( key )
+                    {
+                        command.env( key, val );
+                    }
+                },
+                ExecutorEnv::State( key ) =>
+                {
+                    if let Some( val ) = envs.get( key )
                     {
                         command.env( key, val );
                     }

@@ -1,7 +1,7 @@
 use ratatui::layout::Constraint;
 use serde::Deserialize;
 
-use crate::util::deserialize::deserialize_string_or_type;
+use crate::util::json::deserialize_string_or_type;
 
 
 #[derive(Deserialize, Default)]
