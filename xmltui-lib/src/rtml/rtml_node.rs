@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Constraint, Rect}};
 use serde_json::Value;
 
-use crate::{input::event::InputEvent, rtml::{rtml_attrs::CommonAttrs, rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::{RTMLParagraph, render_rtml_paragraph_focus}, rtml_select::{RTMLSelect, render_rtml_select_focus}, rtml_span::RTMLSpan}};
+use crate::{input::event::InputEvent, rtml::{rtml_attrs::CommonAttrs, rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::{RTMLParagraph, render_rtml_paragraph_focus}, rtml_select::{RTMLSelect, render_rtml_select_focus}}};
 
 pub type RTMLNodeId = String;
 
@@ -62,7 +62,6 @@ pub enum RTMLNode
 {
     Layout( RTMLLayout ),
     Line( RTMLLine ),
-    Span( RTMLSpan ),
     Input( RTMLInput ),
     Link( RTMLLink ),
     Command( RTMLCommand ),
@@ -85,7 +84,6 @@ impl RTMLNode
             RTMLNode::Link( _ ) => true,
             RTMLNode::Layout( _ ) |
             RTMLNode::Line( _ ) |
-            RTMLNode::Span( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Command( _ ) => false
         }
@@ -117,7 +115,6 @@ impl RTMLNode
             },
             RTMLNode::Layout( _ ) |
             RTMLNode::Line( _ ) |
-            RTMLNode::Span( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Command( _ ) => FocusEventResponse::new_without_state( false )
         }
@@ -130,7 +127,6 @@ impl RTMLNode
             RTMLNode::Layout( n ) => n.common.parent_id.as_ref(),
             RTMLNode::Line( n ) => n.common.parent_id.as_ref(),
             RTMLNode::Input( n ) => n.common.parent_id.as_ref(),
-            RTMLNode::Span( n ) => n.common.parent_id.as_ref(),
             RTMLNode::Link( n ) => n.common.parent_id.as_ref(),
             RTMLNode::Command( n ) => n.common.parent_id.as_ref(),
             RTMLNode::Button( n ) => n.common.parent_id.as_ref(),
@@ -147,7 +143,6 @@ impl RTMLNode
             RTMLNode::Layout( n ) => &n.common.childs,
             RTMLNode::Line( n ) => &n.common.childs,
             RTMLNode::Input( n ) => &n.common.childs,
-            RTMLNode::Span( n ) => &n.common.childs,
             RTMLNode::Link( n ) => &n.common.childs,
             RTMLNode::Command( n ) => &n.common.childs,
             RTMLNode::Button( n ) => &n.common.childs,
@@ -164,7 +159,6 @@ impl RTMLNode
             RTMLNode::Layout( n ) => &mut n.common.childs,
             RTMLNode::Line( n ) => &mut n.common.childs,
             RTMLNode::Input( n ) => &mut n.common.childs,
-            RTMLNode::Span( n ) => &mut n.common.childs,
             RTMLNode::Link( n ) => &mut n.common.childs,
             RTMLNode::Command( n ) => &mut n.common.childs,
             RTMLNode::Button( n ) => &mut n.common.childs,
@@ -181,7 +175,6 @@ impl RTMLNode
             RTMLNode::Layout( n ) => n.common.attrs.area = area,
             RTMLNode::Line( n ) => n.common.attrs.area = area,
             RTMLNode::Input( n ) => n.common.attrs.area = area,
-            RTMLNode::Span( n ) => n.common.attrs.area = area,
             RTMLNode::Link( n ) => n.common.attrs.area = area,
             RTMLNode::Command( n ) => n.common.attrs.area = area,
             RTMLNode::Button( n ) => n.common.attrs.area = area,
@@ -198,7 +191,6 @@ impl RTMLNode
             RTMLNode::Layout( n ) => &n.common.attrs.constraint,
             RTMLNode::Line( n ) => &n.common.attrs.constraint,
             RTMLNode::Input( n ) => &n.common.attrs.constraint,
-            RTMLNode::Span( n ) => &n.common.attrs.constraint,
             RTMLNode::Link( n ) => &n.common.attrs.constraint,
             RTMLNode::Command( n ) => &n.common.attrs.constraint,
             RTMLNode::Button( n ) => &n.common.attrs.constraint,
@@ -215,7 +207,6 @@ impl RTMLNode
             RTMLNode::Layout( _ ) |
             RTMLNode::Line( _ ) |
             RTMLNode::Input( _ ) |
-            RTMLNode::Span( _ ) |
             RTMLNode::Button( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Paragraph( _ ) |
@@ -232,7 +223,6 @@ impl RTMLNode
             RTMLNode::Layout( _ ) |
             RTMLNode::Line( _ ) |
             RTMLNode::Input( _ ) |
-            RTMLNode::Span( _ ) |
             RTMLNode::Button( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Paragraph( _ ) |
@@ -249,7 +239,6 @@ impl RTMLNode
             RTMLNode::Layout( _ ) |
             RTMLNode::Line( _ ) |
             RTMLNode::Input( _ ) |
-            RTMLNode::Span( _ ) |
             RTMLNode::Button( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Paragraph( _ ) |
@@ -266,7 +255,6 @@ impl RTMLNode
             RTMLNode::Layout( n ) => &n.common.attrs.data,
             RTMLNode::Line( n ) => &n.common.attrs.data,
             RTMLNode::Input( n ) => &n.common.attrs.data,
-            RTMLNode::Span( n ) => &n.common.attrs.data,
             RTMLNode::Link( n ) => &n.common.attrs.data,
             RTMLNode::Command( n ) => &n.common.attrs.data,
             RTMLNode::Button( n ) => &n.common.attrs.data,
@@ -283,7 +271,6 @@ impl RTMLNode
             RTMLNode::Input( n ) => n.replace_value( new_value ),
             RTMLNode::Button( n ) => n.replace_value( new_value ),
             RTMLNode::Link( n ) => n.replace_value( new_value ),
-            RTMLNode::Span( n ) => n.replace_value( new_value ),
             RTMLNode::Select( n ) => n.replace_value( new_value ),
             RTMLNode::Line( _ ) |
             RTMLNode::Command( _ ) |
@@ -300,7 +287,6 @@ impl RTMLNode
             RTMLNode::Input( n ) => Some( n.value() ),
             RTMLNode::Button( n ) => Some( n.value() ),
             RTMLNode::Link( n ) => Some( n.value() ),
-            RTMLNode::Span( n ) => Some( n.value() ),
             RTMLNode::Select( n ) => Some( n.value() ),
             RTMLNode::Line( _ ) |
             RTMLNode::Command( _ ) |
@@ -318,7 +304,6 @@ impl RTMLNode
             RTMLNode::Select( n ) => Some( n.state_value() ),
             RTMLNode::Button( _ ) |
             RTMLNode::Link( _ ) |
-            RTMLNode::Span( _ ) |
             RTMLNode::Line( _ ) |
             RTMLNode::Command( _ ) |
             RTMLNode::Border( _ ) |
@@ -343,7 +328,6 @@ pub fn render_focus_node(
         RTMLNode::Command( _ ) |
         RTMLNode::Layout( _ ) |
         RTMLNode::Line( _ ) |
-        RTMLNode::Border( _ ) |
-        RTMLNode::Span( _ ) => Ok( () )
+        RTMLNode::Border( _ ) => Ok( () )
     }
 }

@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
-use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{field_attrs_from_node_and_id, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_util::{paragraph_like_styles, style_from_styles}}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{field_attrs_from_node_and_id, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_line::process_text_line, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_select( 
@@ -100,41 +99,34 @@ fn process_option_text(
     styles : &HashMap<StyleSelector, XMLStyle>
 ) -> TextLine
 {
-    let mut ret = vec![];
-
-    for child in option.children()
-    {
-        process_node_text_or_span( child, styles, &mut ret );
-    }
-    
-    ret
+    process_text_line( option, styles )
 }
 
-fn process_node_text_or_span( 
-    child : Node,
-    styles : &HashMap<StyleSelector, XMLStyle>,
-    ret : &mut TextLine
-)
-{
-    let re = regex!( "[ \t]*\n[ \t]*" );
+// fn process_node_text_or_span( 
+//     child : Node,
+//     styles : &HashMap<StyleSelector, XMLStyle>,
+//     ret : &mut TextLine
+// )
+// {
+//     let re = regex!( "[ \t]*\n[ \t]*" );
 
-    if let Some( text ) = child.text() && child.is_text()
-    {
-        let text = re.replace_all( &text, " " );
+//     if let Some( text ) = child.text() && child.is_text()
+//     {
+//         let text = re.replace_all( &text, " " );
 
-        ret.push( ( text.to_string(), None ) );
-    }
-    else if child.tag_name().name() == "span"
-    {
-        if let Some( t ) = child.text() && ! t.is_empty()
-        {
-            let style = style_from_styles( child, styles, None, None );
+//         ret.push( ( text.to_string(), None ) );
+//     }
+//     else if child.tag_name().name() == "span"
+//     {
+//         if let Some( t ) = child.text() && ! t.is_empty()
+//         {
+//             let style = style_from_styles( child, styles, None, None );
 
-            let text = t.replace( "\n", " " );
+//             let text = t.replace( "\n", " " );
 
-            let val = ( text, Some( style ) );
+//             let val = ( text, Some( style ) );
 
-            ret.push( val );
-        }
-    }
-}
+//             ret.push( val );
+//         }
+//     }
+// }

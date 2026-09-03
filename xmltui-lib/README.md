@@ -59,3 +59,5 @@
 [] En la respuesta de los comandos también se tiene que poder acceder al estado.
 
 [] En los eventos en los atributos {prefix}-data y {prefix}-value que se pueda especificar el nombre del parámetro poniendo ":" y después el nombre que se buscará en el comando. Si no se ponen los dos puntos sigue funcionando igual que ahora. (Estoy pensando que lo voy a hacer todo con el estado. Quitaré todo lo que sea atributos {prefix}-data y {prefix}-value).
+
+[] Cambiar la forma de pintar el contenido del componente line. Que funcione igual que el paragraph o el contenido de los options del select. Lo mismo para link y button, estos ahora solo tienen un String.

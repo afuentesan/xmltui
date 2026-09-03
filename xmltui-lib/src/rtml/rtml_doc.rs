@@ -458,8 +458,7 @@ impl RTMLDoc
                     RTMLNode::Button( _ ) |
                     RTMLNode::Border( _ ) |
                     RTMLNode::Paragraph( _ ) |
-                    RTMLNode::Select( _ ) |
-                    RTMLNode::Span( _ ) => {}
+                    RTMLNode::Select( _ ) => {}
                 }
             }
         }
@@ -999,7 +998,7 @@ fn render_node_and_get_child_areas(
         },
         RTMLNode::Line( l ) =>
         {
-            render_rtml_line( l, root.childs(), area, buf, doc )?;
+            render_rtml_line( l, area, buf )?;
 
             Ok( vec![] )
         },
@@ -1020,10 +1019,6 @@ fn render_node_and_get_child_areas(
             render_rtml_button( b, area, buf )?;
 
             Ok( vec![] )
-        },
-        RTMLNode::Span( _ ) =>
-        {
-            Err( anyhow::Error::msg( "Span not expected" ) )
         }
     }
 }

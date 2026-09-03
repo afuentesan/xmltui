@@ -73,22 +73,22 @@ pub fn container_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>
     ( constraint, style, container_attrs )
 }
 
-pub fn span_like_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> ( Constraint, Style, RTMLPadding )
-{
-    let styles = style_from_node( node, styles, variant );
+// pub fn span_like_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> ( Constraint, Style, RTMLPadding )
+// {
+//     let styles = style_from_node( node, styles, variant );
 
-    let constraint = styles.constraint.0.unwrap_or( DEFAULT_CONSTRAINT );
+//     let constraint = styles.constraint.0.unwrap_or( DEFAULT_CONSTRAINT );
 
-    let style = styles.style.0.unwrap_or_default();
+//     let style = styles.style.0.unwrap_or_default();
 
-    let horizontal = styles.inner_padding.0.0.unwrap_or_default();
+//     let horizontal = styles.inner_padding.0.0.unwrap_or_default();
 
-    let vertical = styles.inner_padding.0.1.unwrap_or_default();
+//     let vertical = styles.inner_padding.0.1.unwrap_or_default();
 
-    let padding = RTMLPadding::new( horizontal, vertical );
+//     let padding = RTMLPadding::new( horizontal, vertical );
 
-    ( constraint, style, padding )
-}
+//     ( constraint, style, padding )
+// }
 
 pub fn paragraph_like_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> ( Constraint, Style, RTMLPadding, Alignment )
 {

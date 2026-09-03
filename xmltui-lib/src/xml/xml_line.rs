@@ -1,7 +1,9 @@
-use ratatui::style::Style;
+use std::collections::HashMap;
+
+use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_line::RTMLLine, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_span::RTMLSpan}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::xml_style::merge_styles, xml_doc::XMLDoc, xml_util::{paragraph_like_styles, span_like_styles}}};
+use crate::{rtml::{rtml_line::RTMLLine, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::types::TextLine}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::xml_style::{StyleSelector, XMLStyle}, xml_doc::XMLDoc, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_line( 
@@ -12,22 +14,17 @@ pub fn process_line(
 {
     let id = id_retry_if_exists( node, xml_doc.nodos() );
 
-    let mut childs = vec![];
-
     let ( constraint, line_style, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
-
-    for n in node.children()
-    {
-        childs.append( &mut process_span( xml_doc, n, id.clone(), line_style )? );
-    }
 
     let padding = padding.horizontal;
 
     let common = RTMLNodeCommon::new( 
         parse_common_attrs( node, constraint )?, 
-        childs, 
+        vec![], 
         parent_id
     );
+
+    let text_line = process_text_line( node, xml_doc.styles() );
 
     Ok(
         (
@@ -36,7 +33,8 @@ pub fn process_line(
                     alignment, 
                     line_style,
                     padding,
-                    common
+                    common,
+                    text_line
                 )
             ),
             id
@@ -44,93 +42,46 @@ pub fn process_line(
     )
 }
 
-pub fn process_span(
-    xml_doc : &mut XMLDoc, 
-    node : Node, 
-    parent_id : RTMLNodeId,
-    line_style : Style ) -> anyhow::Result<Vec<String>>
+pub fn process_text_line( 
+    node : Node,
+    styles : &HashMap<StyleSelector, XMLStyle>
+) -> TextLine
 {
-    if node.is_text()
+    let mut ret = vec![];
+
+    for child in node.children()
     {
-        let text = span_text( node.text().unwrap_or( "" ) );
-
-        let ( constraint, _, padding ) = span_like_styles( node, xml_doc.styles(), None );
-
-        let common = RTMLNodeCommon::new( 
-            parse_common_attrs( node, constraint )?, 
-            vec![], 
-            Some( parent_id )
-        );
-
-        let span = RTMLSpan::new( 
-            text,
-            common,
-            line_style,
-            padding.horizontal
-        );
-
-        let id = id_retry_if_exists( node, xml_doc.nodos() );
-
-        xml_doc.add_node( RTMLNode::Span( span ), id.clone() );
-
-        Ok( vec![ id ] )
+        process_node_text_or_span( child, styles, &mut ret );
     }
-    else
-    {
-        Ok( process_span_node( xml_doc, node, parent_id, line_style )? )
-    }
-}
-
-fn process_span_node( 
-    xml_doc : &mut XMLDoc, 
-    node : Node, 
-    parent_id : RTMLNodeId,
-    line_style : Style 
-) -> anyhow::Result<Vec<String>>
-{
-    if node.tag_name().name() != "span" || node.text().is_none() { return Ok( vec![] ) };
-
-    let text = node.text().unwrap();
-
-    if text == "" { return Ok( vec![] ) };
-
-    let text = span_text( text );
-
-    let ( constraint, span_style, padding ) = span_like_styles( node, xml_doc.styles(), None );
-
-    let span_style = merge_styles( line_style, span_style );
-
-    let common = RTMLNodeCommon::new( 
-        parse_common_attrs( node, constraint )?, 
-        vec![], 
-        Some( parent_id )
-    );
-
-    let span = RTMLSpan::new( 
-        text,
-        common,
-        span_style,
-        padding.horizontal
-    );
     
-    let id = id_retry_if_exists( node, xml_doc.nodos() );
-
-    xml_doc.add_node( RTMLNode::Span( span ), id.clone() );
-
-    Ok( vec![ id ] )
+    ret
 }
 
-fn span_text( text : &str ) -> String
+fn process_node_text_or_span( 
+    child : Node,
+    styles : &HashMap<StyleSelector, XMLStyle>,
+    ret : &mut TextLine
+)
 {
-    text
-    .split( "\n" )
-    .fold(
-        String::new(), 
-        | mut acc, s |
-        {
-            acc.push_str( s.trim() );
+    let re = regex!( "[ \t]*\n[ \t]*" );
 
-            acc
+    if let Some( text ) = child.text() && child.is_text()
+    {
+        let text = re.replace_all( &text, "" );
+
+        ret.push( ( text.to_string(), None ) );
+    }
+    else if child.tag_name().name() == "span"
+    {
+        if let Some( t ) = child.text() && ! t.is_empty()
+        {
+            let style = style_from_styles( child, styles, None, None );
+
+            let text = t.replace( "\n", "" );
+
+            let val = ( text, Some( style ) );
+
+            ret.push( val );
         }
-    )   
+    }
 }

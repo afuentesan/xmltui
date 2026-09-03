@@ -138,7 +138,7 @@ pub fn lines_from_text_width_style( lines : &TextLines, style : Option<( usize, 
     ).collect::<Vec<_>>()
 }
 
-fn line_from_spans<'a>( spans : &'a Vec<( String, Option<Style> )>, next_style : Option<Style> ) -> Line<'a>
+pub fn line_from_spans<'a>( spans : &'a Vec<( String, Option<Style> )>, next_style : Option<Style> ) -> Line<'a>
 {
     let content = spans.iter()
     .map(
