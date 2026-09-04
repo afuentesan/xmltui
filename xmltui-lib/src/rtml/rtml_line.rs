@@ -1,6 +1,6 @@
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
 
-use crate::{rtml::{rtml_node::RTMLNodeCommon, rtml_padding::HorizontalPadding, rtml_paragraph::line_from_spans, util::types::TextLine}, util::log::log_to_file};
+use crate::rtml::{rtml_node::RTMLNodeCommon, rtml_padding::HorizontalPadding, rtml_paragraph::line_from_spans, util::types::TextLine};
 
 
 #[derive(Debug)]
@@ -36,13 +36,7 @@ pub fn render_rtml_line(
         vec![]
     };
 
-    log_to_file( &format!( "Content of line: {:?}", rtml_line.content ) );
-
     spans.append( &mut line_from_spans( &rtml_line.content, None ).spans );
-
-    log_to_file( &format!( "Spans: {:?}", spans ) );
-
-    // spans.append( &mut spans_from_childs( childs, doc )? );
 
     if rtml_line.padding.right > 0 { spans.push( padding_span( rtml_line.padding.right , rtml_line.style ) ); }
 

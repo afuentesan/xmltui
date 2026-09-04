@@ -171,8 +171,6 @@ fn merge_attr(
     attr : &RTMLStyleTemplateAttr
 ) -> Style
 {
-    log_to_file( &format!( "merge_attr: {attr:?}" ) );
-
     match attr
     {
         RTMLStyleTemplateAttr::Bg( v ) =>

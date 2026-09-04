@@ -18,27 +18,6 @@ impl VarState
     }
 }
 
-// pub struct VarStateParams<'a, 'b>
-// {
-//     pub value : &'b str,
-//     pub path : &'b str,
-//     pub stype : &'b TypeState,
-//     pub state : &'a mut Value
-// }
-
-// impl<'a, 'b> VarStateParams<'a, 'b>
-// {
-//     pub fn new(
-//         value : &'b str,
-//         path : &'b str,
-//         stype : &'b TypeState,
-//         state : &'a mut Value
-//     ) -> Self
-//     {
-//         Self { value, path, stype, state }
-//     }
-// }
-
 pub fn change_var_state( params : &VarState, state : &mut Value ) -> bool
 {
     match params.common.stype.str_to_json_value( params.value.as_str() )
@@ -46,8 +25,6 @@ pub fn change_var_state( params : &VarState, state : &mut Value ) -> bool
         Ok( v ) => 
         {
             create_or_replace_path( params.common.path.as_str(), state, v );
-
-            log_to_file( &format!( "New state: {:?}", state ) );
 
             true
         },

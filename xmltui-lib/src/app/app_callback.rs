@@ -60,8 +60,6 @@ fn execute_callback_command(
         let args = doc.state_from_key_path( &command.args );
         let envs = doc.state_from_key_path( &command.envs );
 
-        log_to_file( &format!( "Args:\n\n{:?}\n\nEnvs:\n\n{:?}\n\n\n", command.args, command.envs ) );
-
         let params = CommandExecutorParams::new(
             doc_id, 
             node_id, 
