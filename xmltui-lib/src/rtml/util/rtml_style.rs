@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use ratatui::style::{Color, Style};
+use ratatui::style::{Color, Modifier, Style};
 use serde_json::Value;
 
 use crate::util::{log::log_to_file, template::xml_from_template_context};
@@ -185,13 +185,198 @@ fn merge_attr(
         {
             change_color( style, context, v, templates, | s, c | s.underline_color( c ) )
         },
-        RTMLStyleTemplateAttr::FontWeight( v ) => todo!(),
-        RTMLStyleTemplateAttr::FontStyle( v ) => todo!(),
-        RTMLStyleTemplateAttr::Dim( v ) => todo!(),
-        RTMLStyleTemplateAttr::TextDecoration( v ) => todo!(),
-        RTMLStyleTemplateAttr::Blink( v ) => todo!(),
-        RTMLStyleTemplateAttr::Invert( v ) => todo!(),
-        RTMLStyleTemplateAttr::Visibility( v ) => todo!()
+        RTMLStyleTemplateAttr::FontWeight( v ) =>
+        {
+            change_font_weight( style, context, v, templates )
+        },
+        RTMLStyleTemplateAttr::FontStyle( v ) =>
+        {
+            change_font_style( style, context, v, templates )
+        },
+        RTMLStyleTemplateAttr::Dim( v ) =>
+        {
+            change_dim( style, context, v, templates )
+        },
+        RTMLStyleTemplateAttr::TextDecoration( v ) =>
+        {
+            change_text_decoration( style, context, v, templates )
+        },
+        RTMLStyleTemplateAttr::Blink( v ) =>
+        {
+            change_blink( style, context, v, templates )
+        },
+        
+        RTMLStyleTemplateAttr::Invert( v ) =>
+        {
+            change_invert( style, context, v, templates )
+        },
+        RTMLStyleTemplateAttr::Visibility( v ) =>
+        {
+            change_visibility( style, context, v, templates )
+        }
+    }
+}
+
+fn change_visibility(
+    style : Style,
+    context : &Value,
+    template : &RTMLStyleTemplateType,
+    templates : &HashMap<String, String>
+) -> Style
+{
+    if let Some( t ) = template_str_from_template( template, templates ) &&
+    let Some( s ) = evaluate_template( t, context )
+    {
+        match s.trim().to_lowercase().as_str()
+        {
+            "visible" => style.remove_modifier( Modifier::HIDDEN ),
+            "hidden" => style.add_modifier( Modifier::HIDDEN ),
+            _ => style
+        }
+    }
+    else
+    {
+        style    
+    }
+}
+
+fn change_invert(
+    style : Style,
+    context : &Value,
+    template : &RTMLStyleTemplateType,
+    templates : &HashMap<String, String>
+) -> Style
+{
+    if let Some( t ) = template_str_from_template( template, templates ) &&
+    let Some( s ) = evaluate_template( t, context )
+    {
+        match s.trim().to_lowercase().as_str()
+        {
+            "false" => style.remove_modifier( Modifier::REVERSED ),
+            "true" => style.add_modifier( Modifier::REVERSED ),
+            _ => style
+        }
+    }
+    else
+    {
+        style    
+    }
+}
+
+fn change_blink(
+    style : Style,
+    context : &Value,
+    template : &RTMLStyleTemplateType,
+    templates : &HashMap<String, String>
+) -> Style
+{
+    if let Some( t ) = template_str_from_template( template, templates ) &&
+    let Some( s ) = evaluate_template( t, context )
+    {
+        match s.trim().to_lowercase().as_str()
+        {
+            "normal" => style.remove_modifier( Modifier::SLOW_BLINK ).remove_modifier( Modifier::RAPID_BLINK ),
+            "slow" => style.remove_modifier( Modifier::RAPID_BLINK ).add_modifier( Modifier::SLOW_BLINK ),
+            "rapid" => style.remove_modifier( Modifier::SLOW_BLINK ).add_modifier( Modifier::RAPID_BLINK ),
+            _ => style
+        }
+    }
+    else
+    {
+        style    
+    }
+}
+
+fn change_text_decoration(
+    style : Style,
+    context : &Value,
+    template : &RTMLStyleTemplateType,
+    templates : &HashMap<String, String>
+) -> Style
+{
+    if let Some( t ) = template_str_from_template( template, templates ) &&
+    let Some( s ) = evaluate_template( t, context )
+    {
+        match s.trim().to_lowercase().as_str()
+        {
+            "none" => style.remove_modifier( Modifier::UNDERLINED ).remove_modifier( Modifier::CROSSED_OUT ),
+            "underline" => style.remove_modifier( Modifier::CROSSED_OUT ).add_modifier( Modifier::UNDERLINED ),
+            "line-through" => style.remove_modifier( Modifier::UNDERLINED ).add_modifier( Modifier::CROSSED_OUT ),
+            _ => style
+        }
+    }
+    else
+    {
+        style    
+    }
+}
+
+fn change_dim(
+    style : Style,
+    context : &Value,
+    template : &RTMLStyleTemplateType,
+    templates : &HashMap<String, String>
+) -> Style
+{
+    if let Some( t ) = template_str_from_template( template, templates ) &&
+    let Some( s ) = evaluate_template( t, context )
+    {
+        match s.trim().to_lowercase().as_str()
+        {
+            "false" => style.remove_modifier( Modifier::DIM ),
+            "true" => style.add_modifier( Modifier::DIM ),
+            _ => style
+        }
+    }
+    else
+    {
+        style    
+    }
+}
+
+fn change_font_style(
+    style : Style,
+    context : &Value,
+    template : &RTMLStyleTemplateType,
+    templates : &HashMap<String, String>
+) -> Style
+{
+    if let Some( t ) = template_str_from_template( template, templates ) &&
+    let Some( s ) = evaluate_template( t, context )
+    {
+        match s.trim().to_lowercase().as_str()
+        {
+            "normal" => style.remove_modifier( Modifier::ITALIC ),
+            "italic" => style.add_modifier( Modifier::ITALIC ),
+            _ => style
+        }
+    }
+    else
+    {
+        style    
+    }
+}
+
+fn change_font_weight(
+    style : Style,
+    context : &Value,
+    template : &RTMLStyleTemplateType,
+    templates : &HashMap<String, String>
+) -> Style
+{
+    if let Some( t ) = template_str_from_template( template, templates ) &&
+    let Some( s ) = evaluate_template( t, context )
+    {
+        match s.trim().to_lowercase().as_str()
+        {
+            "normal" => style.remove_modifier( Modifier::BOLD ),
+            "bold" => style.add_modifier( Modifier::BOLD ),
+            _ => style
+        }
+    }
+    else
+    {
+        style    
     }
 }
 

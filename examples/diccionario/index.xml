@@ -42,9 +42,27 @@
             {% endif %}
         </template>
 
+        <template name="border-title-bg">
+            {% if st.palabra | trim == "culo" %}
+                Blue
+            {% else %}
+                Yellow
+            {% endif %}
+        </template>
+
     </head>
     <body dir="horizontal" flex="center" padding="1">
-        <border title="Diccionario" dir="vertical" max="60" flex="start" padding-top="1" bg-template="border-bg">
+        <border 
+            title="Diccionario" 
+            dir="vertical" 
+            max="60" 
+            flex="start" 
+            fg-border="{{ 'Blue' if st.palabra | trim == 'culo' else 'Yellow' }}" 
+            fg-title="{{ 'Yellow' if st.palabra | trim == 'culo' else 'Blue' }}" 
+            padding-top="1" 
+            bg-template="border-bg" 
+            bg-title-template="border-title-bg"
+        >
             <layout flex="center" length="2" padding-bottom="1">
                 <line>Buscar:</line>
                 <input id="palabra" enter="buscar" enter-envs="palabra" enter-replace-childs="definicion" enter-template="definicion" />

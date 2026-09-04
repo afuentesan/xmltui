@@ -15,7 +15,9 @@ pub struct RTMLBorder
     pub style : Style,
     pub style_template : RTMLStyleTemplate,
     pub title_style : Style,
+    pub title_style_template : RTMLStyleTemplate,
     pub border_style : Style,
+    pub border_style_template : RTMLStyleTemplate,
     pub title : Option<String>,
     pub title_position : TitlePosition,
     pub title_alignment : Alignment
@@ -32,12 +34,14 @@ impl RTMLBorder
         style : Style,
         style_template : RTMLStyleTemplate,
         title_style : Style,
+        title_style_template : RTMLStyleTemplate,
         border_style : Style,
+        border_style_template : RTMLStyleTemplate,
         container : ContainerAttrs,
         common : RTMLNodeCommon
     ) -> Self
     {
-        Self { common, borders, border_type, style, style_template, title_style, border_style, title, title_position, title_alignment, container }
+        Self { common, borders, border_type, style, style_template, title_style, title_style_template, border_style, border_style_template, title, title_position, title_alignment, container }
     }
 }
 
@@ -50,17 +54,19 @@ pub fn render_rtml_border(
 ) -> Rect
 {
     let style = merge_style_with_templates( border.style, &border.style_template, context, templates );
+    let title_style = merge_style_with_templates( border.title_style, &border.title_style_template, context, templates );
+    let border_style = merge_style_with_templates( border.border_style, &border.border_style_template, context, templates );
 
     let mut block = Block::default()
     .borders( border.borders )
     .border_type( border.border_type )
     .style( style )
-    .border_style( border.border_style );
+    .border_style( border_style );
 
     if let Some( t ) = border.title.as_ref()
     {
         block = block.title( t.as_str() )
-        .title_style( border.title_style )
+        .title_style( title_style )
         .title_position( border.title_position )
         .title_alignment( border.title_alignment );
     }

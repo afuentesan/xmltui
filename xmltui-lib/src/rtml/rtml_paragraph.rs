@@ -1,6 +1,9 @@
-use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::{Paragraph, Widget, Wrap}};
+use std::collections::HashMap;
 
-use crate::{input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, util::types::TextLines}, util::draw::clear_area, xml::styles::xml_style::merge_styles};
+use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::{Paragraph, Widget, Wrap}};
+use serde_json::Value;
+
+use crate::{input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, util::{rtml_style::{RTMLStyleTemplate, merge_style_with_templates}, types::TextLines}}, util::draw::clear_area, xml::styles::xml_style::merge_styles};
 
 #[derive(Debug)]
 pub struct RTMLParagraph 
@@ -9,7 +12,9 @@ pub struct RTMLParagraph
     pub padding : RTMLPadding,
     pub alignment : Alignment,
     pub style : Style,
+    pub style_template : RTMLStyleTemplate,
     pub focus_style : Style,
+    pub focus_style_template : RTMLStyleTemplate,
     pub lines : TextLines,
     pub start_at : usize,
     pub num_lines : usize,
@@ -18,9 +23,18 @@ pub struct RTMLParagraph
 
 impl RTMLParagraph
 {
-    pub fn new( common : RTMLNodeCommon, padding : RTMLPadding, alignment : Alignment, style : Style, focus_style : Style, lines : TextLines ) -> Self
+    pub fn new( 
+        common : RTMLNodeCommon, 
+        padding : RTMLPadding, 
+        alignment : Alignment, 
+        style : Style, 
+        style_template : RTMLStyleTemplate,
+        focus_style : Style, 
+        focus_style_template : RTMLStyleTemplate,
+        lines : TextLines 
+    ) -> Self
     {
-        Self { common, padding, alignment, style, focus_style, lines, start_at : 0, num_lines : 0, inner_area : Rect::default() }
+        Self { common, padding, alignment, style, style_template, focus_style, focus_style_template, lines, start_at : 0, num_lines : 0, inner_area : Rect::default() }
     }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
@@ -58,7 +72,9 @@ impl RTMLParagraph
 pub fn render_rtml_paragraph( 
     rtml_paragraph : &RTMLParagraph,
     area : Rect,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
     let mut paragraph = create_paragraph( rtml_paragraph );
@@ -68,9 +84,11 @@ pub fn render_rtml_paragraph(
         paragraph = paragraph.scroll( ( rtml_paragraph.start_at as u16, 0 ) );
     }
 
-    paragraph = paragraph.style( rtml_paragraph.style );
+    let style = merge_style_with_templates( rtml_paragraph.style, &rtml_paragraph.style_template, context, templates );
 
-    render_padding( area, rtml_paragraph.style, buf );
+    paragraph = paragraph.style( style );
+
+    render_padding( area, style, buf );
 
     paragraph.render( rtml_paragraph.inner_area, buf );
 
@@ -88,7 +106,9 @@ fn render_padding(
 
 pub fn render_rtml_paragraph_focus( 
     rtml_paragraph : &RTMLParagraph,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
     let mut paragraph = create_paragraph( rtml_paragraph );
@@ -98,9 +118,11 @@ pub fn render_rtml_paragraph_focus(
         paragraph = paragraph.scroll( ( rtml_paragraph.start_at as u16, 0 ) );
     }
 
-    paragraph = paragraph.style( rtml_paragraph.focus_style );
+    let focus_style = merge_style_with_templates( rtml_paragraph.focus_style, &rtml_paragraph.focus_style_template, context, templates );
 
-    render_padding( rtml_paragraph.common.attrs.area, rtml_paragraph.focus_style, buf );
+    paragraph = paragraph.style( focus_style );
+
+    render_padding( rtml_paragraph.common.attrs.area, focus_style, buf );
 
     paragraph.render( rtml_paragraph.inner_area, buf );
 

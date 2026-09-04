@@ -283,16 +283,18 @@ impl RTMLNode
 
 pub fn render_focus_node( 
     buf : &mut Buffer,
-    node : &RTMLNode 
+    node : &RTMLNode,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
     match &node
     {
-        RTMLNode::Input( input ) => render_input_cursor( input, buf ),
-        RTMLNode::Link( link ) => render_rtml_link_focus( link, buf ),
-        RTMLNode::Button( button ) => render_rtml_button_focus( button, buf ),
-        RTMLNode::Select( select ) => render_rtml_select_focus( select, buf ),
-        RTMLNode::Paragraph( paragraph ) => render_rtml_paragraph_focus( paragraph, buf ),
+        RTMLNode::Input( input ) => render_input_cursor( input, buf, templates, context ),
+        RTMLNode::Link( link ) => render_rtml_link_focus( link, buf, templates, context ),
+        RTMLNode::Button( button ) => render_rtml_button_focus( button, buf, templates, context ),
+        RTMLNode::Select( select ) => render_rtml_select_focus( select, buf, templates, context ),
+        RTMLNode::Paragraph( paragraph ) => render_rtml_paragraph_focus( paragraph, buf, templates, context ),
         RTMLNode::Command( _ ) |
         RTMLNode::Layout( _ ) |
         RTMLNode::Line( _ ) |

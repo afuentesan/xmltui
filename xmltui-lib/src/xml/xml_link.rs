@@ -35,7 +35,9 @@ pub fn process_link(
                     source,
                     text,
                     style,
+                    style_template,
                     focus_style,
+                    focus_style_template,
                     common
                 )
             ),

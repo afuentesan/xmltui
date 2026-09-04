@@ -1,6 +1,9 @@
-use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
+use std::collections::HashMap;
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, util::rtml_event::RTMLEvent}, util::draw::clear_area};
+use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
+use serde_json::Value;
+
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, util::{rtml_event::RTMLEvent, rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}}, util::draw::clear_area};
 
 
 #[derive(Debug)]
@@ -9,7 +12,9 @@ pub struct RTMLButton
     pub common : RTMLNodeCommon,
     pub alignment : Alignment,
     pub style : Style,
+    pub style_template : RTMLStyleTemplate,
     pub focus_style : Style,
+    pub focus_style_template : RTMLStyleTemplate,
     pub events : Vec<RTMLEvent>,
     pub text : String
 }
@@ -21,11 +26,13 @@ impl RTMLButton
         events : Vec<RTMLEvent>,
         text : String,
         style : Style,
+        style_template : RTMLStyleTemplate,
         focus_style : Style,
+        focus_style_template : RTMLStyleTemplate,
         common : RTMLNodeCommon
     ) -> Self
     {
-        Self { common, alignment, style, focus_style, events, text }
+        Self { common, alignment, style, style_template, focus_style, focus_style_template, events, text }
     }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
@@ -69,18 +76,26 @@ impl RTMLButton
 pub fn render_rtml_button( 
     rtml_button : &RTMLButton,
     area : Rect,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
-    render_rtml_button_width_style( rtml_button, rtml_button.style, area, buf )
+    let style = merge_style_with_templates( rtml_button.style, &rtml_button.style_template, context, templates );
+
+    render_rtml_button_width_style( rtml_button, style, area, buf )
 }
 
 pub fn render_rtml_button_focus( 
     rtml_button : &RTMLButton,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
-    render_rtml_button_width_style( rtml_button, rtml_button.focus_style, rtml_button.common.attrs.area, buf )
+    let focus_style = merge_style_with_templates( rtml_button.focus_style, &rtml_button.focus_style_template, context, templates );
+
+    render_rtml_button_width_style( rtml_button, focus_style, rtml_button.common.attrs.area, buf )
 }
 
 fn render_rtml_button_width_style( 

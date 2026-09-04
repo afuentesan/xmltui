@@ -32,6 +32,7 @@ pub fn process_command(
                     common,
                     container_attrs,
                     Some( style ),
+                    style_template,
                     wrapper_from_node( node ),
                     attr_option( node, "template" ),
                     template_from_inner_node( node, xml ),

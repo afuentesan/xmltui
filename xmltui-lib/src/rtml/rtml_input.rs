@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
 use serde_json::Value;
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_form::FieldAttrs, rtml_node::{FocusEventResponse, RTMLNodeCommon}, util::{editable_value::{EditableValue, editable_value_to_spans}, rtml_event::RTMLEvent}}};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_form::FieldAttrs, rtml_node::{FocusEventResponse, RTMLNodeCommon}, util::{editable_value::{EditableValue, editable_value_to_spans}, rtml_event::RTMLEvent, rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}}};
 
 
 #[derive(Debug)]
@@ -11,7 +13,9 @@ pub struct RTMLInput
     pub alignment : Alignment,
     value : EditableValue,
     pub style : Style,
+    pub style_template : RTMLStyleTemplate,
     pub focus_style : Style,
+    pub focus_style_template : RTMLStyleTemplate,
     pub events : Vec<RTMLEvent>,
     pub field : FieldAttrs
 }
@@ -23,12 +27,14 @@ impl RTMLInput
         events : Vec<RTMLEvent>,
         value : EditableValue, 
         style : Style, 
+        style_template : RTMLStyleTemplate,
         focus_style : Style, 
+        focus_style_template : RTMLStyleTemplate,
         common : RTMLNodeCommon,
         field : FieldAttrs
     ) -> Self
     {
-        Self { alignment, events, value, style, focus_style, common, field }
+        Self { alignment, events, value, style, style_template, focus_style, focus_style_template, common, field }
     }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
@@ -147,26 +153,30 @@ impl RTMLInput
 pub fn render_rtml_input( 
     rtml_input : &RTMLInput,
     area : Rect,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
+    let style = merge_style_with_templates( rtml_input.style, &rtml_input.style_template, context, templates );
+
     let spans = if rtml_input.value.is_empty()
     {
-        vec![ Span::styled( " ", rtml_input.style  ) ]
+        vec![ Span::styled( " ", style  ) ]
     } 
     else 
     {
         editable_value_to_spans( 
             &rtml_input.value, 
             area.width as usize, 
-            rtml_input.style, 
+            style, 
             false
         )
     };
 
     let spans = if spans.len() == 0
     {
-        vec![ Span::styled( " ", rtml_input.style  ) ]
+        vec![ Span::styled( " ", style  ) ]
     }
     else
     {
@@ -175,7 +185,7 @@ pub fn render_rtml_input(
 
     let line = Line::from( spans )
     .alignment( rtml_input.alignment )
-    .style( rtml_input.style );
+    .style( style );
 
     line.render( area, buf );
 
@@ -184,19 +194,23 @@ pub fn render_rtml_input(
 
 pub fn render_input_cursor(
     rtml_input : &RTMLInput,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
+    let focus_style = merge_style_with_templates( rtml_input.focus_style, &rtml_input.focus_style_template, context, templates );
+
     let spans = editable_value_to_spans( 
         &rtml_input.value, 
         rtml_input.common.attrs.area.width as usize, 
-        rtml_input.focus_style, 
+        focus_style, 
         true
     );
 
     let spans = if spans.len() == 0
     {
-        vec![ Span::styled( " ", rtml_input.focus_style ) ]
+        vec![ Span::styled( " ", focus_style ) ]
     }
     else
     {
@@ -205,7 +219,7 @@ pub fn render_input_cursor(
 
     let line = Line::from( spans )
     .alignment( rtml_input.alignment )
-    .style( rtml_input.focus_style );
+    .style( focus_style );
 
     line.render( rtml_input.common.attrs.area, buf );
 

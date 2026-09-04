@@ -59,7 +59,8 @@ fn process_container(
                         parent_id
                     ),
                     container_attrs,
-                    Some( style )
+                    Some( style ),
+                    style_template
                 )
             ),
             layout_id

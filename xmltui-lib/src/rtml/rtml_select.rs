@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use ratatui::{buffer::Buffer, layout::{Alignment, Constraint, Layout, Rect}, style::Style, widgets::Widget};
 use serde_json::Value;
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_form::FieldAttrs, rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, rtml_paragraph::lines_from_text_width_style, util::{rtml_event::RTMLEvent, types::TextLines}}, util::draw::clear_area};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_form::FieldAttrs, rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, rtml_paragraph::lines_from_text_width_style, util::{rtml_event::RTMLEvent, rtml_style::{RTMLStyleTemplate, merge_style_with_templates}, types::TextLines}}, util::draw::clear_area};
 
 #[derive(Debug)]
 pub struct RTMLSelect 
@@ -10,8 +12,11 @@ pub struct RTMLSelect
     pub padding : RTMLPadding,
     pub alignment : Alignment,
     pub style : Style,
+    pub style_template : RTMLStyleTemplate,
     pub focus_style : Style,
+    pub focus_style_template : RTMLStyleTemplate,
     pub selected_style : Style,
+    pub selected_style_template : RTMLStyleTemplate,
     pub lines : TextLines,
     pub values : Vec<String>,
     pub events : Vec<RTMLEvent>,
@@ -28,8 +33,11 @@ impl RTMLSelect
         padding : RTMLPadding,
         alignment : Alignment, 
         style : Style, 
+        style_template : RTMLStyleTemplate,
         focus_style : Style, 
+        focus_style_template : RTMLStyleTemplate,
         selected_style : Style,
+        selected_style_template : RTMLStyleTemplate,
         lines : TextLines, 
         values : Vec<String>,
         events : Vec<RTMLEvent>,
@@ -37,7 +45,7 @@ impl RTMLSelect
         field : FieldAttrs
     ) -> Self
     {
-        Self { common, padding, alignment, style, focus_style, selected_style, lines, values, events, selected_line, start_at : 0, inner_area : Rect::default(), field }
+        Self { common, padding, alignment, style, style_template, focus_style, focus_style_template, selected_style, selected_style_template, lines, values, events, selected_line, start_at : 0, inner_area : Rect::default(), field }
     }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
@@ -190,20 +198,28 @@ impl RTMLSelect
 
 pub fn render_rtml_select( 
     rtml_select : &RTMLSelect,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
-    render_options( rtml_select, rtml_select.style, buf );
+    let style = merge_style_with_templates( rtml_select.style, &rtml_select.style_template, context, templates );
+
+    render_options( rtml_select, style, buf, templates, context );
 
     Ok( () )
 }
 
 pub fn render_rtml_select_focus( 
     rtml_select : &RTMLSelect,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
-    render_options( rtml_select, rtml_select.focus_style, buf );
+    let focus_style = merge_style_with_templates( rtml_select.focus_style, &rtml_select.focus_style_template, context, templates );
+
+    render_options( rtml_select, focus_style, buf, templates, context );
 
     Ok( () )
 }
@@ -211,14 +227,18 @@ pub fn render_rtml_select_focus(
 fn render_options( 
     rtml_select : &RTMLSelect, 
     style : Style,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 )
 {
     clear_area( rtml_select.common.attrs.area, style, buf );
     
+    let selected_style = merge_style_with_templates( rtml_select.selected_style, &rtml_select.selected_style_template, context, templates );
+
     let lines = lines_from_text_width_style( 
         &rtml_select.lines, 
-        Some( ( rtml_select.selected_line, rtml_select.selected_style ) ) 
+        Some( ( rtml_select.selected_line, selected_style ) ) 
     );
 
     let line_overflow = rtml_select.start_at + rtml_select.inner_area.height as usize;
@@ -235,7 +255,7 @@ fn render_options(
 
         if idx == rtml_select.selected_line
         {
-            line = line.style( rtml_select.selected_style );
+            line = line.style( selected_style );
         }
         else
         {

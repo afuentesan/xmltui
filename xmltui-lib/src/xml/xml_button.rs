@@ -33,7 +33,9 @@ pub fn process_button(
                     parse_event_attrs( node )?,
                     text,
                     style,
+                    style_template,
                     focus_style,
+                    focus_style_template,
                     common
                 )
             ),

@@ -2,8 +2,9 @@ use std::{collections::HashMap, time::Duration};
 
 
 use ratatui::{buffer::Buffer, layout::Rect, style::Style};
+use serde_json::Value;
 
-use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_node::{RTMLNodeCommon, XMLNodeWrapper}}, util::draw::clear_area};
+use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_node::{RTMLNodeCommon, XMLNodeWrapper}, util::rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}, util::draw::clear_area};
 
 #[derive(Debug, Clone, Copy)]
 pub enum RTMLCommandOutput
@@ -19,6 +20,7 @@ pub struct RTMLCommand
     pub common : RTMLNodeCommon,
     pub container : ContainerAttrs,
     pub style : Option<Style>,
+    pub style_template : RTMLStyleTemplate,
     pub executors : Vec<String>,
     pub refresh : CommandRefresh,
     pub child : Option<XMLNodeWrapper>,
@@ -37,6 +39,7 @@ impl RTMLCommand
         common : RTMLNodeCommon, 
         container : ContainerAttrs,
         style : Option<Style>,
+        style_template : RTMLStyleTemplate,
         child : Option<XMLNodeWrapper>,
         template_name : Option<String>,
         template : Option<String>,
@@ -50,6 +53,7 @@ impl RTMLCommand
             common, 
             container,
             style,
+            style_template,
             executors, 
             refresh,
             child,
@@ -82,15 +86,21 @@ pub enum CommandRefresh
 pub fn render_rtml_command(
     layout : &RTMLCommand,
     area : Rect,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 )
 {
-    match layout.style
+    let style = if let Some( s ) = layout.style
     {
-        Some( s ) =>
-        {
-            clear_area( area, s, buf );
-        },
-        None => {}
+        s
     }
+    else
+    {
+        Style::default()    
+    };
+
+    let style = merge_style_with_templates( style, &layout.style_template, context, templates );
+
+    clear_area( area, style, buf );
 }

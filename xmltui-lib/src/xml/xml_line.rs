@@ -32,6 +32,7 @@ pub fn process_line(
                 RTMLLine::new( 
                     alignment, 
                     line_style,
+                    line_style_template,
                     padding,
                     common,
                     text_line

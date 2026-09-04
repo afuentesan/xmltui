@@ -47,7 +47,9 @@ pub fn process_border(
                     style,
                     style_template,
                     title_style,
+                    title_style_template,
                     border_style,
+                    border_style_template,
                     container_attrs,
                     RTMLNodeCommon::new( 
                         parse_common_attrs( constraint )?, 

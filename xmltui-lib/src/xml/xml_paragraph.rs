@@ -31,7 +31,7 @@ pub fn process_paragraph(
     Ok(
         (
             RTMLNode::Paragraph(
-                RTMLParagraph::new( common, padding, alignment, style, focus_style, lines )
+                RTMLParagraph::new( common, padding, alignment, style, style_template, focus_style, focus_style_template, lines )
             ),
             id
         )

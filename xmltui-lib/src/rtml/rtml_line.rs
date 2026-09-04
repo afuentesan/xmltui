@@ -1,6 +1,9 @@
-use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
+use std::collections::HashMap;
 
-use crate::rtml::{rtml_node::RTMLNodeCommon, rtml_padding::HorizontalPadding, rtml_paragraph::line_from_spans, util::types::TextLine};
+use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
+use serde_json::Value;
+
+use crate::rtml::{rtml_node::RTMLNodeCommon, rtml_padding::HorizontalPadding, rtml_paragraph::line_from_spans, util::{rtml_style::{RTMLStyleTemplate, merge_style_with_templates}, types::TextLine}};
 
 
 #[derive(Debug)]
@@ -9,27 +12,32 @@ pub struct RTMLLine
     pub common : RTMLNodeCommon,
     pub alignment : Alignment,
     pub style : Style,
+    pub style_template : RTMLStyleTemplate,
     pub padding : HorizontalPadding,
     pub content : TextLine
 }
 
 impl RTMLLine
 {
-    pub fn new( alignment : Alignment, style : Style, padding : HorizontalPadding, common : RTMLNodeCommon, content : TextLine ) -> Self
+    pub fn new( alignment : Alignment, style : Style, style_template : RTMLStyleTemplate, padding : HorizontalPadding, common : RTMLNodeCommon, content : TextLine ) -> Self
     {
-        Self { alignment, style, padding, common, content }
+        Self { alignment, style, style_template, padding, common, content }
     }
 }
 
 pub fn render_rtml_line( 
     rtml_line : &RTMLLine,
     area : Rect,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
+    let style = merge_style_with_templates( rtml_line.style, &rtml_line.style_template, context, templates );
+
     let mut spans = if rtml_line.padding.left > 0
     {
-        vec![ padding_span( rtml_line.padding.left , rtml_line.style ) ] 
+        vec![ padding_span( rtml_line.padding.left , style ) ] 
     }
     else
     {
@@ -38,11 +46,11 @@ pub fn render_rtml_line(
 
     spans.append( &mut line_from_spans( &rtml_line.content, None ).spans );
 
-    if rtml_line.padding.right > 0 { spans.push( padding_span( rtml_line.padding.right , rtml_line.style ) ); }
+    if rtml_line.padding.right > 0 { spans.push( padding_span( rtml_line.padding.right , style ) ); }
 
     let line = Line::from( spans )
     .alignment( rtml_line.alignment )
-    .style( rtml_line.style );
+    .style( style );
 
     line.render( area, buf );
 

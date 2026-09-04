@@ -829,17 +829,18 @@ pub fn render_rtml_doc(
         &context
     )?;
 
-    render_focus( buf, doc )
+    render_focus( buf, doc, &context )
 }
 
 fn render_focus(
     buf : &mut Buffer,
-    doc : &RTMLDoc
+    doc : &RTMLDoc,
+    context : &Value
 ) -> anyhow::Result<()>
 {
     match doc.current_focus()
     {
-        Some( n ) => render_focus_node( buf, n ),
+        Some( n ) => render_focus_node( buf, n, &doc.templates, context ),
         None => Ok( () )
     }
 }
@@ -919,7 +920,7 @@ fn render_node_and_get_child_areas(
     {
         RTMLNode::Layout( l ) =>
         {
-            render_rtml_layout( l, area, buf );
+            render_rtml_layout( l, area, buf, &doc.templates, context );
             
             child_areas( root.childs(), &l.container.direction, &l.container.flex, &l.container.padding, area, doc )
         },
@@ -931,43 +932,43 @@ fn render_node_and_get_child_areas(
         },
         RTMLNode::Command( c ) =>
         {
-            render_rtml_command( c, area, buf );
+            render_rtml_command( c, area, buf, &doc.templates, context );
 
             child_areas( root.childs(), &c.container.direction, &c.container.flex, &c.container.padding, area, doc )
         },
         RTMLNode::Paragraph( p ) =>
         {
-            render_rtml_paragraph( p, area, buf )?;
+            render_rtml_paragraph( p, area, buf, &doc.templates, context )?;
 
             Ok( vec![] )
         },
         RTMLNode::Select( s ) =>
         {
-            render_rtml_select( s, buf )?;
+            render_rtml_select( s, buf, &doc.templates, context )?;
 
             Ok( vec![] )
         },
         RTMLNode::Line( l ) =>
         {
-            render_rtml_line( l, area, buf )?;
+            render_rtml_line( l, area, buf, &doc.templates, context )?;
 
             Ok( vec![] )
         },
         RTMLNode::Input( i ) =>
         {
-            render_rtml_input( i, area, buf )?;
+            render_rtml_input( i, area, buf, &doc.templates, context )?;
 
             Ok( vec![] )
         },
         RTMLNode::Link( l ) =>
         {
-            render_rtml_link( l, area, buf )?;
+            render_rtml_link( l, area, buf, &doc.templates, context )?;
 
             Ok( vec![] )
         },
         RTMLNode::Button( b ) =>
         {
-            render_rtml_button( b, area, buf )?;
+            render_rtml_button( b, area, buf, &doc.templates, context )?;
 
             Ok( vec![] )
         }

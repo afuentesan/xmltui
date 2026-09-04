@@ -34,7 +34,9 @@ pub fn process_input(
                     parse_event_attrs( node )?,
                     value, 
                     style, 
+                    style_template,
                     focus_style, 
+                    focus_style_template,
                     common,
                     field
                 )
