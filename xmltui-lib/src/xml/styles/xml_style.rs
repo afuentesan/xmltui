@@ -4,7 +4,7 @@ use ratatui::{layout::{Alignment, Constraint, Direction, Flex}, style::{Color, M
 use roxmltree::Node;
 use serde::Deserialize;
 
-use crate::{app::app_doc::chroot, rtml::rtml_padding::{HorizontalPadding, VerticalPadding}, util::{json::{deserialize_kebab_string_or_type, deserialize_string_or_type}, file::read_file_in_chroot_with_extension}, xml::{attrs::{attr_constraint, attr_to_type, attr_to_type_kebab}, styles::{xml_constraint::XMLConstraint, xml_padding::{XMLPadding, padding_from_str}}}};
+use crate::{app::app_doc::chroot, rtml::{rtml_padding::{HorizontalPadding, VerticalPadding}, util::rtml_style::{RTMLStyleTemplate, RTMLStyleTemplateBuilder, RTMLStyleTemplateType}}, util::{file::read_file_in_chroot_with_extension, json::{deserialize_kebab_string_or_type, deserialize_string_or_type}}, xml::{attrs::{attr_constraint, attr_to_template, attr_to_type, attr_to_type_kebab}, styles::{xml_constraint::XMLConstraint, xml_padding::{XMLPadding, padding_from_str}}}};
 
 #[derive(Debug, PartialEq, Hash, Eq)]
 pub enum StyleSelector
@@ -63,16 +63,16 @@ pub enum StyleVariant
     Selected
 }
 
-impl ToString for StyleVariant
+impl StyleVariant
 {
-    fn to_string( &self ) -> String 
+    pub fn to_str( &self ) -> &'static str
     {
         match self
         {
-            StyleVariant::Focus => String::from( "focus" ),
-            StyleVariant::Border => "border".to_string(),
-            StyleVariant::Title => "title".to_string(),
-            StyleVariant::Selected => "select".to_string()
+            StyleVariant::Focus => "focus",
+            StyleVariant::Border => "border",
+            StyleVariant::Title => "title",
+            StyleVariant::Selected => "select"
         }
     }
 }
@@ -81,7 +81,7 @@ fn calc_variant( prefix : &str, variant : Option<&StyleVariant> ) -> String
 {
     match variant
     {
-        Some( v ) => format!( "{}:{}", prefix, v.to_string() ),
+        Some( v ) => format!( "{}:{}", prefix, v.to_str() ),
         None => prefix.to_string()    
     }
 }
@@ -112,20 +112,20 @@ pub struct RTStyleBuilder
 
 impl RTStyleBuilder
 {
-    pub fn from_node( node : Node ) -> Self
+    pub fn from_node( node : Node, variant : Option<&StyleVariant> ) -> Self
     {
         Self 
         { 
-            fg : attr_to_type( node, "fg" ), 
-            bg : attr_to_type( node, "bg" ), 
-            uc : attr_to_type( node, "uc" ), 
-            font_weight : attr_to_type( node, "font-weight" ), 
-            font_style : attr_to_type( node, "font-style" ), 
-            dim : attr_to_type( node, "dim" ), 
-            text_decoration : attr_to_type( node, "text-decoration" ), 
-            blink : attr_to_type( node, "blink" ), 
-            invert : attr_to_type( node, "invert" ), 
-            visibility : attr_to_type( node, "visibility" )
+            fg : attr_to_type( node, &attr_with_variant( "fg", variant ) ), 
+            bg : attr_to_type( node, &attr_with_variant( "bg", variant ) ), 
+            uc : attr_to_type( node, &attr_with_variant( "uc", variant ) ), 
+            font_weight : attr_to_type( node, &attr_with_variant( "font-weight", variant ) ), 
+            font_style : attr_to_type( node, &attr_with_variant( "font-style", variant ) ), 
+            dim : attr_to_type( node, &attr_with_variant( "dim", variant ) ), 
+            text_decoration : attr_to_type( node, &attr_with_variant( "text-decoration", variant ) ), 
+            blink : attr_to_type( node, &attr_with_variant( "blink", variant ) ), 
+            invert : attr_to_type( node, &attr_with_variant( "invert", variant ) ), 
+            visibility : attr_to_type( node, &attr_with_variant( "visibility", variant ) )
         }
     }
 }
@@ -293,7 +293,7 @@ pub struct XMLStyle
     pub inner_padding : XMLPadding
 }
 
-pub fn style_from_node( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> XMLStyle
+pub fn style_from_node( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, variant : Option<StyleVariant> ) -> ( XMLStyle, RTMLStyleTemplate )
 {
     let mut style = XMLStyle::default();
 
@@ -312,22 +312,31 @@ pub fn style_from_node( node : Node, styles : &HashMap<StyleSelector, XMLStyle>,
         style = merge_xml_styles( style, s.clone() );
     }
 
-    overwrite_styles_from_node( node, style )
+    overwrite_styles_from_node( node, style, variant.as_ref() )
 }
 
-fn overwrite_styles_from_node( node : Node, mut style : XMLStyle ) -> XMLStyle
+fn attr_with_variant( attr : &str, variant : Option<&StyleVariant> ) -> String
 {
-    if let Some( a ) = attr_to_type_kebab::<Alignment>( node, "align" )
+    match variant
+    {
+        Some( v ) => format!( "{attr}-{}", v.to_str() ),
+        None => attr.to_string()    
+    }
+}
+
+fn overwrite_styles_from_node( node : Node, mut style : XMLStyle, variant : Option<&StyleVariant> ) -> ( XMLStyle, RTMLStyleTemplate )
+{
+    if let Some( a ) = attr_to_type_kebab::<Alignment>( node, &attr_with_variant( "align", variant ) )
     {
         style.alignment = Some( a );
     }
 
-    if let Some( a ) = attr_to_type_kebab::<Direction>( node, "dir" )
+    if let Some( a ) = attr_to_type_kebab::<Direction>( node, &attr_with_variant( "dir", variant ) )
     {
         style.direction = Some( a );
     }
 
-    if let Some( f ) = attr_to_type_kebab::<Flex>( node, "flex" )
+    if let Some( f ) = attr_to_type_kebab::<Flex>( node, &attr_with_variant( "flex", variant ) )
     {
         style.flex = Some( f );
     }
@@ -336,14 +345,12 @@ fn overwrite_styles_from_node( node : Node, mut style : XMLStyle ) -> XMLStyle
 
     style = overwrite_padding_from_node( node, style );
 
-    style = overwrite_style_from_node( node, style );
-
-    style
+    overwrite_style_from_node( node, style, variant )
 }
 
-fn overwrite_style_from_node( node : Node, mut style : XMLStyle ) -> XMLStyle
+fn overwrite_style_from_node( node : Node, mut style : XMLStyle, variant : Option<&StyleVariant> ) -> ( XMLStyle, RTMLStyleTemplate )
 {
-    let builder = RTStyleBuilder::from_node( node );
+    let builder = RTStyleBuilder::from_node( node, variant );
 
     let rt_style : RTStyle = builder.into();
 
@@ -362,7 +369,66 @@ fn overwrite_style_from_node( node : Node, mut style : XMLStyle ) -> XMLStyle
         }
     }
 
-    style
+    ( style, style_template_from_node( node, variant ) )
+}
+
+fn style_template_from_node( node : Node, variant : Option<&StyleVariant> ) -> RTMLStyleTemplate
+{
+    let mut builder = RTMLStyleTemplateBuilder::new();
+
+    
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "bg", variant ).as_str() )
+    {
+        builder = builder.bg( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "fg", variant ).as_str() )
+    {
+        builder = builder.fg( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "uc", variant ).as_str() )
+    {
+        builder = builder.uc( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "font-weight", variant ).as_str() )
+    {
+        builder = builder.font_weight( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "font-style", variant ).as_str() )
+    {
+        builder = builder.font_style( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "dim", variant ).as_str() )
+    {
+        builder = builder.dim( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "text-decoration", variant ).as_str() )
+    {
+        builder = builder.text_decoration( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "blink", variant ).as_str() )
+    {
+        builder = builder.blink( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "invert", variant ).as_str() )
+    {
+        builder = builder.invert( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "visibility", variant ).as_str() )
+    {
+        builder = builder.visibility( v );
+    }
+
+    builder.build()
 }
 
 fn overwrite_padding_from_node( node : Node, mut style : XMLStyle ) -> XMLStyle

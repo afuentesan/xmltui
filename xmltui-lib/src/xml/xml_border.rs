@@ -30,10 +30,10 @@ pub fn process_border(
         }
     }
 
-    let ( constraint, style, container_attrs ) = container_styles( node, xml_doc.styles(), None );
+    let ( constraint, style, style_template, container_attrs ) = container_styles( node, xml_doc.styles(), None );
 
-    let title_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Title ), None );
-    let border_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Border ), None );
+    let ( title_style, title_style_template ) = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Title ), None );
+    let ( border_style, border_style_template ) = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Border ), None );
     
     Ok(
         (
@@ -45,6 +45,7 @@ pub fn process_border(
                     title_position( node ),
                     attr_alignment_name( node, "title-align" )?,
                     style,
+                    style_template,
                     title_style,
                     border_style,
                     container_attrs,

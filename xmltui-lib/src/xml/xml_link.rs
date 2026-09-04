@@ -13,9 +13,9 @@ pub fn process_link(
     
     let text = node.text().unwrap_or( " " ).to_string();
 
-    let ( constraint, style, alignment ) = input_like_styles( node, xml_doc.styles(), None );
+    let ( constraint, style, style_template, alignment ) = input_like_styles( node, xml_doc.styles(), None );
     
-    let focus_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
+    let ( focus_style, focus_style_template ) = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
 
     let common = RTMLNodeCommon::new( 
         parse_common_attrs( constraint )?, 

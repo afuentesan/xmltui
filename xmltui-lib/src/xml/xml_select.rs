@@ -13,10 +13,10 @@ pub fn process_select(
 {
     let ( selected_line, values, lines ) = process_options( node, xml_doc.styles() )?;
     
-    let ( constraint, style, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
+    let ( constraint, style, style_template, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
 
-    let focus_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( style ) );
-    let selected_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Selected ), Some( default_focus_style( &focus_style ) ) );
+    let ( focus_style, focus_style_template ) = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( style ) );
+    let ( selected_style, selected_style_template ) = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Selected ), Some( default_focus_style( &focus_style ) ) );
 
     let common = RTMLNodeCommon::new( 
         parse_common_attrs( constraint )?, 

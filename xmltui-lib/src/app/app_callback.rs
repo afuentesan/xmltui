@@ -34,7 +34,7 @@ fn change_src( doc : &RTMLDoc, params : RTMLCallbackChangeSrc )
 {
     let context = json!( { "st" : &doc.state } );
 
-    match xml_from_template_context( &params.url, context )
+    match xml_from_template_context( &params.url, &context )
     {
         Ok( s ) =>
         {

@@ -14,9 +14,9 @@ pub fn process_paragraph(
 {
     let lines = process_lines( node, xml_doc.styles() )?;
     
-    let ( constraint, style, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
+    let ( constraint, style, style_template, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
 
-    let focus_style = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
+    let ( focus_style, focus_style_template ) = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
 
     let common = RTMLNodeCommon::new( 
         parse_common_attrs( constraint )?, 
@@ -111,7 +111,7 @@ fn process_node_text_or_span(
     {
         if let Some( t ) = child.text() && ! t.is_empty()
         {
-            let style = style_from_styles( child, styles, None, None );
+            let ( style, style_template ) = style_from_styles( child, styles, None, None );
 
             let text = t.replace( "\n", " " );
 

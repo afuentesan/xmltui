@@ -15,7 +15,7 @@ pub fn process_command(
 
     let executors = attr_commands( node, "exec" )?;
 
-    let ( constraint, style, container_attrs ) = container_styles( node, xml_doc.styles(), None );
+    let ( constraint, style, style_template, container_attrs ) = container_styles( node, xml_doc.styles(), None );
 
     let common = RTMLNodeCommon::new( 
         parse_common_attrs( constraint )?, 

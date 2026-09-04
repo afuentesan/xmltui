@@ -47,7 +47,7 @@ fn process_container(
         }
     }
 
-    let ( constraint, style, container_attrs ) = container_styles( node, xml_doc.styles(), None );
+    let ( constraint, style, style_template, container_attrs ) = container_styles( node, xml_doc.styles(), None );
 
     Ok(
         (

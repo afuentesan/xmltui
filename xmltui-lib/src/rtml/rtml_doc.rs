@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect}, style::Style};
-use serde_json::{Map, Value};
+use serde_json::{Map, Value, json};
 use tokio_util::sync::CancellationToken;
 
 use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, util::rtml_event::{CallbackChangeState, RTMLCallbackAction}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
@@ -819,11 +819,14 @@ pub fn render_rtml_doc(
     doc : &mut RTMLDoc
 ) -> anyhow::Result<()>
 {
+    let context = json!( { "st" : &doc.state } );
+
     render_node(
         &doc.root_id.clone(), 
         area, 
         buf, 
-        doc
+        doc,
+        &context
     )?;
 
     render_focus( buf, doc )
@@ -845,19 +848,20 @@ fn render_node(
     id : &RTMLNodeId,
     area : Rect,
     buf : &mut Buffer,
-    doc : &mut RTMLDoc
+    doc : &mut RTMLDoc,
+    context : &Value
 ) -> anyhow::Result<()>
 {
     let childs = change_area_and_get_childs( id, area, doc )?;
 
-    let areas = render_node_and_get_child_areas( id, area, buf, doc )?;
+    let areas = render_node_and_get_child_areas( id, area, buf, doc, context )?;
 
     for i in 0..areas.len()
     {
         let area = areas[ i ];
         let id = &childs[ i ];
 
-        render_node( id, area, buf, doc )?;
+        render_node( id, area, buf, doc, context )?;
     }
 
     Ok( () )
@@ -903,7 +907,8 @@ fn render_node_and_get_child_areas(
     id : &str,
     area : Rect,
     buf : &mut Buffer,
-    doc : &RTMLDoc
+    doc : &RTMLDoc,
+    context : &Value
 ) -> anyhow::Result<Vec<Rect>>
 {
     let root = doc.node_ref_by_id( &id ).ok_or(
@@ -920,7 +925,7 @@ fn render_node_and_get_child_areas(
         },
         RTMLNode::Border( b ) =>
         {
-            let inner_area = render_rtml_border( b, area, buf );
+            let inner_area = render_rtml_border( b, area, buf, &doc.templates, context );
 
             child_areas( root.childs(), &b.container.direction, &b.container.flex, &b.container.padding, inner_area, doc )
         },

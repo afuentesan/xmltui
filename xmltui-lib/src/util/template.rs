@@ -20,7 +20,7 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
 
             let context = json!( { "ctx" : context, "st" : state } );
 
-            xml_from_template_context( template.as_ref().unwrap(), context )
+            xml_from_template_context( template.as_ref().unwrap(), &context )
         },
         RTMLCommandOutput::StrVec =>
         {
@@ -40,7 +40,7 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
 
             let context = json!( { "ctx" : serde_json::Value::Array( context ), "st" : state } );
 
-            xml_from_template_context( template.as_ref().unwrap(), context )
+            xml_from_template_context( template.as_ref().unwrap(), &context )
         },
         RTMLCommandOutput::Json =>
         {
@@ -54,17 +54,12 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
 
             let context = json!( { "ctx" : context, "st" : state } );
 
-            xml_from_template_context( template.as_ref().unwrap(), context )
+            xml_from_template_context( template.as_ref().unwrap(), &context )
         }
     }
 }
 
-pub fn xml_from_template_context( template : &str, context : Value ) -> anyhow::Result<String>
-{
-    xml_from_template_context_parent_key( template, context, None )
-}
-
-fn xml_from_template_context_parent_key( template : &str, context : Value, parent : Option<&str> ) -> anyhow::Result<String>
+pub fn xml_from_template_context( template : &str, context : &Value ) -> anyhow::Result<String>
 {
     let mut env = Environment::new();
 
@@ -72,14 +67,25 @@ fn xml_from_template_context_parent_key( template : &str, context : Value, paren
 
     let tmpl = env.get_template( "rtml_template" )?;
 
-    let context = if let Some( p ) = parent
-    {
-        json!( { p : context } )
-    }
-    else
-    {
-        context    
-    };
-
     Ok( tmpl.render( context )? )
 }
+
+// fn xml_from_template_context_parent_key( template : &str, context : Value, parent : Option<&str> ) -> anyhow::Result<String>
+// {
+//     let mut env = Environment::new();
+
+//     env.add_template( "rtml_template", template )?;
+
+//     let tmpl = env.get_template( "rtml_template" )?;
+
+//     let context = if let Some( p ) = parent
+//     {
+//         json!( { p : context } )
+//     }
+//     else
+//     {
+//         context    
+//     };
+
+//     Ok( tmpl.render( context )? )
+// }

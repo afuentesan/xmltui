@@ -14,7 +14,7 @@ pub fn process_line(
 {
     let id = id_retry_if_exists( node, xml_doc.nodos() );
 
-    let ( constraint, line_style, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
+    let ( constraint, line_style, line_style_template, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
 
     let padding = padding.horizontal;
 
@@ -75,7 +75,7 @@ fn process_node_text_or_span(
     {
         if let Some( t ) = child.text() && ! t.is_empty()
         {
-            let style = style_from_styles( child, styles, None, None );
+            let ( style, style_template ) = style_from_styles( child, styles, None, None );
 
             let text = t.replace( "\n", "" );
 

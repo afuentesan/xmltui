@@ -33,9 +33,18 @@
                 </arg>
             </args>
         </code>
+
+        <template name="border-bg">
+            {% if st.palabra | trim == "culo" %}
+                Red
+            {% else %}
+                Green
+            {% endif %}
+        </template>
+
     </head>
     <body dir="horizontal" flex="center" padding="1">
-        <border title="Diccionario" dir="vertical" max="60" flex="start" padding-top="1">
+        <border title="Diccionario" dir="vertical" max="60" flex="start" padding-top="1" bg-template="border-bg">
             <layout flex="center" length="2" padding-bottom="1">
                 <line>Buscar:</line>
                 <input id="palabra" enter="buscar" enter-envs="palabra" enter-replace-childs="definicion" enter-template="definicion" />
