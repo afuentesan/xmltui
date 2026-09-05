@@ -28,7 +28,9 @@ pub struct RTMLCommand
     pub template : Option<String>,
     pub output : RTMLCommandOutput,
     pub args : HashMap<String, String>,
-    pub envs : HashMap<String, String>
+    pub envs : HashMap<String, String>,
+    pub reload_with_state : bool,
+    pub reload_with_state_path : Option<String>
 }
 
 impl RTMLCommand
@@ -45,7 +47,9 @@ impl RTMLCommand
         template : Option<String>,
         output : RTMLCommandOutput,
         args : HashMap<String, String>,
-        envs : HashMap<String, String>
+        envs : HashMap<String, String>,
+        reload_with_state : bool,
+        reload_with_state_path : Option<String>
     ) -> Self
     {
         Self 
@@ -61,7 +65,9 @@ impl RTMLCommand
             template,
             output,
             args,
-            envs
+            envs,
+            reload_with_state,
+            reload_with_state_path
         }
     }
 

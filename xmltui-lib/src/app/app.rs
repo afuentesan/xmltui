@@ -3,7 +3,7 @@ use std::thread;
 use ratatui::{DefaultTerminal, style::Style, widgets::Block};
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::{app_callback::{execute_callback, execute_callback_response}, app_doc::load_file, event::{AppEvent, HidrateCommand, init_app_event_channels, send_app_event}}, rtml::rtml_doc::{RTMLDoc, render_rtml_doc}, util::{log::log_to_file, template::template_to_xml}, xml::xml2rtml::{replace_node_childs_with_xml, xml2rtml_doc}};
+use crate::{app::{app_callback::{execute_callback, execute_callback_response}, app_doc::load_file, event::{AppEvent, HidrateCommand, init_app_event_channels, send_app_event}}, code::event::CommandExecutorParams, rtml::rtml_doc::{RTMLDoc, render_rtml_doc}, util::{log::log_to_file, template::template_to_xml}, xml::xml2rtml::{replace_node_childs_with_xml, xml2rtml_doc}};
 
 #[derive(Debug)]
 pub struct App
@@ -111,6 +111,10 @@ pub fn init_app( initial_path : &str ) -> anyhow::Result<()>
                                     rtml_to_terminal( &mut terminal, &mut app.doc );
                                 }
                             },
+                            AppEvent::RefreshCommand( p ) =>
+                            {
+                                refresh_command( p, &app.doc );
+                            }
                             AppEvent::Exit =>
                             {
                                 if let Some( cancellation ) = cancellation_token
@@ -137,7 +141,17 @@ pub fn init_app( initial_path : &str ) -> anyhow::Result<()>
     Ok( () )
 }
 
+fn refresh_command(
+    params : CommandExecutorParams,
+    doc : &RTMLDoc
+)
+{
+    if doc.doc_id != params.doc_id { return };
 
+    doc.refresh_command_from_params( params );
+
+
+}
 
 fn hidrate_command(
     terminal : &mut DefaultTerminal,

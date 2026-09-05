@@ -14,10 +14,10 @@ pub enum ExecutorEventType
 
 pub struct CommandExecutorParams
 {
-    doc_id : String,
-    node_id : String,
-    args : HashMap<String, String>,
-    envs : HashMap<String, String>,
+    pub doc_id : String,
+    pub node_id : String,
+    pub args : HashMap<String, String>,
+    pub envs : HashMap<String, String>,
     refresh : CommandRefresh,
     executors : Vec<Executor>,
     event_type : ExecutorEventType,
@@ -65,39 +65,37 @@ async fn new_repeat_command_executor(
     duration : Duration
 )
 {
-    loop
-    {
-        execute_once( &params.doc_id, &params.node_id, &params.args, &params.envs, &params.executors, &params.event_type ).await;
+    execute_once( &params.doc_id, &params.node_id, &params.args, &params.envs, &params.executors, &params.event_type ).await;
 
-        if let Some( g ) = params.global_cancellation_token.as_ref() &&
-           let Some( l ) = params.local_cancellation_token.as_ref()
-        {
-            tokio::select! {
-                _ = sleep(duration) => {}
-                _ = g.cancelled() => { break; }
-                _ = l.cancelled() => { break; }
-            }
+    if let Some( g ) = params.global_cancellation_token.as_ref() &&
+        let Some( l ) = params.local_cancellation_token.as_ref()
+    {
+        tokio::select! {
+            _ = sleep( duration ) => {}
+            _ = g.cancelled() => { return ; }
+            _ = l.cancelled() => { return; }
         }
-        else if let Some( g ) = params.global_cancellation_token.as_ref()
-        {
-            tokio::select! {
-                _ = sleep(duration) => {}
-                _ = g.cancelled() => { break; }
-            }
-        }
-        else if let Some( l ) = params.local_cancellation_token.as_ref()
-        {
-            tokio::select! {
-                _ = sleep(duration) => {}
-                _ = l.cancelled() => { break; }
-            }
-        }
-        else
-        {
-            sleep( duration ).await
-        }
-        
     }
+    else if let Some( g ) = params.global_cancellation_token.as_ref()
+    {
+        tokio::select! {
+            _ = sleep( duration ) => {}
+            _ = g.cancelled() => { return; }
+        }
+    }
+    else if let Some( l ) = params.local_cancellation_token.as_ref()
+    {
+        tokio::select! {
+            _ = sleep( duration ) => {}
+            _ = l.cancelled() => { return; }
+        }
+    }
+    else
+    {
+        sleep( duration ).await
+    }
+        
+    send_app_event( AppEvent::RefreshCommand( params ) );
 }
 
 async fn execute_once( 

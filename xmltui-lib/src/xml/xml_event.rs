@@ -4,27 +4,65 @@ use crate::{rtml::{rtml_command::RTMLCommandOutput, util::rtml_event::{CallbackC
 
 pub fn parse_event_attrs( node : Node  ) -> anyhow::Result<Vec<RTMLEvent>>
 {
+    let ret = parse_enter_event( node )?;
+    
+    Ok( ret )
+}
+
+fn parse_enter_event( node : Node ) -> anyhow::Result<Vec<RTMLEvent>>
+{
+    let callbacks = parse_callback_event_attrs( node, "enter" )?;
+
+    Ok( callbacks.into_iter().map( | c | RTMLEvent::Enter( c ) ).collect() )
+}
+
+fn parse_callback_event_attrs( node : Node, prefix : &str ) -> anyhow::Result<Vec<RTMLCallback>>
+{
     let mut ret = vec![];
 
-    if let Some( enter ) = node.attribute( "enter" ) && enter.trim() != ""
+    if let Some( ev ) = node.attribute( prefix ) && ev.trim() != ""
     {
-        ret.push( parse_enter_event( node, enter )? );
+        ret.push( parse_callback_event( node, ev, prefix )? );
     }
     
-    if let Some( commands ) = node.attribute( "enter-refresh-command" ) && commands.trim() != ""
+    if let Some( commands ) = node.attribute( format!( "{prefix}-refresh-command" ).as_str() ) && commands.trim() != ""
     {
         if let Some( callback ) = parse_refresh_commands_event( commands )
         {
-            ret.push( RTMLEvent::Enter( callback ) );
+            ret.push( callback );
         }
     }
 
-    if let Some( src ) = node.attribute( "enter-src" ) && src.trim() != ""
+    if let Some( states ) = node.attribute( format!( "{prefix}-refresh-st" ).as_str() ) && states.trim() != ""
     {
-        ret.push( RTMLEvent::Enter( parse_change_src( src ) ) );
+        if let Some( callback ) = parse_refresh_states_event( states )
+        {
+            ret.push( callback );
+        }
+    }
+
+    if let Some( src ) = node.attribute( format!( "{prefix}-src" ).as_str() ) && src.trim() != ""
+    {
+        ret.push( parse_change_src( src ) );
     }
     
     Ok( ret )
+}
+
+fn parse_callback_event( node : Node, value : &str, prefix : &str ) -> anyhow::Result<RTMLCallback>
+{
+    let executors = attr_comands_from_str( value );
+
+    let args = parse_args_envs_from_node( node, format!( "{prefix}-args" ).as_str() );
+    let envs = parse_args_envs_from_node( node, format!( "{prefix}-envs" ).as_str() );
+
+    Ok(
+        RTMLCallback::Command(
+            RTMLCallbackCommand::new( executors, args, envs ),
+            parse_callback_action( node, prefix )?
+        )
+        
+    )
 }
 
 fn parse_change_src( src : &str )-> RTMLCallback
@@ -54,20 +92,22 @@ fn parse_refresh_commands_event( commands : &str ) -> Option<RTMLCallback>
     }
 }
 
-fn parse_enter_event( node : Node, value : &str ) -> anyhow::Result<RTMLEvent>
+fn parse_refresh_states_event( states : &str ) -> Option<RTMLCallback>
 {
-    let executors = attr_comands_from_str( value );
+    let commands = states
+    .split( ", " )
+    .filter( | s | s.trim() != "" )
+    .map( | s | s.trim().to_string() )
+    .collect::<Vec<_>>();
 
-    let args = parse_args_envs_from_node( node, "enter-args" );
-    let envs = parse_args_envs_from_node( node, "enter-envs" );
-
-    Ok(
-        RTMLEvent::Enter( RTMLCallback::Command(
-                RTMLCallbackCommand::new( executors, args, envs ),
-                parse_callback_action( node, "enter" )?
-            )
-        )
-    )
+    if commands.len() > 0
+    {
+        Some( RTMLCallback::RefreshState( commands ) )
+    }
+    else
+    {
+        None
+    }
 }
 
 fn parse_callback_action( node : Node, prefix : &str ) -> anyhow::Result<RTMLCallbackAction>

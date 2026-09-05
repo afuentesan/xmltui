@@ -1,6 +1,6 @@
 use std::sync::{OnceLock, mpsc::{self, Receiver, Sender}};
 
-use crate::{input::event::InputEvent, rtml::{rtml_doc::RTMLDoc, rtml_node::RTMLNodeId, util::rtml_event::{RTMLCallback, RTMLCallbackAction}}};
+use crate::{code::event::CommandExecutorParams, input::event::InputEvent, rtml::{rtml_doc::RTMLDoc, rtml_node::RTMLNodeId, util::rtml_event::{RTMLCallback, RTMLCallbackAction}}};
 
 
 static TX_EVENT_CHANNEL : OnceLock<Sender<AppEvent>> = OnceLock::new();
@@ -63,6 +63,7 @@ pub enum AppEvent
     HidrateCommand( HidrateCommand ),
     Callback( RTMLCallback ),
     CallbackResponse( CallbackResponse ),
+    RefreshCommand( CommandExecutorParams ),
     Exit
 }
 

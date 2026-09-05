@@ -22,6 +22,8 @@ pub fn process_command(
         vec![], 
         parent_id
     );
+
+    let ( reload_with_state, reload_with_state_path ) = reload_with_state( node );
     
     Ok(
         (
@@ -38,12 +40,41 @@ pub fn process_command(
                     template_from_inner_node( node, xml ),
                     output_from_node( node ),
                     parse_args_envs_from_node( node, "args" ),
-                    parse_args_envs_from_node( node, "envs" )
+                    parse_args_envs_from_node( node, "envs" ),
+                    reload_with_state,
+                    reload_with_state_path,
                 )
             ),
             command_id
         )
     )
+}
+
+fn reload_with_state( node : Node ) -> ( bool, Option<String> )
+{
+    if let Some( a ) = node.attribute( "reload-with-st-path" ) && a.trim() != ""
+    {
+        let path = if a.trim().starts_with( "/" )
+        {
+            a.trim().to_string()
+        }
+        else
+        {
+            format!( "/{}", a.trim() )
+        };
+
+        ( 
+            false, 
+            Some( 
+                path
+            ) 
+        )
+    }
+    else if let Some( a ) = node.attribute( "reload-with-st" ) && a.trim().to_lowercase() == "true"
+    {
+        ( true, None )
+    }
+    else { ( false, None ) }
 }
 
 pub fn output_from_node( node : Node ) -> RTMLCommandOutput

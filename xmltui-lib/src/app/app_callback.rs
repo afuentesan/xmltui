@@ -26,6 +26,10 @@ pub fn execute_callback(
         RTMLCallback::ChangeSrc( params ) =>
         {
             change_src( doc, params );
+        },
+        RTMLCallback::RefreshState( states ) =>
+        {
+            doc.reload_state_commands( states.as_slice() );
         }
     }
 }
@@ -201,7 +205,13 @@ fn parse_change_state(
         response
     );
 
-    change_var_state( &params, &mut doc.state )
+    if change_var_state( &params, &mut doc.state )
+    {
+        doc.refresh_all_commands( &params.common.path );
+        
+        true
+    }
+    else { false }
 }
 
 fn parse_change_src( change_data : CallbackChangeSrcFromCommand, response : String, doc : &RTMLDoc ) -> bool

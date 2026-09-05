@@ -107,5 +107,6 @@ pub enum RTMLCallback
 {
     Command( RTMLCallbackCommand, RTMLCallbackAction ),
     RefreshCommand( Vec<String> ),
-    ChangeSrc( RTMLCallbackChangeSrc )
+    ChangeSrc( RTMLCallbackChangeSrc ),
+    RefreshState( Vec<String> )
 }

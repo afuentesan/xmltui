@@ -3,29 +3,52 @@
     
     <head>
 
+        <code command="date" name="date" />
+
         <code command="echo" name="echo">
             <args>
                 <st-arg name="saludo" />
-                <arg> </arg>
                 <st-arg name="nombre" />
+                <st-arg name="sufijo" />
             </args>
         </code>
 
         <template name="line-echo">
             <line>{{ctx}}</line>
         </template>
+
+        <template name="nombre-hora">
+            <line>{{ st.txt }}</line>
+            <line>{{ ctx }}</line>
+        </template>
+
+        <code command="/usr/bin/bash" name="random">
+            <args>
+                <arg>-c</arg>
+                <arg>
+                    <![CDATA[ 
+                    echo $RANDOM
+                    ]]>
+                </arg>
+            </args>
+        </code>
     </head>
 
     <state>
         <st-var path="/saludo" value="Hola" type="str" />
+        <st-command id="sufijo" path="/sufijo" exec="random" output="str" />
     </state>
 
     <body>
-        <input id="txt" value="tururu" enter="echo" enter-template="line-echo" enter-replace-childs="line-container" enter-args="saludo,nombre:txt" />
+        <input id="txt" value="tururu" enter="echo" enter-template="line-echo" enter-replace-childs="line-container" enter-args="saludo, nombre:txt, sufijo" />
 
         <layout id="line-container">
             <line>Que pasa</line>
         </layout>
+
+        <command template="nombre-hora" exec="date" reload-with-st-path="txt" />
+
+        <button enter-refresh-st="sufijo">Actualiza sufijo</button>
     </body>
 
 </rtml>

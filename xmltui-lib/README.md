@@ -46,7 +46,9 @@
 
 [] Revisar los atributos de border, ahí hay más cosas que se deberían poder meter en los estilos.
 
-[] Tener un estado. Que los componentes que tengan valores que puedan ser cambiados por el usuario se puedan sincronizar con el estado. Que el valor de los atributos (y quizá también el contenido) de los componentes puedan recuperarse del estado.
+[x] Tener un estado. 
+
+[] Que los componentes que tengan valores que puedan ser cambiados por el usuario se puedan sincronizar con el estado. Que el valor de los atributos (y quizá también el contenido) de los componentes puedan recuperarse del estado.
 
 [] Que todos (o la mayoría) de los atributos de los componentes puedan ejecutar templates para calcular su valor. A esos templates hay que pasarles el estado.
 
@@ -62,10 +64,28 @@
 
 [x] Que los estilos de los spans también se puedan modificar en función del estado con jinja.
 
-[] Cambiar la forma de relanzar los comandos que tengan refresh. De la forma que está hecho ahora se les pasa el estado pero si el estado cambia no se enteran y siguen ejecutando los comandos con valores que no son correctos.
+[x] Cambiar la forma de relanzar los comandos que tengan refresh. De la forma que está hecho ahora se les pasa el estado pero si el estado cambia no se enteran y siguen ejecutando los comandos con valores que no son correctos.
 
 [] Que los comandos que se lanzan para cambiar el estado también tengan refresh.
 
-[] Que se puedan lanzar comandos para cambiar el estado desde un evento.
+[x] Que se puedan lanzar comandos para cambiar el estado desde un evento.
 
 [] Que el estado se pueda enviar cuando se cambia de página.
+
+[] Componente state similar a command. Se deben recargar todos los states cada vez que se modifica el estado, los commands solo se relanzan si se ha puesto el atributo reload-with-state a true.
+
+[] El componente state no debería tener ningún otro componente state dentro, no tiene sentido. Quizá tampoco habría que permitir que tuviese un command para evitar que se lance el command cada vez que cambie el estado.
+
+[] El componente command no debería tener un state dentro. Si se quiere recargar el command cada vez que cambie el state se utiliza el atributo reload-with-state.
+
+[x] Atributo reload-with-state-path en los command para que solo se recargue el command si cambia un path determinado.
+
+[] Atributo reload-with-state-path en los state para que solo se recargue el state si cambia un path determinado.
+
+[] También habría que evitar que un command pueda tener otro command dentro.
+
+[] Poner el atributo on-init en los command, si está a false no se ejecutarán al inicio y solo se lanzarán desde un evento refresh-command. Si no tienen el on-init ¿tendrá sentido el refresh en esos commands?.
+
+[] Componente include que simplemente pueda cargar el contenido desde otro fichero. 
+
+[] En todos los sitios del xml donde se recoja un path quitar las barras del final si las tuviese.

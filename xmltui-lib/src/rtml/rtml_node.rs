@@ -216,6 +216,37 @@ impl RTMLNode
         }
     }
 
+    pub fn node_reload_with_state( &self, path : &str ) -> bool
+    {
+        match self
+        {
+            RTMLNode::Layout( _ ) |
+            RTMLNode::Line( _ ) |
+            RTMLNode::Input( _ ) |
+            RTMLNode::Button( _ ) |
+            RTMLNode::Border( _ ) |
+            RTMLNode::Paragraph( _ ) |
+            RTMLNode::Select( _ ) |
+            RTMLNode::Link( _ ) => false,
+            RTMLNode::Command( n ) => 
+            {
+                if 
+                    let Some( p ) = n.reload_with_state_path.as_ref() && 
+                    (
+                        p == path ||
+                        path.starts_with( format!( "{p}/" ).as_str() )
+                    )
+                {
+                    true
+                }
+                else
+                {
+                    n.reload_with_state    
+                }
+            }
+        }
+    }
+
     pub fn node_template<'a>( &'a self, templates : &'a HashMap<String, String> ) -> Option<&'a String>
     {
         match self

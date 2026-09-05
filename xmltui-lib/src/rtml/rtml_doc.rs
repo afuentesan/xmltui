@@ -226,6 +226,8 @@ impl RTMLDoc
             {
                 create_or_replace_path( path.as_str(), &mut self.state, val );
 
+                self.refresh_all_commands( &path );
+
                 response.changed
             },
             None => response.changed 
@@ -251,6 +253,21 @@ impl RTMLDoc
                     if ! c.on_init { continue };
 
                     self.exec_command_state( c );
+                }
+            }
+        }
+    }
+
+    pub fn reload_state_commands( &self, ids : &[String] )
+    {
+        for id in ids
+        {
+            if let Some( executor ) = self.state_executors.get( id )
+            {
+                match executor
+                {
+                    StateExecutor::Var( _ ) => continue,
+                    StateExecutor::Command( c ) => self.exec_command_state( c )
                 }
             }
         }
@@ -363,6 +380,26 @@ impl RTMLDoc
         }
     }
 
+    pub fn refresh_all_commands( &self, path : &str )
+    {
+        let ids = self.doc.iter()
+        .filter_map( 
+            | ( k, v ) | 
+            {
+                if v.node_reload_with_state( path )
+                {
+                    Some( k.to_string() )
+                }
+                else
+                {
+                    None    
+                }
+            } 
+        ).collect::<Vec<_>>();
+
+        self.refresh_commands( ids );
+    }
+
     pub fn refresh_commands(
         &self,
         ids : Vec<String>
@@ -455,6 +492,36 @@ impl RTMLDoc
         }
 
         ret
+    }
+
+    pub fn refresh_command_from_params( &self, mut params : CommandExecutorParams )
+    {
+        if let Some( node ) = self.doc.get( &params.node_id )
+        {
+            match node
+            {
+                RTMLNode::Command( c ) =>
+                {
+                    params.args = self.state_from_key_path( &c.args );
+                    params.envs = self.state_from_key_path( &c.envs );
+
+                    spawn_async_task(
+                        async move 
+                        {
+                            new_command_executor( params ).await
+                        }
+                    );
+                },
+                RTMLNode::Input( _ ) |
+                RTMLNode::Layout( _ ) |
+                RTMLNode::Line( _ ) |
+                RTMLNode::Link( _ ) |
+                RTMLNode::Button( _ ) |
+                RTMLNode::Border( _ ) |
+                RTMLNode::Paragraph( _ ) |
+                RTMLNode::Select( _ ) => {}
+            }
+        }
     }
 
     pub fn state_from_key_path( &self, keys : &HashMap<String, String> ) -> HashMap<String, String>

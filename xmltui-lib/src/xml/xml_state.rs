@@ -47,11 +47,7 @@ fn state_var_from_node( node : Node, states : &mut HashMap<String, StateExecutor
 
 fn id_from_option( id : Option<String> ) -> String
 {
-    match id
-    {
-        Some( id ) => id,
-        None => default_id()    
-    }
+    id.unwrap_or( default_id() )
 }
 
 fn state_command_from_node( node : Node, states : &mut HashMap<String, StateExecutor> )
