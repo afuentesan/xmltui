@@ -159,9 +159,9 @@ impl From<RTStyleBuilder> for RTStyle
         {
             match f.trim().to_lowercase().as_str()
             {
-                "normal" if style.is_some() =>
+                "normal" =>
                 {
-                    style = Some( style.unwrap().remove_modifier( Modifier::BOLD ) );
+                    style = Some( style.unwrap_or_default().remove_modifier( Modifier::BOLD ) );
                 },
                 "bold" =>
                 {
@@ -175,9 +175,9 @@ impl From<RTStyleBuilder> for RTStyle
         {
             match f.trim().to_lowercase().as_str()
             {
-                "normal" if style.is_some() =>
+                "normal" =>
                 {
-                    style = Some( style.unwrap().remove_modifier( Modifier::ITALIC ) );
+                    style = Some( style.unwrap_or_default().remove_modifier( Modifier::ITALIC ) );
                 },
                 "italic" =>
                 {
@@ -193,9 +193,9 @@ impl From<RTStyleBuilder> for RTStyle
             {
                 style = Some( style.unwrap_or_default().add_modifier( Modifier::DIM ) );
             }
-            else if style.is_some()
+            else
             {
-                style = Some( style.unwrap().remove_modifier( Modifier::DIM ) );
+                style = Some( style.unwrap_or_default().remove_modifier( Modifier::DIM ) );
             }
         }
 
@@ -203,9 +203,9 @@ impl From<RTStyleBuilder> for RTStyle
         {
             match t.trim().to_lowercase().as_str()
             {
-                "none" if style.is_some() =>
+                "none" =>
                 {
-                    style = Some( style.unwrap().remove_modifier( Modifier::UNDERLINED ).remove_modifier( Modifier::CROSSED_OUT ) );
+                    style = Some( style.unwrap_or_default().remove_modifier( Modifier::UNDERLINED ).remove_modifier( Modifier::CROSSED_OUT ) );
                 },
                 "underline" =>
                 {
@@ -223,9 +223,9 @@ impl From<RTStyleBuilder> for RTStyle
         {
             match b.trim().to_lowercase().as_str()
             {
-                "normal" if style.is_some() =>
+                "normal" =>
                 {
-                    style = Some( style.unwrap().remove_modifier( Modifier::SLOW_BLINK ).remove_modifier( Modifier::RAPID_BLINK ) );
+                    style = Some( style.unwrap_or_default().remove_modifier( Modifier::SLOW_BLINK ).remove_modifier( Modifier::RAPID_BLINK ) );
                 },
                 "slow" =>
                 {
@@ -245,9 +245,9 @@ impl From<RTStyleBuilder> for RTStyle
             {
                 style = Some( style.unwrap_or_default().add_modifier( Modifier::REVERSED ) );
             }
-            else if style.is_some()
+            else
             {
-                style = Some( style.unwrap().remove_modifier( Modifier::REVERSED ) );
+                style = Some( style.unwrap_or_default().remove_modifier( Modifier::REVERSED ) );
             }
         }
 
@@ -255,9 +255,9 @@ impl From<RTStyleBuilder> for RTStyle
         {
             match f.trim().to_lowercase().as_str()
             {
-                "visible" if style.is_some() =>
+                "visible" =>
                 {
-                    style = Some( style.unwrap().remove_modifier( Modifier::HIDDEN ) );
+                    style = Some( style.unwrap_or_default().remove_modifier( Modifier::HIDDEN ) );
                 },
                 "hidden" =>
                 {

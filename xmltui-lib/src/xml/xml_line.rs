@@ -70,7 +70,7 @@ fn process_node_text_or_span(
     {
         let text = re.replace_all( &text, "" );
 
-        ret.push( ( text.to_string(), None ) );
+        ret.push( ( text.to_string(), None, None ) );
     }
     else if child.tag_name().name() == "span"
     {
@@ -80,7 +80,7 @@ fn process_node_text_or_span(
 
             let text = t.replace( "\n", "" );
 
-            let val = ( text, Some( style ) );
+            let val = ( text, Some( style ), Some( style_template ) );
 
             ret.push( val );
         }

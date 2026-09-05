@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::{Paragraph, Widget, Wrap}};
 use serde_json::Value;
 
-use crate::{input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, util::{rtml_style::{RTMLStyleTemplate, merge_style_with_templates}, types::TextLines}}, util::draw::clear_area, xml::styles::xml_style::merge_styles};
+use crate::{input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, util::{rtml_style::{RTMLStyleTemplate, merge_style_with_templates}, types::{TextLine, TextLines}}}, util::draw::clear_area, xml::styles::xml_style::merge_styles};
 
 #[derive(Debug)]
 pub struct RTMLParagraph 
@@ -77,7 +77,7 @@ pub fn render_rtml_paragraph(
     context : &Value
 ) -> anyhow::Result<()>
 {
-    let mut paragraph = create_paragraph( rtml_paragraph );
+    let mut paragraph = create_paragraph( rtml_paragraph, templates, context );
 
     if rtml_paragraph.start_at > 0
     {
@@ -111,7 +111,7 @@ pub fn render_rtml_paragraph_focus(
     context : &Value
 ) -> anyhow::Result<()>
 {
-    let mut paragraph = create_paragraph( rtml_paragraph );
+    let mut paragraph = create_paragraph( rtml_paragraph, templates, context );
 
     if rtml_paragraph.start_at > 0
     {
@@ -129,18 +129,25 @@ pub fn render_rtml_paragraph_focus(
     Ok( () )
 }
 
-pub fn create_paragraph<'a>( 
-    rtml_paragraph : &'a RTMLParagraph
+pub fn create_paragraph<'a, 'b>( 
+    rtml_paragraph : &'a RTMLParagraph,
+    templates : &'b HashMap<String, String>,
+    context : &'b Value 
 ) -> Paragraph<'a>
 {
-    let lines = lines_from_text_width_style( &rtml_paragraph.lines, None );
+    let lines = lines_from_text_width_style( &rtml_paragraph.lines, None, templates, context );
 
     Paragraph::new( lines )
     .alignment( rtml_paragraph.alignment )
     .wrap( Wrap { trim: false } )
 }
 
-pub fn lines_from_text_width_style( lines : &TextLines, style : Option<( usize, Style )> ) -> Vec<Line<'_>>
+pub fn lines_from_text_width_style<'a, 'b>( 
+    lines : &'a TextLines, 
+    style : Option<( usize, Style )>,
+    templates : &'b HashMap<String, String>,
+    context : &'b Value 
+) -> Vec<Line<'a>>
 {
     lines
     .iter()
@@ -150,23 +157,28 @@ pub fn lines_from_text_width_style( lines : &TextLines, style : Option<( usize, 
         {
             if let Some( ( selected, style ) ) = style && selected == i
             {
-                line_from_spans( l, Some( style ) )
+                line_from_spans( l, Some( style ), templates, context )
             }
             else
             {
-                line_from_spans( l, None )    
+                line_from_spans( l, None, templates, context )    
             }
         }
     ).collect::<Vec<_>>()
 }
 
-pub fn line_from_spans<'a>( spans : &'a Vec<( String, Option<Style> )>, next_style : Option<Style> ) -> Line<'a>
+pub fn line_from_spans<'a>( 
+    spans : &'a TextLine, 
+    next_style : Option<Style>,
+    templates : &HashMap<String, String>,
+    context : &Value
+) -> Line<'a>
 {
     let content = spans.iter()
     .map(
-        | ( text, style ) |
+        | ( text, style, template ) |
         {
-            span_from_str_and_styles( text, *style, next_style )
+            span_from_str_and_styles( text, *style, next_style, template, templates, context )
         }
     )
     .collect::<Vec<_>>();
@@ -174,7 +186,14 @@ pub fn line_from_spans<'a>( spans : &'a Vec<( String, Option<Style> )>, next_sty
     Line::from( content )
 }
 
-fn span_from_str_and_styles<'a>( text : &'a str, style_1 : Option<Style>, style_2 : Option<Style> ) -> Span<'a>
+fn span_from_str_and_styles<'a>( 
+    text : &'a str, 
+    style_1 : Option<Style>, 
+    style_2 : Option<Style>, 
+    template : &Option<RTMLStyleTemplate>,
+    templates : &HashMap<String, String>,
+    context : &Value
+) -> Span<'a>
 {
     match ( style_1, style_2 )
     {
@@ -182,15 +201,37 @@ fn span_from_str_and_styles<'a>( text : &'a str, style_1 : Option<Style>, style_
         {
             let s = merge_styles( s1, s2 );
 
+            let s = if let Some( t ) = template && ! context.is_null()
+            {
+                merge_style_with_templates( s, t, context, templates )
+            }
+            else { s };
+
             Span::styled( text, s )
         },
         ( Some( s ), None ) | ( None, Some( s ) ) =>
         {
+            let s = if let Some( t ) = template && ! context.is_null()
+            {
+                merge_style_with_templates( s, t, context, templates )
+            }
+            else { s };
+
             Span::styled( text, s )
         },
         ( None, None ) =>
         {
-            Span::raw( text )
+            if let Some( t ) = template && ! context.is_null()
+            {
+                let s = merge_style_with_templates( Style::default(), t, context, templates );
+
+                Span::styled( text, s )
+            }
+            else 
+            { 
+                Span::raw( text ) 
+            }
+            
         }
     }
 }

@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
+use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, };
 use serde_json::Value;
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_source::RTMLSource, util::rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}, util::draw::clear_area};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_line::render_text_line, rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::HorizontalPadding, rtml_source::RTMLSource, util::{rtml_style::RTMLStyleTemplate, types::TextLine}}};
 
 
 #[derive(Debug)]
@@ -16,7 +16,8 @@ pub struct RTMLLink
     pub focus_style : Style,
     pub focus_style_template : RTMLStyleTemplate,
     pub source : RTMLSource,
-    pub text : String
+    pub padding : HorizontalPadding,
+    pub content : TextLine
 }
 
 impl RTMLLink
@@ -24,7 +25,8 @@ impl RTMLLink
     pub fn new(
         alignment : Alignment,
         source : RTMLSource,
-        text : String,
+        padding : HorizontalPadding,
+        content : TextLine,
         style : Style,
         style_template : RTMLStyleTemplate,
         focus_style : Style,
@@ -32,7 +34,7 @@ impl RTMLLink
         common : RTMLNodeCommon
     ) -> Self
     {
-        Self { common, alignment, style, style_template, focus_style, focus_style_template, source, text }
+        Self { common, alignment, style, style_template, focus_style, focus_style_template, source, padding, content }
     }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
@@ -50,13 +52,6 @@ impl RTMLLink
             _ => FocusEventResponse::new_without_state( false )
         }
     }
-
-    pub fn replace_value( &mut self, new_value : String ) -> bool
-    {
-        self.text = new_value;
-
-        true
-    }
 }
 
 pub fn render_rtml_link( 
@@ -67,9 +62,7 @@ pub fn render_rtml_link(
     context : &Value
 ) -> anyhow::Result<()>
 {
-    let style = merge_style_with_templates( rtml_link.style, &rtml_link.style_template, context, templates );
-
-    render_rtml_link_width_style( rtml_link, style, area, buf )
+    render_rtml_link_width_style( rtml_link, rtml_link.style, &rtml_link.style_template, area, buf, templates, context )
 }
 
 pub fn render_rtml_link_focus( 
@@ -79,29 +72,19 @@ pub fn render_rtml_link_focus(
     context : &Value
 ) -> anyhow::Result<()>
 {
-    let focus_style = merge_style_with_templates( rtml_link.focus_style, &rtml_link.focus_style_template, context, templates );
-
-    render_rtml_link_width_style( rtml_link, focus_style, rtml_link.common.attrs.area, buf )
+    render_rtml_link_width_style( rtml_link, rtml_link.focus_style, &rtml_link.focus_style_template, rtml_link.common.attrs.area, buf, templates, context )
 }
 
 fn render_rtml_link_width_style( 
     rtml_link : &RTMLLink,
     style : Style,
+    style_template : &RTMLStyleTemplate,
     area : Rect,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
-    clear_area( area, Style::default().not_underlined(), buf );
-
-    let str = rtml_link.text.as_str();
-
-    let line = Line::from( 
-        Span::styled( str, style )
-    )
-    .alignment( rtml_link.alignment );
-
-    line.render( area, buf );
-
-    Ok( () )
+    render_text_line( style, style_template, &rtml_link.padding, &rtml_link.alignment, &rtml_link.content, area, buf, templates, context)
 }
 

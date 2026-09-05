@@ -880,12 +880,12 @@ fn change_area_and_get_childs<'a, 'b>(
 
     root.set_area( area );
 
-    // TODO: Hay que ver como hacer esto mejor, estamos creando el Paragraph 2 veces, una aquí para guardar las líneas y otra cuando lo renderizamos
+    // TODO: Hay que ver como hacer esto mejor, estamos creando el Paragraph 2 veces, una aquí para calcular el número de líneas y otra cuando lo renderizamos
     match root
     {
         RTMLNode::Paragraph( rtml_paragraph ) =>
         {
-            let p = create_paragraph( rtml_paragraph );
+            let p = create_paragraph( rtml_paragraph, &HashMap::new(), &Value::Null );
 
             let inner_area = area_con_padding( area, &rtml_paragraph.padding );
 

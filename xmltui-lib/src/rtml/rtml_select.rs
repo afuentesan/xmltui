@@ -238,7 +238,9 @@ fn render_options(
 
     let lines = lines_from_text_width_style( 
         &rtml_select.lines, 
-        Some( ( rtml_select.selected_line, selected_style ) ) 
+        Some( ( rtml_select.selected_line, selected_style ) ),
+        templates,
+        context
     );
 
     let line_overflow = rtml_select.start_at + rtml_select.inner_area.height as usize;

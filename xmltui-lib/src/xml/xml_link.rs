@@ -1,6 +1,6 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_link::RTMLLink, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_source, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style , xml_style::StyleVariant}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_util::{input_like_styles, style_from_styles}}};
+use crate::{rtml::{rtml_link::RTMLLink, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{attr_source, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style , xml_style::StyleVariant}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_line::process_text_line, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_link( 
@@ -11,10 +11,10 @@ pub fn process_link(
 {
     let id = id_retry_if_exists( node, xml_doc.nodos() );
     
-    let text = node.text().unwrap_or( " " ).to_string();
-
-    let ( constraint, style, style_template, alignment ) = input_like_styles( node, xml_doc.styles(), None );
+    let ( constraint, style, style_template, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
     
+    let padding = padding.horizontal;
+
     let ( focus_style, focus_style_template ) = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
 
     let common = RTMLNodeCommon::new( 
@@ -25,6 +25,8 @@ pub fn process_link(
 
     let source = attr_source( node )?;
 
+    let text = process_text_line( node, xml_doc.styles() );
+    
     replace_xml_doc_focus( xml_doc, node, &id );
 
     Ok(
@@ -33,6 +35,7 @@ pub fn process_link(
                 RTMLLink::new( 
                     alignment, 
                     source,
+                    padding,
                     text,
                     style,
                     style_template,

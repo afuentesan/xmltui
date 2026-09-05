@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
+use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style};
 use serde_json::Value;
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, util::{rtml_event::RTMLEvent, rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}}, util::draw::clear_area};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_line::render_text_line, rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::HorizontalPadding, util::{rtml_event::RTMLEvent, rtml_style::RTMLStyleTemplate, types::TextLine}}};
 
 
 #[derive(Debug)]
@@ -16,7 +16,8 @@ pub struct RTMLButton
     pub focus_style : Style,
     pub focus_style_template : RTMLStyleTemplate,
     pub events : Vec<RTMLEvent>,
-    pub text : String
+    pub padding : HorizontalPadding,
+    pub content : TextLine
 }
 
 impl RTMLButton
@@ -24,7 +25,8 @@ impl RTMLButton
     pub fn new(
         alignment : Alignment,
         events : Vec<RTMLEvent>,
-        text : String,
+        padding : HorizontalPadding,
+        content : TextLine,
         style : Style,
         style_template : RTMLStyleTemplate,
         focus_style : Style,
@@ -32,7 +34,7 @@ impl RTMLButton
         common : RTMLNodeCommon
     ) -> Self
     {
-        Self { common, alignment, style, style_template, focus_style, focus_style_template, events, text }
+        Self { common, alignment, style, style_template, focus_style, focus_style_template, events, padding, content }
     }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
@@ -64,13 +66,6 @@ impl RTMLButton
 
         FocusEventResponse::new_without_state( false )
     }
-
-    pub fn replace_value( &mut self, new_value : String ) -> bool
-    {
-        self.text = new_value;
-
-        true
-    }
 }
 
 pub fn render_rtml_button( 
@@ -81,9 +76,7 @@ pub fn render_rtml_button(
     context : &Value
 ) -> anyhow::Result<()>
 {
-    let style = merge_style_with_templates( rtml_button.style, &rtml_button.style_template, context, templates );
-
-    render_rtml_button_width_style( rtml_button, style, area, buf )
+    render_rtml_button_width_style( rtml_button, rtml_button.style, &rtml_button.style_template, area, buf, templates, context )
 }
 
 pub fn render_rtml_button_focus( 
@@ -93,28 +86,18 @@ pub fn render_rtml_button_focus(
     context : &Value
 ) -> anyhow::Result<()>
 {
-    let focus_style = merge_style_with_templates( rtml_button.focus_style, &rtml_button.focus_style_template, context, templates );
-
-    render_rtml_button_width_style( rtml_button, focus_style, rtml_button.common.attrs.area, buf )
+    render_rtml_button_width_style( rtml_button, rtml_button.focus_style, &rtml_button.focus_style_template, rtml_button.common.attrs.area, buf, templates, context )
 }
 
 fn render_rtml_button_width_style( 
     rtml_button : &RTMLButton,
     style : Style,
+    style_template : &RTMLStyleTemplate,
     area : Rect,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
 ) -> anyhow::Result<()>
 {
-    clear_area( area, Style::default().not_underlined(), buf );
-
-    let str = rtml_button.text.as_str();
-
-    let line = Line::from( 
-        Span::styled( str, style )
-    )
-    .alignment( rtml_button.alignment );
-
-    line.render( area, buf );
-
-    Ok( () )
+    render_text_line( style, style_template, &rtml_button.padding, &rtml_button.alignment, &rtml_button.content, area, buf, templates, context)
 }

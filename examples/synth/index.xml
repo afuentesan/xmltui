@@ -94,7 +94,7 @@
         </command>
 
         <layout class="prueba" bg="#001100">
-            <line>Hola</line>
+            <line>Hola <span bg="{{ 'Red' }}">Red</span></line>
         </layout>
     </body>
 </rtml>

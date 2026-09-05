@@ -6,7 +6,7 @@ use regex::regex;
 use roxmltree::Node;
 use uuid::Uuid;
 
-use crate::{rtml::{rtml_attrs::CommonAttrs, rtml_form::FieldAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource, util::rtml_style::RTMLStyleTemplateType}, util::log::log_to_file};
+use crate::rtml::{rtml_attrs::CommonAttrs, rtml_form::FieldAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource, util::rtml_style::RTMLStyleTemplateType};
 
 const DEFAULT_ALIGNMENT : Alignment = Alignment::Left;
 
@@ -299,7 +299,6 @@ pub fn attr_to_template( node : Node, attr : &str ) -> Option<RTMLStyleTemplateT
     }
     else if let Some( a ) = node.attribute( attr ) && a.trim().starts_with( "{{" ) && a.trim().ends_with( "}}" )
     {
-        log_to_file( &format!( "Inline encontrado: {a}" ) );
         Some( RTMLStyleTemplateType::Inline( a.trim().to_string() ) )
     }
     else

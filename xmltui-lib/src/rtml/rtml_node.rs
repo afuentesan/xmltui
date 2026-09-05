@@ -253,13 +253,13 @@ impl RTMLNode
         match self
         {
             RTMLNode::Input( n ) => n.replace_value( new_value ),
-            RTMLNode::Button( n ) => n.replace_value( new_value ),
-            RTMLNode::Link( n ) => n.replace_value( new_value ),
             RTMLNode::Select( n ) => n.replace_value( new_value ),
             RTMLNode::Line( _ ) |
             RTMLNode::Command( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Paragraph( _ ) |
+            RTMLNode::Button( _ ) |
+            RTMLNode::Link( _ ) |
             RTMLNode::Layout( _ ) => false
         }
     }

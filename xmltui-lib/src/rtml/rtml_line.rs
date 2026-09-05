@@ -33,23 +33,61 @@ pub fn render_rtml_line(
     context : &Value
 ) -> anyhow::Result<()>
 {
-    let style = merge_style_with_templates( rtml_line.style, &rtml_line.style_template, context, templates );
+    // let style = merge_style_with_templates( rtml_line.style, &rtml_line.style_template, context, templates );
 
-    let mut spans = if rtml_line.padding.left > 0
+    // let mut spans = if rtml_line.padding.left > 0
+    // {
+    //     vec![ padding_span( rtml_line.padding.left , style ) ] 
+    // }
+    // else
+    // {
+    //     vec![]
+    // };
+
+    // spans.append( &mut line_from_spans( &rtml_line.content, None, templates, context ).spans );
+
+    // if rtml_line.padding.right > 0 { spans.push( padding_span( rtml_line.padding.right , style ) ); }
+
+    // let line = Line::from( spans )
+    // .alignment( rtml_line.alignment )
+    // .style( style );
+
+    // line.render( area, buf );
+
+    // Ok( () )
+
+    render_text_line( rtml_line.style, &rtml_line.style_template, &rtml_line.padding, &rtml_line.alignment, &rtml_line.content, area, buf, templates, context)
+}
+
+pub fn render_text_line(
+    style : Style,
+    style_template : &RTMLStyleTemplate,
+    padding : &HorizontalPadding,
+    alignment : &Alignment,
+    content : &TextLine,
+    area : Rect,
+    buf : &mut Buffer,
+    templates : &HashMap<String, String>,
+    context : &Value
+) -> anyhow::Result<()>
+{
+    let style = merge_style_with_templates( style, style_template, context, templates );
+
+    let mut spans = if padding.left > 0
     {
-        vec![ padding_span( rtml_line.padding.left , style ) ] 
+        vec![ padding_span( padding.left , style ) ] 
     }
     else
     {
         vec![]
     };
 
-    spans.append( &mut line_from_spans( &rtml_line.content, None ).spans );
+    spans.append( &mut line_from_spans( content, None, templates, context ).spans );
 
-    if rtml_line.padding.right > 0 { spans.push( padding_span( rtml_line.padding.right , style ) ); }
+    if padding.right > 0 { spans.push( padding_span( padding.right , style ) ); }
 
     let line = Line::from( spans )
-    .alignment( rtml_line.alignment )
+    .alignment( *alignment )
     .style( style );
 
     line.render( area, buf );
@@ -57,7 +95,7 @@ pub fn render_rtml_line(
     Ok( () )
 }
 
-fn padding_span<'a>( padding : usize, style : Style ) -> Span<'a>
+pub fn padding_span<'a>( padding : usize, style : Style ) -> Span<'a>
 {
     Span::styled( " ".repeat( padding ), style )
 }

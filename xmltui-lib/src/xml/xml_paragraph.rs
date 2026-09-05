@@ -94,7 +94,7 @@ fn process_node_text_or_span(
         .for_each(
             | ( i, s ) |
             {
-                let val = ( s.to_string(), None );
+                let val = ( s.to_string(), None, None );
 
                 if i == 0
                 {
@@ -115,7 +115,7 @@ fn process_node_text_or_span(
 
             let text = t.replace( "\n", " " );
 
-            let val = ( text, Some( style ) );
+            let val = ( text, Some( style ), Some( style_template ) );
 
             if let Some( l ) = ret.last_mut()
             {

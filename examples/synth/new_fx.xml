@@ -17,7 +17,7 @@
         <layout dir="vertical" length="2" flex="center" id="container">
             
             <line align="center">FX</line>
-            <a src="/" align="center">Volver a opciones</a>
+            <a src="/" align="center" text-decoration="underline" text-decoration-focus="none">Volver a opciones</a>
             
         </layout>
     </body>

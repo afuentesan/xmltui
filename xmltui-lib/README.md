@@ -58,9 +58,9 @@
 
 [x] Cambiar la forma de pintar el contenido del componente line. Que funcione igual que el paragraph o el contenido de los options del select. 
 
-[] Hacer que los button y los link calculen su contenido igual que el line, ahora solo tienen un string.
+[x] Hacer que los button y los link calculen su contenido igual que el line, ahora solo tienen un string.
 
-[] Que los estilos de los spans también se puedan modificar en función del estado con jinja.
+[x] Que los estilos de los spans también se puedan modificar en función del estado con jinja.
 
 [] Cambiar la forma de relanzar los comandos que tengan refresh. De la forma que está hecho ahora se les pasa el estado pero si el estado cambia no se enteran y siguen ejecutando los comandos con valores que no son correctos.
 
