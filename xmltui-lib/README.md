@@ -89,3 +89,5 @@
 [] Componente include que simplemente pueda cargar el contenido desde otro fichero. 
 
 [] En todos los sitios del xml donde se recoja un path quitar las barras del final si las tuviese.
+
+[] Nodo st-src para poder cargar comandos y variables de estado desde otro fichero.
