@@ -94,7 +94,7 @@
 
 [] Nodo st para poder cargar comandos y variables de estado desde otro fichero.
 
-[] Revisar la lógica del replace-childs y de los command. Cuando estén dentro de un line, paragraph, select o cualquier elemento que no tenga nodos hijos debería actualizar el contenido de esos nodos.
+[x] Revisar la lógica del replace-childs y de los command. Cuando estén dentro de un line, paragraph, select o cualquier elemento que no tenga nodos hijos debería actualizar el contenido de esos nodos.
 
 [] Que se pueda definir el número mínimo de líneas y columnas que puede tener la consola. Si la consola es más pequeña mostrar algún mensaje de error al usuario.
 
