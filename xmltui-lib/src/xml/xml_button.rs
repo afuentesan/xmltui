@@ -1,12 +1,13 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_button::RTMLButton, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style , xml_style::StyleVariant}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_line::process_text_line, xml_util::{paragraph_like_styles, style_from_styles}}};
+use crate::{rtml::{rtml_button::RTMLButton, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style , xml_style::StyleVariant}, xml_command::process_command_from_parent, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_line::process_text_line, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_button( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    parent_id : Option<RTMLNodeId>
+    parent_id : Option<RTMLNodeId>,
+    xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let id = id_retry_if_exists( node, xml_doc.nodos() );
@@ -26,6 +27,8 @@ pub fn process_button(
     let text = process_text_line( node, xml_doc.styles() );
 
     replace_xml_doc_focus( xml_doc, node, &id );
+
+    process_command_from_parent( xml_doc, node, Some( &id ), xml )?;
 
     Ok(
         (

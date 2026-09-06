@@ -20,8 +20,8 @@ pub struct RTMLSelect
     pub lines : TextLines,
     pub values : Vec<String>,
     pub events : Vec<RTMLEvent>,
-    selected_line : usize,
-    start_at : usize,
+    pub selected_line : usize,
+    pub start_at : usize,
     pub inner_area : Rect,
     pub field : FieldAttrs
 }

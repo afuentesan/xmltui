@@ -2,14 +2,16 @@ use std::collections::HashMap;
 
 use regex::regex;
 use roxmltree::Node;
+use serde_json::Value;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::RTMLParagraph, util::types::TextLines}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_util::{paragraph_like_styles, style_from_styles}}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::{RTMLParagraph, create_paragraph}, util::types::TextLines}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_command::process_command_from_parent, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_paragraph( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    parent_id : Option<RTMLNodeId>
+    parent_id : Option<RTMLNodeId>,
+    xml: &str,
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let lines = process_lines( node, xml_doc.styles() )?;
@@ -28,6 +30,8 @@ pub fn process_paragraph(
 
     replace_xml_doc_focus( xml_doc, node, &id );
 
+    process_command_from_parent( xml_doc, node, Some( &id ), xml )?;
+
     Ok(
         (
             RTMLNode::Paragraph(
@@ -36,6 +40,21 @@ pub fn process_paragraph(
             id
         )
     )
+}
+
+pub fn replace_paragraph_content( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, paragraph : &mut RTMLParagraph ) -> anyhow::Result<()>
+{
+    let lines = process_lines( node, styles )?;
+
+    paragraph.lines = lines;
+    
+    let p = create_paragraph( paragraph, &HashMap::new(), &Value::Null );
+
+    let num_lines = p.line_count( paragraph.inner_area.width );
+
+    paragraph.num_lines = num_lines;
+
+    Ok( () )
 }
 
 fn process_lines(

@@ -32,6 +32,18 @@
                 </arg>
             </args>
         </code>
+
+        <code command="/usr/bin/bash" name="lista-nums">
+            <args>
+                <arg>-c</arg>
+                <arg>
+                    <![CDATA[ 
+                    echo $'uno\ndos\ntres'
+                    printf '%s' "$(date)"
+                    ]]>
+                </arg>
+            </args>
+        </code>
     </head>
 
     <state>
@@ -53,6 +65,20 @@
         <button enter-refresh-st="sufijo">Actualiza sufijo</button>
 
         <button enter-refresh-st="change-txt">Actualiza txt</button>
+
+        <p bg="Red">
+            <command exec="lista-nums" refresh-sec="1" />
+        </p>
+
+        <select bg="Green">
+            <command exec="lista-nums" output="strvec">
+                <template>
+                    {% for l in ctx %}
+                        <option value="{{ l }}">{{ l }}</option>
+                    {% endfor %}
+                </template>
+            </command>
+        </select>
     </body>
 
 </rtml>

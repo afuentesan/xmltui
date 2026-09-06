@@ -50,6 +50,27 @@ pub fn process_command(
     )
 }
 
+pub fn process_command_from_parent(
+    xml_doc : &mut XMLDoc,
+    parent_node : Node, 
+    parent_id : Option<&RTMLNodeId>, 
+    xml : &str
+) -> anyhow::Result<()>
+{
+    for child in parent_node.children()
+    {
+        if child.tag_name().name() != "command" { continue; };
+
+        let ( node, id ) = process_command( xml_doc, child, parent_id.cloned(), xml )?;
+
+        xml_doc.add_node( node, id );
+
+        break;
+    }
+
+    Ok( () )
+}
+
 fn reload_with_state( node : Node ) -> ( bool, Option<String> )
 {
     if let Some( a ) = node.attribute( "reload-with-st-path" ) && a.trim() != ""

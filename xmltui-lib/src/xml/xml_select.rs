@@ -2,13 +2,14 @@ use std::collections::HashMap;
 
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{field_attrs_from_node_and_id, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_line::process_text_line, xml_util::{paragraph_like_styles, style_from_styles}}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_select::RTMLSelect, util::types::{TextLine, TextLines}}, xml::{attrs::{field_attrs_from_node_and_id, id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_command::process_command_from_parent, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_event::parse_event_attrs, xml_line::process_text_line, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_select( 
     xml_doc : &mut XMLDoc,
     node : Node, 
-    parent_id : Option<RTMLNodeId>
+    parent_id : Option<RTMLNodeId>,
+    xml : &str
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
     let ( selected_line, values, lines ) = process_options( node, xml_doc.styles() )?;
@@ -29,6 +30,8 @@ pub fn process_select(
     let field = field_attrs_from_node_and_id( node, &id );
 
     replace_xml_doc_focus( xml_doc, node, &id );
+
+    process_command_from_parent( xml_doc, node, Some( &id ), xml )?;
     
     Ok(
         (
@@ -53,6 +56,18 @@ pub fn process_select(
             id
         )
     )
+}
+
+pub fn replace_select_options( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, select : &mut RTMLSelect ) -> anyhow::Result<()>
+{
+    let ( selected_line, values, lines ) = process_options( node, styles )?;
+    
+    select.selected_line = selected_line;
+    select.start_at = 0;
+    select.values = values;
+    select.lines = lines;
+
+    Ok( () )
 }
 
 fn process_options( node : Node, styles : &HashMap<StyleSelector, XMLStyle> ) -> anyhow::Result<( usize, Vec<String>, TextLines )>

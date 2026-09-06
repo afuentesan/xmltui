@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use roxmltree::Node;
+use roxmltree::{Document, Node};
 
-use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::styles_from_head, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_doc::{XMLDoc, XMLDocResult}, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::process_line, xml_link::process_link, xml_paragraph::process_paragraph, xml_select::process_select, xml_state::states_map, xml_template::templates_from_parent}};
+use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::styles_from_head, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_doc::{XMLDoc, XMLDocResult}, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::{process_line, process_text_line}, xml_link::process_link, xml_paragraph::{process_paragraph, replace_paragraph_content}, xml_select::{process_select, replace_select_options}, xml_state::states_map, xml_template::templates_from_parent}};
 
 pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
 {
@@ -138,6 +138,8 @@ pub fn replace_node_childs_with_xml(
 
     let doc = roxmltree::Document::parse(&xml )?;
 
+    if replace_content( &doc, rtml_doc, &node_id )? { return Ok( () ) };
+
     rtml_doc.remove_childs_nodes( &node_id );
 
     let focus = process_first_node( 
@@ -156,6 +158,61 @@ pub fn replace_node_childs_with_xml(
     }
 
     Ok( () )
+}
+
+fn replace_content( 
+    doc : &Document,
+    rtml_doc : &mut RTMLDoc,
+    node_id : &RTMLNodeId
+) -> anyhow::Result<bool>
+{
+    match rtml_doc.doc.get_mut( node_id ).ok_or( 
+        anyhow::Error::msg( format!( "Se esperaba que {node_id} existiese en replace_content" ) ) 
+    )?
+    {
+        RTMLNode::Select( n ) =>
+        {
+            replace_select_options( doc.root_element(), &rtml_doc.styles, n )?;
+
+            Ok( true )
+        },
+        RTMLNode::Paragraph( n ) =>
+        {
+            replace_paragraph_content( doc.root_element(), &rtml_doc.styles, n )?;
+
+            Ok( true )
+        },
+        RTMLNode::Command( n ) =>
+        {
+            if let Some( p ) = n.common.parent_id.clone().as_ref()
+            {
+                return replace_content( doc, rtml_doc, p );
+            }
+
+            Ok( false )
+        },
+        RTMLNode::Line( n ) =>
+        {
+            n.content =  process_text_line( doc.root_element(), &rtml_doc.styles );
+
+            Ok( true )
+        },
+        RTMLNode::Button( n ) =>
+        {
+            n.content =  process_text_line( doc.root_element(), &rtml_doc.styles );
+
+            Ok( true )
+        },
+        RTMLNode::Link( n ) =>
+        {
+            n.content =  process_text_line( doc.root_element(), &rtml_doc.styles );
+
+            Ok( true )
+        },
+        RTMLNode::Border( _ ) |
+        RTMLNode::Input( _ ) |
+        RTMLNode::Layout( _ ) => Ok( false )
+    }
 }
 
 fn find_head<'a, 'input>( node : Node<'a, 'input> ) -> Option<Node<'a, 'input>>
@@ -219,15 +276,15 @@ pub fn process_node(
         },
         "p" =>
         {
-            Ok( Some( process_paragraph( xml_doc, node, parent_id )? ) )
+            Ok( Some( process_paragraph( xml_doc, node, parent_id, xml )? ) )
         },
         "select" =>
         {
-            Ok( Some( process_select( xml_doc, node, parent_id )? ) )
+            Ok( Some( process_select( xml_doc, node, parent_id, xml )? ) )
         },
         "line" =>
         {
-            Ok( Some( process_line( xml_doc, node, parent_id )? ) )
+            Ok( Some( process_line( xml_doc, node, parent_id, xml )? ) )
         },
         "input" =>
         {
@@ -235,11 +292,11 @@ pub fn process_node(
         },
         "a" =>
         {
-            Ok( Some( process_link( xml_doc, node, parent_id )? ) )
+            Ok( Some( process_link( xml_doc, node, parent_id, xml )? ) )
         },
         "button" =>
         {
-            Ok( Some( process_button( xml_doc, node, parent_id )? ) )
+            Ok( Some( process_button( xml_doc, node, parent_id, xml )? ) )
         },
         "command" =>
         {
