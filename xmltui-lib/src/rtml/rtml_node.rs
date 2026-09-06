@@ -310,6 +310,22 @@ impl RTMLNode
             RTMLNode::Layout( _ ) => None
         }
     }
+
+    pub fn sync_path( &mut self, path : &str, value : &str, state : &mut Value )
+    {
+        match self
+        {
+            RTMLNode::Input( n ) => n.sync_path( path, value, state ),
+            RTMLNode::Select( n ) => n.sync_path( path, value, state ),
+            RTMLNode::Button( _ ) |
+            RTMLNode::Link( _ ) |
+            RTMLNode::Line( _ ) |
+            RTMLNode::Command( _ ) |
+            RTMLNode::Border( _ ) |
+            RTMLNode::Paragraph( _ ) |
+            RTMLNode::Layout( _ ) => {}
+        }
+    }
 }
 
 pub fn render_focus_node( 

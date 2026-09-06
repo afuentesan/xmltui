@@ -207,11 +207,21 @@ fn parse_change_state(
 
     if change_var_state( &params, &mut doc.state )
     {
+        sync_field_paths( &params, doc );
+
         doc.refresh_all_commands( &params.common.path );
         
         true
     }
     else { false }
+}
+
+fn sync_field_paths( params : &VarState, doc : &mut RTMLDoc )
+{
+    for n in doc.doc.values_mut()
+    {
+        n.sync_path( &params.common.path, &params.value, &mut doc.state );
+    }
 }
 
 fn parse_change_src( change_data : CallbackChangeSrcFromCommand, response : String, doc : &RTMLDoc ) -> bool

@@ -36,7 +36,9 @@
 
     <state>
         <st-var path="/saludo" value="Hola" type="str" />
+        <st-var path="txt" value="Ángel" type="str" />
         <st-command id="sufijo" path="/sufijo" exec="random" output="str" />
+        <st-command id="change-txt" path="/txt" exec="random" output="str" />
     </state>
 
     <body>
@@ -49,6 +51,8 @@
         <command template="nombre-hora" exec="date" reload-with-st-path="txt" />
 
         <button enter-refresh-st="sufijo">Actualiza sufijo</button>
+
+        <button enter-refresh-st="change-txt">Actualiza txt</button>
     </body>
 
 </rtml>

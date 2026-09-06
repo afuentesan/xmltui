@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Alignment, Constraint, Layout, Rect}, style::Style, widgets::Widget};
 use serde_json::Value;
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_form::FieldAttrs, rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, rtml_paragraph::lines_from_text_width_style, util::{rtml_event::RTMLEvent, rtml_style::{RTMLStyleTemplate, merge_style_with_templates}, types::TextLines}}, util::draw::clear_area};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_form::FieldAttrs, rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, rtml_paragraph::lines_from_text_width_style, util::{rtml_event::RTMLEvent, rtml_style::{RTMLStyleTemplate, merge_style_with_templates}, types::TextLines}}, util::{draw::clear_area, json::{create_or_replace_path, json_value_to_string}}};
 
 #[derive(Debug)]
 pub struct RTMLSelect 
@@ -193,6 +193,33 @@ impl RTMLSelect
             self.field.path.clone(),
             Value::String( self.value().to_string() )
         )
+    }
+
+    pub fn sync_path( &mut self, path : &str, value : &str, state : &mut Value )
+    {
+        if path == self.field.path
+        {
+            if ! self.replace_value( value.to_string() )
+            {
+                create_or_replace_path( path, state, self.state_value().1 );
+            }
+        }
+        else if self.field.path.as_str().starts_with( path )
+        {
+            let changed = if let Some( v ) = state.pointer( &self.field.path )
+            {
+                self.replace_value( json_value_to_string( v ) )
+            }
+            else
+            {
+                self.replace_value( "".into() )   
+            };
+
+            if ! changed
+            {
+                create_or_replace_path( path, state, self.state_value().1 );
+            }
+        }
     }
 }
 

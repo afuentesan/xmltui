@@ -238,8 +238,7 @@ impl RTMLDoc
     {
         let ids = self.doc.keys().map( | k | k.to_string() ).collect::<Vec<_>>();
 
-        self.sincronize_state_from_ids( ids );
-
+        // 1.- iniciamos las variables
         for ( _, val ) in &self.state_executors
         {
             match val
@@ -248,6 +247,21 @@ impl RTMLDoc
                 {
                     change_var_state( v, &mut self.state );
                 },
+                StateExecutor::Command( _ ) => {}
+            }
+        }
+
+        // 2.- Sincronizamos los campos, si el path de algún campo se corresponde con alguna variable definida se actualiza el valor del campo.
+        // En caso contrario se guarda el valor del campo en el estado.
+        self.sync_state_from_ids( ids );
+
+        // 3.- Por último ejecutamos los comandos
+        // Los comandos los ejecutamos al final por si algún comando necesita como entrada el valor de algún campo o alguna variable definida.
+        for ( _, val ) in &self.state_executors
+        {
+            match val
+            {
+                StateExecutor::Var( _ ) => {},
                 StateExecutor::Command( c ) =>
                 {
                     if ! c.on_init { continue };
@@ -316,7 +330,7 @@ impl RTMLDoc
     {
         let ids = self.all_childs_ids( parent_id );
 
-        self.sincronize_state_from_ids( ids );
+        self.sync_state_from_ids( ids );
     }
 
     pub fn init_state_for_node_and_childs( &mut self, node_id : &RTMLNodeId )
@@ -325,24 +339,31 @@ impl RTMLDoc
 
         ids.push( node_id.clone() );
 
-        self.sincronize_state_from_ids( ids );
+        self.sync_state_from_ids( ids );
     }
 
-    fn sincronize_state_from_ids( &mut self, ids : Vec<String> )
+    fn sync_state_from_ids( &mut self, ids : Vec<String> )
     {
         for id in ids
         {
-            self.sincronize_state_from_id( &id );
+            self.sync_state_from_id( &id, false );
         }
     }
 
-    fn sincronize_state_from_id( &mut self, id : &str )
+    fn sync_state_from_id( &mut self, id : &str, force_change_state : bool )
     {
-        if let Some( n ) = self.doc.get( id )
+        if let Some( n ) = self.doc.get_mut( id )
         {
-            if let Some( ( p, v ) ) = n.state_value()
+            if let Some( ( path, v ) ) = n.state_value()
             {
-                create_or_replace_path( p.as_str(), &mut self.state, v );
+                if let Some( value ) = self.state.pointer( path.as_str() ) && ! force_change_state
+                {
+                    n.replace_value( json_value_to_string( value ) );
+                }
+                else
+                {
+                    create_or_replace_path( path.as_str(), &mut self.state, v ); 
+                }
             }
         }
     }
@@ -741,7 +762,7 @@ impl RTMLDoc
         {
             if n.replace_value( new_value )
             {
-                self.sincronize_state_from_id( node_id );
+                self.sync_state_from_id( node_id, true );
                 
                 true
             }

@@ -144,23 +144,30 @@ impl EditableValue
         true
     }
 
-    pub fn replace_value( &mut self, new_value : String, width : usize )
+    pub fn replace_value( &mut self, new_value : String )
     {
-        let len = str_len( &new_value );
+        let new_value = new_value.replace( "\n", "" );
 
-        if self.cursor_position > len { self.cursor_position = len };
+        if new_value == self.value { return };
 
         self.start_at = 0;
+        self.cursor_position = 0;
 
         self.value = new_value;
-
-        self.move_start_at_on_next( width );
     }
 
     fn move_start_at_on_next( &mut self, width : usize )
     {
         loop 
         {
+            if self.start_at >= self.cursor_position
+            {
+                self.start_at = 0;
+                self.cursor_position = 0;
+
+                break;
+            }
+
             let visible_text = substr( &self.value, self.start_at, self.cursor_position );
             let text_width = visible_text.width();
 

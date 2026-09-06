@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::Widget};
 use serde_json::Value;
 
-use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_form::FieldAttrs, rtml_node::{FocusEventResponse, RTMLNodeCommon}, util::{editable_value::{EditableValue, editable_value_to_spans}, rtml_event::RTMLEvent, rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}}};
+use crate::{app::event::{AppEvent, send_app_event}, input::event::InputEvent, rtml::{rtml_form::FieldAttrs, rtml_node::{FocusEventResponse, RTMLNodeCommon}, util::{editable_value::{EditableValue, editable_value_to_spans}, rtml_event::RTMLEvent, rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}}, util::json::json_value_to_string};
 
 
 #[derive(Debug)]
@@ -73,7 +73,7 @@ impl RTMLInput
     
     pub fn replace_value( &mut self, new_value : String ) -> bool
     {
-        self.value.replace_value( new_value, self.common.attrs.area.width as usize );
+        self.value.replace_value( new_value );
 
         true
     }
@@ -84,6 +84,25 @@ impl RTMLInput
             self.field.path.clone(),
             Value::String( self.value.value.clone() )
         )
+    }
+
+    pub fn sync_path( &mut self, path : &str, value : &str, state : &Value )
+    {
+        if path == self.field.path
+        {
+            self.replace_value( value.to_string() );
+        }
+        else if self.field.path.as_str().starts_with( path )
+        {
+            if let Some( v ) = state.pointer( &self.field.path )
+            {
+                self.replace_value( json_value_to_string( v ) );
+            }
+            else
+            {
+                self.replace_value( "".into() );    
+            }
+        }
     }
 
     fn add_char( &mut self, char : char, area : Rect ) -> FocusEventResponse
