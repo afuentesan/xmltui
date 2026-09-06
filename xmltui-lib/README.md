@@ -48,7 +48,9 @@
 
 [x] Tener un estado. 
 
-[] Que los componentes que tengan valores que puedan ser cambiados por el usuario se puedan sincronizar con el estado. Que el valor de los atributos (y quizá también el contenido) de los componentes puedan recuperarse del estado.
+[x] Que los componentes que tengan valores que puedan ser cambiados por el usuario se puedan sincronizar con el estado. 
+
+[] Que el valor de los atributos (y quizá también el contenido) de los componentes puedan recuperarse del estado.
 
 [] Que todos (o la mayoría) de los atributos de los componentes puedan ejecutar templates para calcular su valor. A esos templates hay que pasarles el estado.
 
@@ -84,7 +86,7 @@
 
 [] También habría que evitar que un command pueda tener otro command dentro.
 
-[] Poner el atributo on-init en los command, si está a false no se ejecutarán al inicio y solo se lanzarán desde un evento refresh-command. Si no tienen el on-init ¿tendrá sentido el refresh en esos commands?.
+[] Poner el atributo on-init en los command, si está a false no se ejecutarán al inicio y solo se lanzarán desde un evento refresh-command. Si tienen el on-init a false ¿tendrá sentido el refresh en esos commands?.
 
 [] Componente include que simplemente pueda cargar el contenido desde otro fichero. 
 
