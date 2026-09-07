@@ -39,6 +39,21 @@ impl HidrateCommand
 }
 
 #[derive(Debug)]
+pub struct HidrateState
+{
+    pub doc_id : String,
+    pub node_id : RTMLNodeId
+}
+
+impl HidrateState
+{
+    pub fn new( doc_id : String, node_id : RTMLNodeId ) -> Self
+    {
+        Self { doc_id, node_id }
+    }
+}
+
+#[derive(Debug)]
 pub struct CallbackResponse
 {
     pub callback_action : RTMLCallbackAction,
@@ -61,6 +76,7 @@ pub enum AppEvent
     FocusEvent( InputEvent ),
     LoadFile( String ),
     HidrateCommand( HidrateCommand ),
+    HidrateState( HidrateState ),
     Callback( RTMLCallback ),
     CallbackResponse( CallbackResponse ),
     RefreshCommand( CommandExecutorParams ),

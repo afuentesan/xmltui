@@ -115,6 +115,7 @@ pub fn execute_callback_response(
                 Ok( _ ) =>
                 {
                     doc.init_state_from_childs( &replace_data.node_id );
+                    doc.init_state_nodes_from_childs( &replace_data.node_id );
 
                     doc.init_commands_for_childs( cancellation_token, &replace_data.node_id );
 
@@ -150,6 +151,7 @@ pub fn execute_callback_response(
                 Ok( new_node_id ) =>
                 {
                     doc.init_state_for_node_and_childs( &new_node_id );
+                    doc.init_state_nodes_for_node_and_childs( &new_node_id );
                     doc.init_commands_for_node_and_childs( cancellation_token, &new_node_id );
 
                     true
@@ -209,6 +211,7 @@ fn parse_change_state(
     {
         sync_field_paths( &params, doc );
 
+        doc.refresh_all_states( &params.common.path );
         doc.refresh_all_commands( &params.common.path );
         
         true

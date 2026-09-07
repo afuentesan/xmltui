@@ -4,7 +4,7 @@ use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect
 use serde_json::{Map, Value, json};
 use tokio_util::sync::CancellationToken;
 
-use crate::{async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, util::rtml_event::{CallbackChangeState, RTMLCallbackAction}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
+use crate::{app::event::{AppEvent, HidrateState, send_app_event}, async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, rtml_state::render_rtml_state, util::rtml_event::{CallbackChangeState, RTMLCallbackAction}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -226,6 +226,7 @@ impl RTMLDoc
             {
                 create_or_replace_path( path.as_str(), &mut self.state, val );
 
+                self.refresh_all_states( &path );
                 self.refresh_all_commands( &path );
 
                 response.changed
@@ -255,7 +256,7 @@ impl RTMLDoc
         // En caso contrario se guarda el valor del campo en el estado.
         self.sync_state_from_ids( ids );
 
-        // 3.- Por último ejecutamos los comandos
+        // 3.- Ejecutamos los comandos
         // Los comandos los ejecutamos al final por si algún comando necesita como entrada el valor de algún campo o alguna variable definida.
         for ( _, val ) in &self.state_executors
         {
@@ -268,6 +269,92 @@ impl RTMLDoc
 
                     self.exec_command_state( c );
                 }
+            }
+        }
+
+        // 4.- Iniciamos los nodos st
+        self.init_state_nodes();
+    }
+
+    fn init_state_nodes( &self )
+    {
+        let ids = self.doc.iter()
+        .filter_map( 
+            | ( id, node ) | 
+            {
+                if let RTMLNode::State( _ ) = node
+                {
+                    Some( id.as_str() )
+                }
+                else
+                {
+                    None    
+                }
+            }
+        )
+        .collect();
+
+        self.refresh_state_from_nodes_id( ids );
+    }
+
+    pub fn refresh_all_states( &self, path : &str )
+    {
+        let ids = self.doc.iter()
+        .filter_map( 
+            | ( k, v ) | 
+            {
+                if let RTMLNode::State( _ ) = v
+                {
+                    if v.node_reload_with_state( path )
+                    {
+                        Some( k.as_str() )
+                    }
+                    else
+                    {
+                        None    
+                    }
+                }
+                else
+                {
+                    None    
+                }
+            } 
+        ).collect::<Vec<_>>();
+
+        self.refresh_state_from_nodes_id( ids );
+    }
+
+    pub fn init_state_nodes_from_childs( &mut self, parent_id : &RTMLNodeId )
+    {
+        let ids = self.all_childs_ids_ref( parent_id );
+
+        self.refresh_state_from_nodes_id( ids );
+    }
+
+    pub fn init_state_nodes_for_node_and_childs( &mut self, node_id : &RTMLNodeId )
+    {
+        let mut ids = self.all_childs_ids_ref( node_id );
+
+        ids.push( node_id.as_str() );
+
+        self.refresh_state_from_nodes_id( ids );
+    }
+
+    fn refresh_state_from_nodes_id( &self, ids : Vec<&str> )
+    {
+        for id in ids
+        {
+            if let Some( n ) = self.doc.get( id ) &&
+            let RTMLNode::State( _ ) = n
+            {
+                send_app_event(
+                    AppEvent::HidrateState(
+                        HidrateState::new(
+                            self.doc_id.clone(), 
+                            id.to_string()
+                        )
+                    )
+                );
             }
         }
     }
@@ -407,9 +494,16 @@ impl RTMLDoc
         .filter_map( 
             | ( k, v ) | 
             {
-                if v.node_reload_with_state( path )
+                if let RTMLNode::Command( _ ) = v
                 {
-                    Some( k.to_string() )
+                    if v.node_reload_with_state( path )
+                    {
+                        Some( k.to_string() )
+                    }
+                    else
+                    {
+                        None    
+                    }
                 }
                 else
                 {
@@ -500,6 +594,7 @@ impl RTMLDoc
                             );
                         }
                     },
+                    RTMLNode::State( _ ) |
                     RTMLNode::Input( _ ) |
                     RTMLNode::Layout( _ ) |
                     RTMLNode::Line( _ ) |
@@ -533,6 +628,7 @@ impl RTMLDoc
                         }
                     );
                 },
+                RTMLNode::State( _ ) |
                 RTMLNode::Input( _ ) |
                 RTMLNode::Layout( _ ) |
                 RTMLNode::Line( _ ) |
@@ -598,6 +694,23 @@ impl RTMLDoc
                 ret.push( child.to_string() );
 
                 ret.append( &mut self.all_childs_ids( child ) );
+            }
+        }
+
+        ret
+    }
+
+    fn all_childs_ids_ref( &self, node_id : &RTMLNodeId ) -> Vec<&str>
+    {
+        let mut ret = vec![];
+
+        if let Some( node ) = self.doc.get( node_id )
+        {
+            for child in node.childs()
+            {
+                ret.push( child.as_str() );
+
+                ret.append( &mut self.all_childs_ids_ref( child ) );
             }
         }
 
@@ -1023,6 +1136,12 @@ fn render_node_and_get_child_areas(
             render_rtml_command( c, area, buf, &doc.templates, context );
 
             child_areas( root.childs(), &c.container.direction, &c.container.flex, &c.container.padding, area, doc )
+        },
+        RTMLNode::State( s ) =>
+        {
+            render_rtml_state( s, area, buf, &doc.templates, context );
+
+            child_areas( root.childs(), &s.container.direction, &s.container.flex, &s.container.padding, area, doc )
         },
         RTMLNode::Paragraph( p ) =>
         {

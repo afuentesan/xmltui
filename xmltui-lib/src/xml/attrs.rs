@@ -319,13 +319,15 @@ pub fn field_attrs_from_node_and_id( node : Node, id : &str ) -> FieldAttrs
     }
     .trim();
 
-    if path.starts_with( "/" )
-    {
-        FieldAttrs::new( path.to_string() )
-    }
-    else
-    {
-        FieldAttrs::new( format!( "/{path}" ) )
-    }
-    
+    let path = parse_path( path );
+
+    FieldAttrs::new( path )
+}
+
+pub fn parse_path( mut path : &str ) -> String
+{
+    path = path.trim().trim_end_matches( | c | matches!( c, '/' ) );
+    path = path.trim_start_matches( | c | matches!( c, '/' ) );
+
+    format!( "/{path}" )
 }

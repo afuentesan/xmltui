@@ -1,74 +1,38 @@
-use std::{collections::HashMap, time::Duration};
-
+use std::collections::HashMap;
 
 use ratatui::{buffer::Buffer, layout::Rect, style::Style};
 use serde_json::Value;
 
-use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_node::{RTMLNodeCommon, XMLNodeWrapper}, util::rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}, util::draw::clear_area};
+use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_node::RTMLNodeCommon, util::rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}, util::draw::clear_area};
 
-#[derive(Debug, Clone, Copy)]
-pub enum RTMLCommandOutput
-{
-    String,
-    StrVec,
-    Json
-}
 
 #[derive(Debug)]
-pub struct RTMLCommand
+pub struct RTMLState
 {
     pub common : RTMLNodeCommon,
     pub container : ContainerAttrs,
     pub style : Option<Style>,
     pub style_template : RTMLStyleTemplate,
-    pub executors : Vec<String>,
-    pub refresh : CommandRefresh,
-    pub child : Option<XMLNodeWrapper>,
     pub template_name : Option<String>,
     pub template : Option<String>,
-    pub output : RTMLCommandOutput,
-    pub args : HashMap<String, String>,
-    pub envs : HashMap<String, String>,
     pub reload_with_state : bool,
     pub reload_with_state_path : Vec<String>
 }
 
-impl RTMLCommand
+impl RTMLState
 {
-    pub fn new( 
-        executors : Vec<String>, 
-        refresh : CommandRefresh, 
+    pub fn new(
         common : RTMLNodeCommon, 
         container : ContainerAttrs,
         style : Option<Style>,
         style_template : RTMLStyleTemplate,
-        child : Option<XMLNodeWrapper>,
         template_name : Option<String>,
         template : Option<String>,
-        output : RTMLCommandOutput,
-        args : HashMap<String, String>,
-        envs : HashMap<String, String>,
         reload_with_state : bool,
         reload_with_state_path : Vec<String>
     ) -> Self
     {
-        Self 
-        { 
-            common, 
-            container,
-            style,
-            style_template,
-            executors, 
-            refresh,
-            child,
-            template_name,
-            template,
-            output,
-            args,
-            envs,
-            reload_with_state,
-            reload_with_state_path
-        }
+        Self { common, container, style, style_template, template_name, template, reload_with_state, reload_with_state_path }
     }
 
     pub fn node_template<'a>( &'a self, templates : &'a HashMap<String, String> ) -> Option<&'a String>
@@ -82,15 +46,8 @@ impl RTMLCommand
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum CommandRefresh
-{
-    Once,
-    Repeat( Duration )
-}
-
-pub fn render_rtml_command(
-    layout : &RTMLCommand,
+pub fn render_rtml_state(
+    layout : &RTMLState,
     area : Rect,
     buf : &mut Buffer,
     templates : &HashMap<String, String>,

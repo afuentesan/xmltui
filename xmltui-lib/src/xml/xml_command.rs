@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, id_retry_if_exists, parse_common_attrs}, xml_doc::XMLDoc, xml_state::parse_args_envs_from_node, xml_util::{container_styles, template_from_inner_node}}};
+use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, id_retry_if_exists, parse_common_attrs}, xml_doc::XMLDoc, xml_state::{parse_args_envs_from_node, reload_with_state}, xml_util::{container_styles, template_from_inner_node}}};
 
 pub fn process_command( 
     xml_doc : &mut XMLDoc,
@@ -69,33 +69,6 @@ pub fn process_command_from_parent(
     }
 
     Ok( () )
-}
-
-fn reload_with_state( node : Node ) -> ( bool, Option<String> )
-{
-    if let Some( a ) = node.attribute( "reload-with-st-path" ) && a.trim() != ""
-    {
-        let path = if a.trim().starts_with( "/" )
-        {
-            a.trim().to_string()
-        }
-        else
-        {
-            format!( "/{}", a.trim() )
-        };
-
-        ( 
-            false, 
-            Some( 
-                path
-            ) 
-        )
-    }
-    else if let Some( a ) = node.attribute( "reload-with-st" ) && a.trim().to_lowercase() == "true"
-    {
-        ( true, None )
-    }
-    else { ( false, None ) }
 }
 
 pub fn output_from_node( node : Node ) -> RTMLCommandOutput

@@ -26,8 +26,6 @@
 
 [] Pasar métodos comunes de xml a xml_util
 
-[] sse para los command y que el comando se ejecute cada vez que llegue un evento. El evento hay que pasarlo como parámetro al comando. Quizá con un atributo refresh-sse.
-
 [] Añadir eventos focus y blur para todos los nodos que sean focusables.
 
 [] Hay que rerenderizar la aplicación cuando se redimensione la consola
@@ -74,23 +72,23 @@
 
 [] Que el estado se pueda enviar cuando se cambia de página.
 
-[] Componente state similar a command. Se deben recargar todos los states cada vez que se modifica el estado, los commands solo se relanzan si se ha puesto el atributo reload-with-state a true.
+[x] Componente state similar a command. Se deben recargar todos los states en función de los atributos reload-with-st y reload-with-st-path.
 
-[] El componente state no debería tener ningún otro componente state dentro, no tiene sentido. Quizá tampoco habría que permitir que tuviese un command para evitar que se lance el command cada vez que cambie el estado.
+[] El componente state no debería tener ningún otro componente state dentro. Quizá tampoco habría que permitir que tuviese un command para evitar que se lance el command cada vez que cambie el estado.
 
 [] El componente command no debería tener un state dentro. Si se quiere recargar el command cada vez que cambie el state se utiliza el atributo reload-with-state.
 
 [x] Atributo reload-with-state-path en los command para que solo se recargue el command si cambia un path determinado.
 
-[] Atributo reload-with-state-path en los state para que solo se recargue el state si cambia un path determinado.
+[x] Atributo reload-with-state-path en los state para que solo se recargue el state si cambia un path determinado.
 
 [] También habría que evitar que un command pueda tener otro command dentro.
 
 [] Poner el atributo on-init en los command, si está a false no se ejecutarán al inicio y solo se lanzarán desde un evento refresh-command. Si tienen el on-init a false ¿tendrá sentido el refresh en esos commands?.
 
-[] Componente include que simplemente pueda cargar el contenido desde otro fichero. 
+[] Componente include que pueda cargar el contenido desde otro fichero. 
 
-[] En todos los sitios del xml donde se recoja un path quitar las barras del final si las tuviese.
+[x] En todos los sitios del xml donde se recoja un path quitar las barras del final si las tuviese.
 
 [] Nodo st para poder cargar comandos y variables de estado desde otro fichero.
 
@@ -99,3 +97,7 @@
 [] Que se pueda definir el número mínimo de líneas y columnas que puede tener la consola. Si la consola es más pequeña mostrar algún mensaje de error al usuario.
 
 [] Eventos del mouse
+
+[x] Que el atributo reload-with-st-path acepte varios paths separados por coma, ahora solo acepta un path.
+
+[] Hay que revisar el struct RTMLDoc, tiene muchas funciones que seguramente estarían mejor en ficheros separados dependiendo de lo que hagan.

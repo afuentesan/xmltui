@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use roxmltree::Node;
 
-use crate::{rtml::rtml_command::RTMLCommandOutput, state::{command_state::CommandState, state_executor::{CommonState, StateExecutor, TypeState}, var_state::VarState}, util::log::log_to_file, xml::{attrs::{attr_commands, attr_option_str, default_id}, xml_command::output_from_node}};
+use crate::{rtml::{rtml_command::RTMLCommandOutput, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_state::RTMLState}, state::{command_state::CommandState, state_executor::{CommonState, StateExecutor, TypeState}, var_state::VarState}, util::log::log_to_file, xml::{attrs::{attr_commands, attr_option, attr_option_str, default_id, id_retry_if_exists, parse_common_attrs, parse_path}, xml_command::output_from_node, xml_doc::XMLDoc, xml_util::{container_styles, template_from_inner_node}}};
 
 
 pub fn states_map( node : Node ) -> HashMap<String, StateExecutor>
@@ -152,16 +152,11 @@ fn arg_env_value( value : &str, acc : &mut HashMap<String, String> )
         key    
     };
 
+    let path = parse_path( path );
+
     acc.insert( 
         key.to_string(), 
-        if path.starts_with( "/" )
-        {
-            path.to_string()
-        }
-        else
-        {
-            format!( "/{path}" )    
-        }
+        path
     );
 }
 
@@ -220,4 +215,95 @@ fn type_from_str( str : &str, output : Option<&RTMLCommandOutput> ) -> TypeState
             }
         }
     }
+}
+
+pub fn process_state( 
+    xml_doc : &mut XMLDoc,
+    node : Node, 
+    parent_id : Option<RTMLNodeId>, 
+    xml : &str
+) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
+{
+    let command_id = id_retry_if_exists( node, xml_doc.nodos() );
+
+    let ( constraint, style, style_template, container_attrs ) = container_styles( node, xml_doc.styles(), None );
+
+    let common = RTMLNodeCommon::new( 
+        parse_common_attrs( constraint )?, 
+        vec![], 
+        parent_id
+    );
+
+    let ( reload_with_state, reload_with_state_path ) = reload_with_state( node );
+    
+    Ok(
+        (
+            RTMLNode::State(
+                RTMLState::new(
+                    common,
+                    container_attrs,
+                    Some( style ),
+                    style_template,
+                    attr_option( node, "template" ),
+                    template_from_inner_node( node, xml ),
+                    reload_with_state,
+                    reload_with_state_path,
+                )
+            ),
+            command_id
+        )
+    )
+}
+
+pub fn process_state_from_parent(
+    xml_doc : &mut XMLDoc,
+    parent_node : Node, 
+    parent_id : Option<&RTMLNodeId>, 
+    xml : &str
+) -> anyhow::Result<()>
+{
+    for child in parent_node.children()
+    {
+        if child.tag_name().name() != "st" { continue; };
+
+        let ( node, id ) = process_state( xml_doc, child, parent_id.cloned(), xml )?;
+
+        xml_doc.add_node( node, id );
+
+        break;
+    }
+
+    Ok( () )
+}
+
+pub fn reload_with_state( node : Node ) -> ( bool, Vec<String> )
+{
+    if let Some( a ) = node.attribute( "reload-with-st-path" ) && a.trim() != ""
+    {
+        let paths = a.split( "," )
+        .filter_map(
+            | s |
+            {
+                if s.trim() != ""
+                {
+                    Some( parse_path( s ) )
+                }
+                else
+                {
+                    None    
+                }
+            }
+        )
+        .collect();
+
+        ( 
+            false, 
+            paths
+        )
+    }
+    else if let Some( a ) = node.attribute( "reload-with-st" ) && a.trim().to_lowercase() == "true"
+    {
+        ( true, vec![] )
+    }
+    else { ( false, vec![] ) }
 }

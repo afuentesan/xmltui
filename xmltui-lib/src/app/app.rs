@@ -1,9 +1,10 @@
 use std::thread;
 
 use ratatui::{DefaultTerminal, style::Style, widgets::Block};
+use serde_json::json;
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::{app_callback::{execute_callback, execute_callback_response}, app_doc::load_file, event::{AppEvent, HidrateCommand, init_app_event_channels, send_app_event}}, code::event::CommandExecutorParams, rtml::rtml_doc::{RTMLDoc, render_rtml_doc}, util::{log::log_to_file, template::template_to_xml}, xml::xml2rtml::{replace_node_childs_with_xml, xml2rtml_doc}};
+use crate::{app::{app_callback::{execute_callback, execute_callback_response}, app_doc::load_file, event::{AppEvent, HidrateCommand, HidrateState, init_app_event_channels, send_app_event}}, code::event::CommandExecutorParams, rtml::rtml_doc::{RTMLDoc, render_rtml_doc}, util::{log::log_to_file, template::{template_to_xml, xml_from_template_context}}, xml::xml2rtml::{replace_node_childs_with_xml, xml2rtml_doc}};
 
 #[derive(Debug)]
 pub struct App
@@ -90,6 +91,15 @@ pub fn init_app( initial_path : &str ) -> anyhow::Result<()>
                             AppEvent::HidrateCommand( h ) =>
                             {
                                 hidrate_command( 
+                                    &mut terminal, 
+                                    &mut app.doc, 
+                                    h, 
+                                    cancellation_token.as_ref().unwrap().clone() 
+                                );
+                            },
+                            AppEvent::HidrateState( h ) =>
+                            {
+                                hidrate_state( 
                                     &mut terminal, 
                                     &mut app.doc, 
                                     h, 
@@ -183,6 +193,53 @@ fn hidrate_command(
         Ok( _ ) =>
         {
             rtml_doc.init_state_from_childs( &hidrate.node_id );
+            rtml_doc.init_state_nodes_from_childs( &hidrate.node_id );
+            rtml_doc.init_commands_for_childs( cancellation_token, &hidrate.node_id );
+
+            rtml_to_terminal( terminal, rtml_doc );
+        },
+        Err( e ) =>
+        {
+            // TODO: Mostrar algún tipo de error
+            log_to_file( &format!( "hidrate_command. XML: {}\n Error: {:?}", response, e ) );
+        }
+    }
+}
+
+fn hidrate_state(
+    terminal : &mut DefaultTerminal,
+    rtml_doc : &mut RTMLDoc,
+    hidrate : HidrateState,
+    cancellation_token : CancellationToken
+)
+{
+    if hidrate.doc_id != rtml_doc.doc_id { return };
+
+    let template = if let Some( t ) = rtml_doc.node_template( &hidrate.node_id )
+    {
+        t
+    }
+    else { return };
+
+    let context = json!( { "st" : &rtml_doc.state } );
+
+    let response = match xml_from_template_context( template, &context )
+    {
+        Ok( r ) => r,
+        Err( e ) =>
+        {
+            log_to_file( &format!( "hidrate_state. Fail to parse template: {:?}", e ) );
+
+            return;
+        }
+    };
+   
+    match replace_node_childs_with_xml( rtml_doc, hidrate.node_id.clone(), &response ) 
+    {
+        Ok( _ ) =>
+        {
+            rtml_doc.init_state_from_childs( &hidrate.node_id );
+            rtml_doc.init_state_nodes_from_childs( &hidrate.node_id );
             rtml_doc.init_commands_for_childs( cancellation_token, &hidrate.node_id );
 
             rtml_to_terminal( terminal, rtml_doc );

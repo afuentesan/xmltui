@@ -4,7 +4,7 @@ use regex::regex;
 use roxmltree::Node;
 use serde_json::Value;
 
-use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::{RTMLParagraph, create_paragraph}, util::types::TextLines}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_command::process_command_from_parent, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_util::{paragraph_like_styles, style_from_styles}}};
+use crate::{rtml::{rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_paragraph::{RTMLParagraph, create_paragraph}, util::types::TextLines}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_command::process_command_from_parent, xml_doc::{XMLDoc, replace_xml_doc_focus}, xml_state::process_state_from_parent, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_paragraph( 
@@ -31,6 +31,7 @@ pub fn process_paragraph(
     replace_xml_doc_focus( xml_doc, node, &id );
 
     process_command_from_parent( xml_doc, node, Some( &id ), xml )?;
+    process_state_from_parent( xml_doc, node, Some( &id ), xml )?;
 
     Ok(
         (

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use regex::regex;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_line::RTMLLine, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::types::TextLine}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::xml_style::{StyleSelector, XMLStyle}, xml_command::process_command_from_parent, xml_doc::XMLDoc, xml_util::{paragraph_like_styles, style_from_styles}}};
+use crate::{rtml::{rtml_line::RTMLLine, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, util::types::TextLine}, xml::{attrs::{id_retry_if_exists, parse_common_attrs}, styles::xml_style::{StyleSelector, XMLStyle}, xml_command::process_command_from_parent, xml_doc::XMLDoc, xml_state::process_state_from_parent, xml_util::{paragraph_like_styles, style_from_styles}}};
 
 
 pub fn process_line( 
@@ -28,6 +28,7 @@ pub fn process_line(
     let text_line = process_text_line( node, xml_doc.styles() );
 
     process_command_from_parent( xml_doc, node, Some( &id ), xml )?;
+    process_state_from_parent( xml_doc, node, Some( &id ), xml )?;
 
     Ok(
         (

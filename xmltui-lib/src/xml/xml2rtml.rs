@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use roxmltree::{Document, Node};
 
-use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::styles_from_head, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_doc::{XMLDoc, XMLDocResult}, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::{process_line, process_text_line}, xml_link::process_link, xml_paragraph::{process_paragraph, replace_paragraph_content}, xml_select::{process_select, replace_select_options}, xml_state::states_map, xml_template::templates_from_parent}};
+use crate::{app::app_doc::chroot, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeId}}, util::file::read_file_in_chroot_with_extension, xml::{attrs::id_retry_if_exists, styles::xml_style::styles_from_head, xml_border::process_border, xml_button::process_button, xml_code::code_from_parent, xml_command::process_command, xml_container::process_childs_container, xml_doc::{XMLDoc, XMLDocResult}, xml_input::process_input, xml_layout::{process_body_layout, process_layout}, xml_line::{process_line, process_text_line}, xml_link::process_link, xml_paragraph::{process_paragraph, replace_paragraph_content}, xml_select::{process_select, replace_select_options}, xml_state::{process_state, states_map}, xml_template::templates_from_parent}};
 
 pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
 {
@@ -191,6 +191,15 @@ fn replace_content(
 
             Ok( false )
         },
+        RTMLNode::State( n ) =>
+        {
+            if let Some( p ) = n.common.parent_id.clone().as_ref()
+            {
+                return replace_content( doc, rtml_doc, p );
+            }
+
+            Ok( false )
+        },
         RTMLNode::Line( n ) =>
         {
             n.content =  process_text_line( doc.root_element(), &rtml_doc.styles );
@@ -301,6 +310,10 @@ pub fn process_node(
         "command" =>
         {
             Ok( Some( process_command( xml_doc, node, parent_id, xml )? ) )
+        },
+        "st" =>
+        {
+            Ok( Some( process_state( xml_doc, node, parent_id, xml )? ) )
         },
         "border" =>
         {
