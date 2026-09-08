@@ -76,5 +76,34 @@ Let's build a simple application that displays the current date and time in the 
         </command>
     </body>
 </rtml>
+```
+
+## Installation
+
+You can install `xmltui` using Cargo:
+
+```bash
+cargo install xmltui
 
 ```
+
+`xmltui` acts as the engine that interprets and renders your XML application—conceptually similar to how a web browser renders web pages.
+
+## Usage
+
+Assuming you saved the previous example at `/home/user/examples/clock.xml`, you can run it with the following command:
+
+```bash
+xmltui --root="/home/user/examples" --path="clock"
+
+```
+
+### CLI Arguments
+
+* `--root`: The base directory path of your application.
+* `--path`: The entry point file to render (the `.xml` extension is optional).
+
+### Navigation & Default Entry Point
+
+* **Default Entry Point:** If the `--path` argument is omitted, `xmltui` will automatically look for an `index.xml` file inside the specified `--root` directory.
+* **Multi-file Navigation:** You can split your application across multiple XML files within the root folder and navigate between them using anchor tags, for example: `<a src="another.xml">`.
