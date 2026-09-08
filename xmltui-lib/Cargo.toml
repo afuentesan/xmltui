@@ -1,7 +1,15 @@
 [package]
 name = "xmltui-lib"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2024"
+license = "MIT"
+description = "xmltui is a framework for building Terminal User Interfaces (TUIs) using a web-like approach."
+readme = "README.md"
+repository = "https://github.com/afuentesan/xmltui/tree/main/xmltui-lib"
+documentation = "https://github.com/afuentesan/xmltui/tree/main/xmltui-lib"
+keywords = ["tui", "terminal", "framework"]
+categories = ["command-line-interface"]
+authors = ["Ángel Fuente <awpakj@gmail.com>"]
 
 [dependencies]
 anyhow = "1.0.104"

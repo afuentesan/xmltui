@@ -1,34 +1,39 @@
 # xmltui
 
-xmltui es un framework para crear aplicaciones de terminal de forma similar a como haríamos una página web. 
+**xmltui** is a framework for building Terminal User Interfaces (TUIs) using a web-like approach, allowing you to design terminal apps similarly to how you would build a webpage.
 
-Se utiliza ratatui para dibujar en la terminal, tokio para lanzar comandos de forma asíncrona y minijinja para interpretar las plantillas con jinja2.
+Under the hood, it leverages **Ratatui** for rendering the UI in the terminal, **Tokio** for asynchronous command execution, and **MiniJinja** for parsing and rendering Jinja2 templates.
 
-## Ejemplo:
+## Example
 
-Vamos a hacer una pequeña aplicación que nos muestre la fecha y la hora en el centro de la pantalla.
-Este ejemplo solo funciona si tienes instalado el comando date en tu sistema.
+Let's build a simple application that displays the current date and time in the center of the screen.
+*Note: This example requires the `date` command to be installed on your system.*
 
 ```xml
 <rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
       xsi:noNamespaceSchemaLocation="schema.xsd">
 
     <!--
-    En el nodo head podemos definir comandos, estilos y templates. También se pueden definir en ficheros externos y cargarlos desde el head. 
+    The <head> node is where you define commands, styles, and templates. 
+    These can also be defined in external files and imported from the head. 
     -->
     <head>
 
         <!-- 
-        El nodo code se utiliza para definir comandos que queremos ejecutar. 
-        En el atributo command ponemos el comando a ejecutar y en name ponemos un nombre que luego utilizaremos para referirnos a este comando.
-        También se pueden definir argumentos y variables de entorno, como en este ejemplo no son necesarios dejamos el nodo code vacío.
+        The <code> node is used to define the commands we want to execute. 
+        The 'command' attribute specifies the executable, and 'name' provides an identifier 
+        to reference this command later. 
+        Arguments and environment variables can also be defined here, but since this 
+        example doesn't need them, we leave the <code> node self-closed.
         -->
         <code command="date" name="date-command" />
 
         <!-- 
-        style se utiliza para definir los estilos de la aplicación. 
-        Se escriben en formato json, aunque se pueden omitir las llaves de inicio y fin el resto debe ser un json válido.
-        Para indicar a que nodo se aplicarán los estilos se pueden utilizar nombres de etiquetas, clases precedidas por un punto e ids precedidos de # al igual que se hace en css.
+        The <style> node is used to define the layout and styling of the application. 
+        Styles are written in JSON format. The outer opening and closing braces can be 
+        omitted, but the rest must be valid JSON.
+        To target specific nodes, you can use tag names, class names (prefixed with a dot '.'), 
+        and IDs (prefixed with a hash '#'), exactly like CSS.
         -->
         <style>
             "body" : {
@@ -45,29 +50,31 @@ Este ejemplo solo funciona si tienes instalado el comando date en tu sistema.
     </head>
 
     <!-- 
-    En el body pondremos lo que queramos que se vea por pantalla
+    The <body> node contains the visible elements that will be rendered on the screen.
     -->
     <body>
         <!-- 
-        El nodo command se utiliza para ejecutar un comando y renderizar un template con la salida del comando.
-        El template se puede definir dentro del nodo command pero también se puede poner el atributo template para utilizar alguno que tengamos en el head o en algún fichero externo.
-        En exec debemos poner el name de algún nodo code.
-        Con refresh-sec="1" le decimos que el comando se ejecute cada segundo. Por defecto los comandos se ejecutan solo una vez cuando se carga la página aunque se pueden relanzar desde diferentes eventos.
+        The <command> node executes a defined command and renders a template with its output.
+        The template can be defined inline (inside the node), or referenced via the 'template' 
+        attribute if it was defined in the <head> or an external file.
+        The 'exec' attribute must point to the 'name' of a <code> node.
+        By setting 'refresh-sec="1"', we tell the app to re-run the command every second. 
+        By default, commands run only once on startup, though they can be triggered by events.
         -->
         <command exec="date-command" refresh-sec="1"> 
             <template>
                 <!-- 
-                line es el widget Line de ratatui. Pueden contener texto y/o nodos span. 
-                En la variable ctx está la salida del comando. 
-                Por defecto la salida de los comandos es texto pero también se puede interpretar como json si ponemos el atributo output="json" y la salida del comando es un json válido.
-                Las dobles llaves pertenecen a la sintaxis de jinja2.
-                Como en este caso la salida del comando es texto ponemos directamente {{ ctx }} y se renderizará el texto devuelto por el comando.
+                <line> corresponds to Ratatui's Line widget. It can contain plain text and/or <span> nodes. 
+                The 'ctx' variable holds the output of the executed command. 
+                By default, command output is treated as raw text, but it can be parsed as JSON by 
+                adding 'output="json"' if the command returns valid JSON data.
+                The double curly braces are Jinja2 syntax. 
+                Since our command outputs plain text, we simply use {{ ctx }} to render it directly.
                 -->
                 <line>{{ ctx }}</line>
             </template>
         </command>
     </body>
 </rtml>
+
 ```
-
-
