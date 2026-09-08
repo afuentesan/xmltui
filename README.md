@@ -107,3 +107,7 @@ xmltui --root="/home/user/examples" --path="clock"
 
 * **Default Entry Point:** If the `--path` argument is omitted, `xmltui` will automatically look for an `index.xml` file inside the specified `--root` directory.
 * **Multi-file Navigation:** You can split your application across multiple XML files within the root folder and navigate between them using anchor tags, for example: `<a src="another.xml">`.
+
+## Docs:
+
+[`Reference`](./docs/index.md)
