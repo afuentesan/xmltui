@@ -12,6 +12,6 @@ categories = ["command-line-interface"]
 authors = ["Ángel Fuente <awpakj@gmail.com>"]
 
 [dependencies]
-xmltui-lib = { path = "../xmltui-lib" }
+xmltui-lib = "0.0.1"
 clap = { version = "4.6.1", features = [ "derive" ] }
 anyhow = "1.0.104"

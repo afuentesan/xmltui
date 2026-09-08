@@ -2041,6 +2041,8 @@ dependencies = [
 [[package]]
 name = "xmltui-lib"
 version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0bac21ead3648ac0c0c0b0ff3c1c5b3970f5b43d3f6636128bab800e0cc889d2"
 dependencies = [
  "anyhow",
  "convert_case 0.12.0",
