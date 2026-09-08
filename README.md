@@ -98,6 +98,8 @@ xmltui --root="/home/user/examples" --path="clock"
 
 ```
 
+**To exit the application, press `Ctrl-q`.**
+
 ### CLI Arguments
 
 * `--root`: The base directory path of your application.
