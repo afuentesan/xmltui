@@ -2,12 +2,10 @@ use std::collections::HashMap;
 
 use roxmltree::Node;
 
-use crate::{app::app_doc::chroot, code::executor::{Executor, ExecutorArg, ExecutorBuilder, ExecutorEnv, ExecutorEnvVar}, util::{file::read_file_in_chroot_with_extension, log::log_to_file}};
+use crate::{app::app_doc::chroot, code::executor::{Executor, ExecutorArg, ExecutorBuilder, ExecutorEnv, ExecutorEnvVar}, util::file::read_file_in_chroot_with_extension};
 
 pub fn code_from_parent( node : Option<Node> ) -> anyhow::Result<HashMap<String, Executor>>
 {
-    log_to_file( "code_from_parent" );
-
     let mut ret = HashMap::new();
 
     if node.is_none() { return Ok( ret ) };
@@ -18,8 +16,6 @@ pub fn code_from_parent( node : Option<Node> ) -> anyhow::Result<HashMap<String,
     {
         add_executors( child, &mut ret )?;
     }
-
-    log_to_file( &format!( "Executors: {ret:?}" ) );
 
     Ok( ret )
 }
@@ -46,7 +42,7 @@ fn add_executors_from_file( path : &str, executors : &mut HashMap<String, Execut
 
     let doc = roxmltree::Document::parse(str_executors.as_str() )?;
 
-    if doc.root_element().tag_name().name() != "executors" { return Ok( () ); }
+    if doc.root_element().tag_name().name() != "rtml" { return Ok( () ); }
 
     let new_executors = code_from_parent( Some( doc.root_element() ) )?;
 

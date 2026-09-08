@@ -1,0 +1,26 @@
+<rtml>
+    <head>
+        <code command="/usr/bin/bash" name="saludar">
+        <envs>
+            <env name="saludo">Hola</env>
+            <env-var name="nombre" />
+        </envs>
+        <args>
+            <arg>-c</arg>
+            <arg>
+                <![CDATA[ 
+                    echo "$saludo $nombre"
+                ]]>
+            </arg>
+        </args>
+        </code>
+    </head>
+    <state>
+        <st-var path="/nombre" value="pepe" type="str" />
+    </state>
+    <body>
+        <line>
+            <command exec="saludar" envs="nombre" />
+        </line>
+    </body>
+</rtml>

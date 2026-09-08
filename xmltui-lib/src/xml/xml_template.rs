@@ -43,7 +43,7 @@ fn add_templates_from_file( path : &str, templates : &mut HashMap<String, String
 
     let doc = roxmltree::Document::parse(str_templates.as_str() )?;
 
-    if doc.root_element().tag_name().name() != "templates" { return Ok( () ); }
+    if doc.root_element().tag_name().name() != "rtml" { return Ok( () ); }
 
     let new_templates = templates_from_parent( Some( doc.root_element() ), xml )?;
 
