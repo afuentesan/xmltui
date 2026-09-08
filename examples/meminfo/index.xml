@@ -1,5 +1,5 @@
 <rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-      xsi:noNamespaceSchemaLocation="../../xmltui-lib/examples/schema.xsd"
+      xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/afuentesan/xmltui/refs/heads/main/schema.xsd"
 >
 
 <!-- xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/afuentesan/xmltui/refs/heads/main/xmltui-lib/examples/schema.xsd" -->

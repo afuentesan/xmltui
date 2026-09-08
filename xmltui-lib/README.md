@@ -11,7 +11,7 @@ Let's build a simple application that displays the current date and time in the 
 
 ```xml
 <rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-      xsi:noNamespaceSchemaLocation="schema.xsd">
+      xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/afuentesan/xmltui/refs/heads/main/schema.xsd">
 
     <!--
     The <head> node is where you define commands, styles, and templates. 
