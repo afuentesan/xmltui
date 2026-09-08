@@ -68,12 +68,6 @@
                 </arg>
             </args>
         </code>
-
-        <code command="echo" name="ir_a_opcion">
-            <args>
-                <arg-value name="opcion" />
-            </args>
-        </code>
     </head>
 
     <state>

@@ -2,10 +2,12 @@ use std::collections::HashMap;
 
 use roxmltree::Node;
 
-use crate::{app::app_doc::chroot, code::executor::{Executor, ExecutorArg, ExecutorBuilder, ExecutorEnv, ExecutorEnvVar}, util::file::read_file_in_chroot_with_extension};
+use crate::{app::app_doc::chroot, code::executor::{Executor, ExecutorArg, ExecutorBuilder, ExecutorEnv, ExecutorEnvVar}, util::{file::read_file_in_chroot_with_extension, log::log_to_file}};
 
 pub fn code_from_parent( node : Option<Node> ) -> anyhow::Result<HashMap<String, Executor>>
 {
+    log_to_file( "code_from_parent" );
+
     let mut ret = HashMap::new();
 
     if node.is_none() { return Ok( ret ) };
@@ -16,6 +18,8 @@ pub fn code_from_parent( node : Option<Node> ) -> anyhow::Result<HashMap<String,
     {
         add_executors( child, &mut ret )?;
     }
+
+    log_to_file( &format!( "Executors: {ret:?}" ) );
 
     Ok( ret )
 }
@@ -96,13 +100,13 @@ fn envs( node : Node, mut builder : ExecutorBuilder ) -> anyhow::Result<Executor
 
                 let value = n.text().unwrap_or( "" ).to_string();
 
-                builder = builder.env( ExecutorEnv::Var( ExecutorEnvVar::new( name, value ) ) );
+                builder = builder.env( ExecutorEnv::Const( ExecutorEnvVar::new( name, value ) ) );
             },
-            "st-env" =>
+            "env-var" =>
             {
                 let name = code_attr( n, "name" )?;
 
-                builder = builder.env( ExecutorEnv::State( name ) );
+                builder = builder.env( ExecutorEnv::Var( name ) );
             },
             _ => {}
         }
@@ -123,16 +127,16 @@ fn args( node : Node, mut builder : ExecutorBuilder ) -> anyhow::Result<Executor
                 {
                     Some( s ) if s.trim() != "" => 
                     {
-                        builder = builder.arg( ExecutorArg::Text( s.trim().to_string() ) );
+                        builder = builder.arg( ExecutorArg::Const( s.trim().to_string() ) );
                     },
                     _ => {}
                 }
             },
-            "st-arg" =>
+            "arg-var" =>
             {
                 let name = code_attr( n, "name" )?;
 
-                builder = builder.arg( ExecutorArg::State( name ) );
+                builder = builder.arg( ExecutorArg::Var( name ) );
             },
             _ => {}
         }

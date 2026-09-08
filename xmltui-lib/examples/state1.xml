@@ -7,9 +7,9 @@
 
         <code command="echo" name="echo">
             <args>
-                <st-arg name="saludo" />
-                <st-arg name="nombre" />
-                <st-arg name="sufijo" />
+                <arg-var name="saludo" />
+                <arg-var name="nombre" />
+                <arg-var name="sufijo" />
             </args>
         </code>
 

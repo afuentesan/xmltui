@@ -20,7 +20,7 @@
         </template>
         <code command="/usr/bin/bash" name="buscar">
             <envs>
-                <st-env name="palabra" />
+                <env-var name="palabra" />
             </envs>
             <args>
                 <arg>-c</arg>

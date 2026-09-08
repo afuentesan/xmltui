@@ -20,15 +20,15 @@ impl ExecutorEnvVar
 #[derive(Debug, Clone)]
 pub enum ExecutorEnv
 {
-    Var( ExecutorEnvVar ),
-    State( String )
+    Const( ExecutorEnvVar ),
+    Var( String )
 }
 
 #[derive(Debug, Clone)]
 pub enum ExecutorArg
 {
-    Text( String ),
-    State( String )
+    Const( String ),
+    Var( String )
 }
 
 #[derive(Debug, Clone)]
@@ -243,14 +243,14 @@ fn build_command(
         {
             match arg
             {
-                ExecutorArg::State( key ) =>
+                ExecutorArg::Var( key ) =>
                 {
                     if let Some( val ) = args.get( key )
                     {
                         command.arg( val );
                     }
                 },
-                ExecutorArg::Text( str ) =>
+                ExecutorArg::Const( str ) =>
                 {
                     command.arg( str );
                 }
@@ -263,11 +263,11 @@ fn build_command(
         {
             match env
             {
-                ExecutorEnv::Var( v ) =>
+                ExecutorEnv::Const( v ) =>
                 {
                     command.env( &v.name, &v.value );
                 },
-                ExecutorEnv::State( key ) =>
+                ExecutorEnv::Var( key ) =>
                 {
                     if let Some( val ) = envs.get( key )
                     {
