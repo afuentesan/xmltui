@@ -162,7 +162,7 @@ fn arg_env_value( value : &str, acc : &mut HashMap<String, String> )
 
 fn state_common_from_node( node : Node, output : Option<&RTMLCommandOutput> ) -> Option<( CommonState, Option<String> )>
 {
-    let path = attr_option_str( node, "path" )?.to_string();
+    let path = parse_path( attr_option_str( node, "path" )? );
     let stype = attr_option_str( node, "type" );
     
     let stype = if let Some( t ) = stype

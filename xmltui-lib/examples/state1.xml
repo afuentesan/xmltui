@@ -44,6 +44,24 @@
                 </arg>
             </args>
         </code>
+
+        <code command="node" name="obj">
+            <args>
+                <arg>-e</arg>
+                <arg>
+                    <![CDATA[ 
+
+                    const obj = {
+                        nombre : "Pepe",
+                        apellidos : "Botica"
+                    };
+
+                    console.log( JSON.stringify( obj ) );
+
+                    ]]>
+                </arg>
+            </args>
+        </code>
     </head>
 
     <state>
@@ -51,6 +69,7 @@
         <st-var path="txt" value="Ángel" type="str" />
         <st-command id="sufijo" path="/sufijo" exec="random" output="str" />
         <st-command id="change-txt" path="/txt" exec="random" output="str" />
+        <st-command id="data" path="data" exec="obj" type="json" on-init="true" />
     </state>
 
     <body>
@@ -88,6 +107,16 @@
                 </template>
             </st>
         </line>
+
+        <line>
+            <st reload-with-st-path="data" id="st-data">
+                <template>
+                    Data: {{ st.data.nombre }} {{ st.data.apellidos }}
+                </template>
+            </st>
+        </line>
+
+        <button enter-refresh-st="data">Actualiza data</button>
     </body>
 
 </rtml>
