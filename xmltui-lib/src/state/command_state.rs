@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{rtml::rtml_command::RTMLCommandOutput, state::state_executor::CommonState};
+use crate::{rtml::rtml_command::{CommandRefresh, RTMLCommandOutput}, state::state_executor::CommonState};
 
 
 #[derive(Debug)]
@@ -12,7 +12,8 @@ pub struct CommandState
     pub args : HashMap<String, String>,
     pub envs : HashMap<String, String>,
     pub on_init : bool,
-    pub template : Option<String>
+    pub template : Option<String>,
+    pub refresh : CommandRefresh
 }
 
 impl CommandState
@@ -24,9 +25,10 @@ impl CommandState
         args : HashMap<String, String>, 
         envs : HashMap<String, String>, 
         on_init : bool,
-        template : Option<String>
+        template : Option<String>,
+        refresh : CommandRefresh
     ) -> Self
     {
-        Self { common, executors, output, args, envs, on_init, template }
+        Self { common, executors, output, args, envs, on_init, template, refresh }
     }
 }

@@ -48,8 +48,6 @@
 
 [x] Que los componentes que tengan valores que puedan ser cambiados por el usuario se puedan sincronizar con el estado. 
 
-[] Que el valor de los atributos (y quizá también el contenido) de los componentes puedan recuperarse del estado.
-
 [] Que todos (o la mayoría) de los atributos de los componentes puedan ejecutar templates para calcular su valor. A esos templates hay que pasarles el estado.
 
 [x] Poder inicializar el estado.
@@ -66,7 +64,7 @@
 
 [x] Cambiar la forma de relanzar los comandos que tengan refresh. De la forma que está hecho ahora se les pasa el estado pero si el estado cambia no se enteran y siguen ejecutando los comandos con valores que no son correctos.
 
-[] Que los comandos que se lanzan para cambiar el estado también tengan refresh.
+[x] Que los comandos que se lanzan para cambiar el estado también tengan refresh.
 
 [x] Que se puedan lanzar comandos para cambiar el estado desde un evento.
 
@@ -84,7 +82,7 @@
 
 [] También habría que evitar que un command pueda tener otro command dentro.
 
-[] Poner el atributo on-init en los command, si está a false no se ejecutarán al inicio y solo se lanzarán desde un evento refresh-command. Si tienen el on-init a false ¿tendrá sentido el refresh en esos commands?.
+[] Atributo exec-if en command y st-command. Tendrá un template y si devuelve true el comando se ejecuta y si no no. Por defecto será true.
 
 [] Componente include que pueda cargar el contenido desde otro fichero. 
 

@@ -13,19 +13,41 @@
                 <arg>0</arg>
             </args>
         </code>
+
+        <code command="bash" name="counter">
+            <envs>
+                <env-var name="count" />
+            </envs>
+            <args>
+                <arg>-c</arg>
+                <arg>
+                    <![CDATA[ 
+                    echo $(( ( count + 1 ) % 10 ))
+                    ]]>
+                </arg>
+            </args>
+        </code>
+
+        <code command="head" name="head" />
     </head>
     <state>
         <st-var path="n" value="0" type="number" />
         <st-command path="n" id="left" exec="left" type="number" />
         <st-command path="n" id="center" exec="center" type="number" />
+        <st-command id="counter" path="count" exec="counter" type="number" refresh-sec="1" exec-if="{{ st.n == 0 }}" />
     </state>
-    <body dir="{{ 'horizontal' if st.n == 0 else 'vertical' }}">
+    <body dir="vertical">
         <layout dir="horizontal" flex="{{ 'center' if st.n == 0 else 'left' }}" padding-top="{{ 0 if st.n == 0 else 1 }}">
             <line max="6">Hola</line>
+        </layout>
+        <layout dir="horizontal">
+            <line bg="Red" ratio="{{ '2,3' if st.n == 0 else '1,3' }}">1</line>
+            <line bg="Green" ratio="{{ '1,3' if st.n == 0 else '2,3' }}">2</line>
         </layout>
         <layout flex="center" dir="horizontal">
             <button align="center" length="6" enter-refresh-st="left">Left</button>
             <button align="center" length="6" enter-refresh-st="center">Center</button>
         </layout>
+
     </body>
 </rtml>

@@ -1,0 +1,7 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="schema.xsd">
+
+    <body flex="center">
+        <a align="center" src="st-refresh1">Go to 1</a>
+    </body>
+</rtml>

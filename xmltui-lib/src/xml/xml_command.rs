@@ -132,7 +132,7 @@ fn child_attrs( node : Node ) -> String
     )
 }
 
-fn refresh_from_node( node : Node ) -> CommandRefresh
+pub fn refresh_from_node( node : Node ) -> CommandRefresh
 {
     if let Some( sec ) = node.attribute( "refresh-sec" ) && sec.trim() != ""
     {

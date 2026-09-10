@@ -1,0 +1,31 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="schema.xsd">
+
+    <head>
+        <code command="bash" name="counter">
+            <envs>
+                <env-var name="count" />
+            </envs>
+            <args>
+                <arg>-c</arg>
+                <arg>
+                    <![CDATA[ 
+                    echo $(( ( count + 1 ) % 10 ))
+                    ]]>
+                </arg>
+            </args>
+        </code>
+    </head>
+    <state>
+        <st-var path="count" value="0" type="number" />
+        <st-command id="counter" path="count" exec="counter" envs="count" type="number" refresh-sec="1" exec-if="{{ st.n == 0 }}" />
+    </state>
+    <body flex="center">
+        <st reload-with-st-path="count">
+            <template>
+                <line align="center">{{ st.count }}</line>
+            </template>
+        </st>
+        <a align="center" src="st-refresh2">Go to 2</a>
+    </body>
+</rtml>

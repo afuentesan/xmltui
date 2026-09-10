@@ -12,10 +12,17 @@ pub enum ExecutorEventType
     Callback( RTMLCallbackAction )
 }
 
+#[derive(Debug)]
+pub enum CommandExecutorType
+{
+    Command( String ),
+    State( String )
+}
+
 pub struct CommandExecutorParams
 {
     pub doc_id : String,
-    pub node_id : String,
+    pub node_id : CommandExecutorType,
     pub args : HashMap<String, String>,
     pub envs : HashMap<String, String>,
     refresh : CommandRefresh,
@@ -29,7 +36,7 @@ impl CommandExecutorParams
 {
     pub fn new(
         doc_id : String,
-        node_id : String,
+        node_id : CommandExecutorType,
         args : HashMap<String, String>,
         envs : HashMap<String, String>,
         refresh : CommandRefresh,
@@ -40,6 +47,15 @@ impl CommandExecutorParams
     ) -> Self
     {
         Self { doc_id, node_id, args, envs, refresh, executors, event_type, global_cancellation_token, local_cancellation_token }
+    }
+
+    pub fn node_id( &self ) -> &str
+    {
+        match &self.node_id
+        {
+            CommandExecutorType::Command( n ) |
+            CommandExecutorType::State( n ) => n
+        }
     }
 }
 
@@ -55,7 +71,7 @@ pub async fn new_command_executor(
         },
         CommandRefresh::Once =>
         {
-            execute_once( &params.doc_id, &params.node_id, &params.args, &params.envs, &params.executors, &params.event_type ).await;
+            execute_once( &params.doc_id, params.node_id(), &params.args, &params.envs, &params.executors, &params.event_type ).await;
         }
     }
 }
@@ -65,7 +81,7 @@ async fn new_repeat_command_executor(
     duration : Duration
 )
 {
-    execute_once( &params.doc_id, &params.node_id, &params.args, &params.envs, &params.executors, &params.event_type ).await;
+    execute_once( &params.doc_id, params.node_id(), &params.args, &params.envs, &params.executors, &params.event_type ).await;
 
     if let Some( g ) = params.global_cancellation_token.as_ref() &&
         let Some( l ) = params.local_cancellation_token.as_ref()
