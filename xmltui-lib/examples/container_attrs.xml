@@ -1,0 +1,31 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="schema.xsd">
+
+    <head>
+        <code command="echo" name="left">
+            <args>
+                <arg>1</arg>
+            </args>
+        </code>
+
+        <code command="echo" name="center">
+            <args>
+                <arg>0</arg>
+            </args>
+        </code>
+    </head>
+    <state>
+        <st-var path="n" value="0" type="number" />
+        <st-command path="n" id="left" exec="left" type="number" />
+        <st-command path="n" id="center" exec="center" type="number" />
+    </state>
+    <body dir="{{ 'horizontal' if st.n == 0 else 'vertical' }}">
+        <layout dir="horizontal" flex="{{ 'center' if st.n == 0 else 'left' }}" padding-top="{{ 0 if st.n == 0 else 1 }}">
+            <line max="6">Hola</line>
+        </layout>
+        <layout flex="center" dir="horizontal">
+            <button align="center" length="6" enter-refresh-st="left">Left</button>
+            <button align="center" length="6" enter-refresh-st="center">Center</button>
+        </layout>
+    </body>
+</rtml>

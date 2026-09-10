@@ -51,7 +51,7 @@ impl Default for VerticalPadding
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct RTMLPadding 
 {
     #[serde(flatten, default)]

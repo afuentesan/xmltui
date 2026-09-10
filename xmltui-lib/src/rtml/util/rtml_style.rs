@@ -406,7 +406,7 @@ fn change_color(
     }
 }
 
-fn evaluate_template( template : &str, context : &Value ) -> Option<String>
+pub fn evaluate_template( template : &str, context : &Value ) -> Option<String>
 {
     match xml_from_template_context( template, context )
     {
@@ -420,7 +420,7 @@ fn evaluate_template( template : &str, context : &Value ) -> Option<String>
     }
 }
 
-fn template_str_from_template<'a>(
+pub fn template_str_from_template<'a>(
     template : &'a RTMLStyleTemplateType,
     templates : &'a HashMap<String, String>
 ) -> Option<&'a str>

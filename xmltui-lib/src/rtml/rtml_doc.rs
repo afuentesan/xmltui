@@ -4,7 +4,7 @@ use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect
 use serde_json::{Map, Value, json};
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::event::{AppEvent, HidrateState, send_app_event}, async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_padding::RTMLPadding, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, rtml_state::render_rtml_state, util::rtml_event::{CallbackChangeState, RTMLCallbackAction}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
+use crate::{app::event::{AppEvent, HidrateState, send_app_event}, async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, rtml_state::render_rtml_state, util::{rtml_attrs::{ContainerAttrs, constraint_from_template, merge_container_attrs_with_template}, rtml_event::{CallbackChangeState, RTMLCallbackAction}, rtml_padding::RTMLPadding}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -1123,25 +1123,25 @@ fn render_node_and_get_child_areas(
         {
             render_rtml_layout( l, area, buf, &doc.templates, context );
             
-            child_areas( root.childs(), &l.container.direction, &l.container.flex, &l.container.padding, area, doc )
+            child_areas( root.childs(), &l.container, area, doc, context )
         },
         RTMLNode::Border( b ) =>
         {
             let inner_area = render_rtml_border( b, area, buf, &doc.templates, context );
 
-            child_areas( root.childs(), &b.container.direction, &b.container.flex, &b.container.padding, inner_area, doc )
+            child_areas( root.childs(), &b.container, inner_area, doc, context )
         },
         RTMLNode::Command( c ) =>
         {
             render_rtml_command( c, area, buf, &doc.templates, context );
 
-            child_areas( root.childs(), &c.container.direction, &c.container.flex, &c.container.padding, area, doc )
+            child_areas( root.childs(), &c.container, area, doc, context )
         },
         RTMLNode::State( s ) =>
         {
             render_rtml_state( s, area, buf, &doc.templates, context );
 
-            child_areas( root.childs(), &s.container.direction, &s.container.flex, &s.container.padding, area, doc )
+            child_areas( root.childs(), &s.container, area, doc, context )
         },
         RTMLNode::Paragraph( p ) =>
         {
@@ -1184,47 +1184,24 @@ fn render_node_and_get_child_areas(
 
 fn child_areas(
     childs : &Vec<RTMLNodeId>,
-    direction : &Direction,
-    flex : &Flex,
-    padding : &RTMLPadding,
+    container_attrs : &ContainerAttrs,
     area : Rect,
-    doc : &RTMLDoc
+    doc : &RTMLDoc,
+    context : &Value
 ) -> anyhow::Result<Vec<Rect>>
 {
-    let area = area_con_padding( area, padding );
+    let ( direction, flex, padding ) = {
 
-    let constraints = childs_constraint( childs, doc )?;
+        let attrs = merge_container_attrs_with_template( container_attrs, context, &doc.templates );
 
-    // Creo que no necesito esto, de momento lo quito
-    // let childs_len = childs.len();
+        ( attrs.direction, attrs.flex, attrs.padding )
+    };
 
-    // let constraints = match direction
-    // {
-    //     Direction::Horizontal =>
-    //     {
-    //         if childs_len > area.width as usize
-    //         {
-    //             &constraints[ 0..( area.width as usize ) ]
-    //         }
-    //         else
-    //         {
-    //             constraints.as_slice()
-    //         }
-    //     },
-    //     Direction::Vertical =>
-    //     {
-    //         if childs_len > area.height as usize
-    //         {
-    //             &constraints[ 0..( area.height as usize ) ]
-    //         }
-    //         else
-    //         {
-    //             constraints.as_slice()
-    //         }
-    //     }
-    // };
+    let area = area_con_padding( area, &padding );
 
-    let areas = calc_areas( area, direction, flex, constraints.as_slice() );
+    let constraints = childs_constraint( childs, doc, context )?;
+
+    let areas = calc_areas( area, &direction, &flex, constraints.as_slice() );
 
     Ok( areas )
 }
@@ -1254,18 +1231,22 @@ fn area_con_padding( mut area : Rect, padding : &RTMLPadding ) -> Rect
 
 fn childs_constraint<'a, 'b>(
     childs : &'a Vec<RTMLNodeId>,
-    doc : &'b RTMLDoc
-) -> anyhow::Result<Vec<&'b Constraint>>
+    doc : &'b RTMLDoc,
+    context : &'b Value
+) -> anyhow::Result<Vec<Constraint>>
 {
-    let mut constraints : Vec<&Constraint> = vec![];
+    let mut constraints : Vec<Constraint> = vec![];
 
     for child in childs
     {
-        constraints.push( &doc.node_ref_by_id( &child ).ok_or(
-                anyhow::Error::msg( format!( "No se encontró el nodo con id {child} en childs_constraint" ) )
-            )?
-            .constraint()
-        );
+        let node = doc.node_ref_by_id( &child ).ok_or(
+            anyhow::Error::msg( format!( "No se encontró el nodo con id {child} en childs_constraint" ) )
+        )?;
+
+        let constraint = node.constraint();
+        let template = node.constraint_template();
+
+        constraints.push( constraint_from_template( constraint, template, &doc.templates, context ) );
     }
 
     Ok( constraints )
@@ -1275,7 +1256,7 @@ fn calc_areas(
     container : Rect,
     direction : &Direction,
     flex : &Flex,
-    constraints : &[&Constraint]
+    constraints : &[Constraint]
 ) -> Vec<Rect>
 {
     match direction

@@ -63,7 +63,7 @@ impl TypeState
             TypeState::Number =>
             {
                 Ok(
-                    Value::Number( Number::from_str( str )? )
+                    Value::Number( Number::from_str( str.trim() )? )
                 )
             }
         }

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{layout::{Alignment, Constraint}, style::Style};
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_padding::RTMLPadding, util::rtml_style::RTMLStyleTemplate}, xml::styles::xml_style::{StyleSelector, StyleVariant, XMLStyle, merge_styles, style_from_node}};
+use crate::{rtml::util::{rtml_attrs::ContainerAttrs, rtml_padding::RTMLPadding, rtml_style::RTMLStyleTemplate}, xml::{attrs::container_attrs_template_from_node, styles::xml_style::{StyleSelector, StyleVariant, XMLStyle, merge_styles, style_from_node}}};
 
 const DEFAULT_CONSTRAINT : Constraint = Constraint::Percentage(100);
 
@@ -68,7 +68,12 @@ pub fn container_styles( node : Node, styles : &HashMap<StyleSelector, XMLStyle>
 
     let padding = RTMLPadding::new( horizontal, vertical );
 
-    let container_attrs = ContainerAttrs::new( direction, flex, padding );
+    let container_attrs = ContainerAttrs::new( 
+        direction, 
+        flex, 
+        padding, 
+        container_attrs_template_from_node( node ) 
+    );
 
     ( constraint, style, styles.1, container_attrs )
 }

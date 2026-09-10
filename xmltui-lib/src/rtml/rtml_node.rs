@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Constraint, Rect}};
 use serde_json::Value;
 
-use crate::{input::event::InputEvent, rtml::{rtml_attrs::CommonAttrs, rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::{RTMLParagraph, render_rtml_paragraph_focus}, rtml_select::{RTMLSelect, render_rtml_select_focus}, rtml_state::RTMLState}};
+use crate::{input::event::InputEvent, rtml::{rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::{RTMLParagraph, render_rtml_paragraph_focus}, rtml_select::{RTMLSelect, render_rtml_select_focus}, rtml_state::RTMLState, util::rtml_attrs::{CommonAttrs, ConstraintTemplate}}};
 
 pub type RTMLNodeId = String;
 
@@ -205,6 +205,23 @@ impl RTMLNode
             RTMLNode::Border( n ) => &n.common.attrs.constraint,
             RTMLNode::Paragraph( n ) => &n.common.attrs.constraint,
             RTMLNode::Select( n ) => &n.common.attrs.constraint
+        }
+    }
+
+    pub fn constraint_template( &self ) -> &ConstraintTemplate
+    {
+        match self
+        {
+            RTMLNode::Layout( n ) => &n.common.attrs.constraint_template,
+            RTMLNode::Line( n ) => &n.common.attrs.constraint_template,
+            RTMLNode::Input( n ) => &n.common.attrs.constraint_template,
+            RTMLNode::Link( n ) => &n.common.attrs.constraint_template,
+            RTMLNode::Command( n ) => &n.common.attrs.constraint_template,
+            RTMLNode::State( n ) => &n.common.attrs.constraint_template,
+            RTMLNode::Button( n ) => &n.common.attrs.constraint_template,
+            RTMLNode::Border( n ) => &n.common.attrs.constraint_template,
+            RTMLNode::Paragraph( n ) => &n.common.attrs.constraint_template,
+            RTMLNode::Select( n ) => &n.common.attrs.constraint_template
         }
     }
 

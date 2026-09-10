@@ -20,7 +20,7 @@ pub fn process_line(
     let padding = padding.horizontal;
 
     let common = RTMLNodeCommon::new( 
-        parse_common_attrs( constraint )?, 
+        parse_common_attrs( node, constraint )?, 
         vec![], 
         parent_id
     );

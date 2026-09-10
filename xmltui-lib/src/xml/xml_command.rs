@@ -18,7 +18,7 @@ pub fn process_command(
     let ( constraint, style, style_template, container_attrs ) = container_styles( node, xml_doc.styles(), None );
 
     let common = RTMLNodeCommon::new( 
-        parse_common_attrs( constraint )?, 
+        parse_common_attrs( node, constraint )?, 
         vec![], 
         parent_id
     );

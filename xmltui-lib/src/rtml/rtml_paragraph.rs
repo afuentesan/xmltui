@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, text::{Line, Span}, widgets::{Paragraph, Widget, Wrap}};
 use serde_json::Value;
 
-use crate::{input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, rtml_padding::RTMLPadding, util::{rtml_style::{RTMLStyleTemplate, merge_style_with_templates}, types::{TextLine, TextLines}}}, util::draw::clear_area, xml::styles::xml_style::merge_styles};
+use crate::{input::event::InputEvent, rtml::{rtml_node::{FocusEventResponse, RTMLNodeCommon}, util::rtml_padding::RTMLPadding, util::{rtml_style::{RTMLStyleTemplate, merge_style_with_templates}, types::{TextLine, TextLines}}}, util::draw::clear_area, xml::styles::xml_style::merge_styles};
 
 #[derive(Debug)]
 pub struct RTMLParagraph 

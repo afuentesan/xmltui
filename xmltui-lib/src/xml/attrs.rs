@@ -6,7 +6,7 @@ use regex::regex;
 use roxmltree::Node;
 use uuid::Uuid;
 
-use crate::rtml::{rtml_attrs::CommonAttrs, rtml_form::FieldAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource, util::rtml_style::RTMLStyleTemplateType};
+use crate::{rtml::{rtml_form::FieldAttrs, rtml_node::{RTMLNode, RTMLNodeId}, rtml_source::RTMLSource, util::{rtml_attrs::{CommonAttrs, ConstraintTemplate, ContainerTemplate, ContainerTemplateBuilder}, rtml_style::RTMLStyleTemplateType}}, xml::styles::xml_style::StyleVariant};
 
 const DEFAULT_ALIGNMENT : Alignment = Alignment::Left;
 
@@ -44,15 +44,32 @@ pub fn id_retry_if_exists( node : Node, nodos : &HashMap<String, RTMLNode> ) -> 
     default_id()
 }
 
-pub fn parse_common_attrs( constraint : Constraint ) -> anyhow::Result<CommonAttrs>
+pub fn parse_common_attrs( node : Node, constraint : Constraint ) -> anyhow::Result<CommonAttrs>
 {
     Ok(
         CommonAttrs
         {
             area : Rect::ZERO,
-            constraint
+            constraint,
+            constraint_template : constraint_template( node )
         }
     )
+}
+
+fn constraint_template( node : Node ) -> ConstraintTemplate
+{
+    let attrs = [ "fill", "percentage", "min", "max", "length", "ratio" ];
+
+    for attr in attrs
+    {
+        match parse_attr_constraint_template( node, attr )
+        {
+            Some( c ) => return c,
+            None => continue
+        }
+    }
+
+    ConstraintTemplate::None
 }
 
 pub fn attr_constraint( node : Node ) -> Option<Constraint>
@@ -112,6 +129,38 @@ fn parse_attr_constraint( attr : &str, val : &str ) -> Option<Constraint>
     }
 }
 
+fn parse_attr_constraint_template( node : Node, attr : &str ) -> Option<ConstraintTemplate>
+{
+    match attr
+    {
+        "fill" =>
+        {
+            Some( ConstraintTemplate::Fill( attr_to_template( node, attr )? ) )
+        },
+        "percentage" =>
+        {
+            Some( ConstraintTemplate::Percentage( attr_to_template( node, attr )? ) )
+        },
+        "min" =>
+        {
+            Some( ConstraintTemplate::Min( attr_to_template( node, attr )? ) )
+        },
+        "max" =>
+        {
+            Some( ConstraintTemplate::Max( attr_to_template( node, attr )? ) )
+        },
+        "length" =>
+        {
+            Some( ConstraintTemplate::Length( attr_to_template( node, attr )? ) )
+        },
+        "ratio" =>
+        {
+            Some( ConstraintTemplate::Ratio( attr_to_template( node, attr )? ) )
+        },
+        _ => unreachable!()
+    }
+}
+
 fn pair_str_to_pair_of_uints<T: FromStr>( str : &str ) -> anyhow::Result<( T, T )>
 {
     let mut num1 : Option<T> = None;
@@ -145,7 +194,7 @@ fn pair_str_to_pair_of_uints<T: FromStr>( str : &str ) -> anyhow::Result<( T, T 
     )
 }
 
-fn str_to_uint<T: FromStr>( str : &str ) -> anyhow::Result<T>
+pub fn str_to_uint<T: FromStr>( str : &str ) -> anyhow::Result<T>
 {
     let str = str.trim();
 
@@ -257,6 +306,57 @@ pub fn attr_source( node : Node ) -> anyhow::Result<RTMLSource>
 //     Ok( ContainerAttrs::new( attr_direction( node )?, attr_flex( node )?, container_padding_from_node( node ) ) )
 // }
 
+pub fn container_attrs_template_from_node( node : Node ) -> ContainerTemplate
+{
+    let mut builder = ContainerTemplateBuilder::new();
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "dir", None ).as_str() )
+    {
+        builder = builder.direction( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "flex", None ).as_str() )
+    {
+        builder = builder.flex( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "padding", None ).as_str() )
+    {
+        builder = builder.padding( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "padding-top", None ).as_str() )
+    {
+        builder = builder.padding_top( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "padding-right", None ).as_str() )
+    {
+        builder = builder.padding_right( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "padding-bottom", None ).as_str() )
+    {
+        builder = builder.padding_bottom( v );
+    }
+
+    if let Some( v ) = attr_to_template( node, attr_with_variant( "padding-left", None ).as_str() )
+    {
+        builder = builder.padding_left( v );
+    }
+
+    builder.build()
+}
+
+pub fn attr_with_variant( attr : &str, variant : Option<&StyleVariant> ) -> String
+{
+    match variant
+    {
+        Some( v ) => format!( "{attr}-{}", v.to_str() ),
+        None => attr.to_string()    
+    }
+}
+
 pub fn attr_to_type_kebab<T: FromStr>( node : Node, attr : &str ) -> Option<T>
 {
     match node.attribute( attr )
@@ -264,10 +364,10 @@ pub fn attr_to_type_kebab<T: FromStr>( node : Node, attr : &str ) -> Option<T>
         Some( val ) =>
         {
             match ccase!( pascal, val.trim() ).parse::<T>()
-                {
-                    Ok( n ) => Some( n ),
-                    Err( _ ) => None
-                }
+            {
+                Ok( n ) => Some( n ),
+                Err( _ ) => None
+            }
         },
         None => None
     }

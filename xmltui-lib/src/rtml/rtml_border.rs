@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::Style, widgets::{Block, BorderType, Borders, TitlePosition, Widget}};
 use serde_json::Value;
 
-use crate::rtml::{rtml_attrs::ContainerAttrs, rtml_node::RTMLNodeCommon, util::rtml_style::{RTMLStyleTemplate, merge_style_with_templates}};
+use crate::rtml::{util::rtml_attrs::ContainerAttrs, rtml_node::RTMLNodeCommon, util::rtml_style::{RTMLStyleTemplate, merge_style_with_templates}};
 
 #[derive(Debug)]
 pub struct RTMLBorder

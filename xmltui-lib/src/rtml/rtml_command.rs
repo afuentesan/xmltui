@@ -4,7 +4,7 @@ use std::{collections::HashMap, time::Duration};
 use ratatui::{buffer::Buffer, layout::Rect, style::Style};
 use serde_json::Value;
 
-use crate::{rtml::{rtml_attrs::ContainerAttrs, rtml_node::{RTMLNodeCommon, XMLNodeWrapper}, util::rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}, util::draw::clear_area};
+use crate::{rtml::{util::rtml_attrs::ContainerAttrs, rtml_node::{RTMLNodeCommon, XMLNodeWrapper}, util::rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}, util::draw::clear_area};
 
 #[derive(Debug, Clone, Copy)]
 pub enum RTMLCommandOutput

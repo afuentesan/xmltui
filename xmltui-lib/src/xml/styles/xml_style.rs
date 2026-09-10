@@ -4,7 +4,7 @@ use ratatui::{layout::{Alignment, Constraint, Direction, Flex}, style::{Color, M
 use roxmltree::Node;
 use serde::Deserialize;
 
-use crate::{app::app_doc::chroot, rtml::{rtml_padding::{HorizontalPadding, VerticalPadding}, util::rtml_style::{RTMLStyleTemplate, RTMLStyleTemplateBuilder}}, util::{file::read_file_in_chroot_with_extension, json::{deserialize_kebab_string_or_type, deserialize_string_or_type}}, xml::{attrs::{attr_constraint, attr_to_template, attr_to_type, attr_to_type_kebab}, styles::{xml_constraint::XMLConstraint, xml_padding::{XMLPadding, padding_from_str}}}};
+use crate::{app::app_doc::chroot, rtml::util::{rtml_padding::{HorizontalPadding, VerticalPadding}, rtml_style::{RTMLStyleTemplate, RTMLStyleTemplateBuilder}}, util::{file::read_file_in_chroot_with_extension, json::{deserialize_kebab_string_or_type, deserialize_string_or_type}}, xml::{attrs::{attr_constraint, attr_to_template, attr_to_type, attr_to_type_kebab, attr_with_variant}, styles::{xml_constraint::XMLConstraint, xml_padding::{XMLPadding, padding_from_str}}}};
 
 #[derive(Debug, PartialEq, Hash, Eq)]
 pub enum StyleSelector
@@ -313,15 +313,6 @@ pub fn style_from_node( node : Node, styles : &HashMap<StyleSelector, XMLStyle>,
     }
 
     overwrite_styles_from_node( node, style, variant.as_ref() )
-}
-
-fn attr_with_variant( attr : &str, variant : Option<&StyleVariant> ) -> String
-{
-    match variant
-    {
-        Some( v ) => format!( "{attr}-{}", v.to_str() ),
-        None => attr.to_string()    
-    }
 }
 
 fn overwrite_styles_from_node( node : Node, mut style : XMLStyle, variant : Option<&StyleVariant> ) -> ( XMLStyle, RTMLStyleTemplate )

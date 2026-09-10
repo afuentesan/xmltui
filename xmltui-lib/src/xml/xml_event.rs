@@ -77,7 +77,7 @@ fn parse_change_src( src : &str )-> RTMLCallback
 fn parse_refresh_commands_event( commands : &str ) -> Option<RTMLCallback>
 {
     let commands = commands
-    .split( ", " )
+    .split( "," )
     .filter( | s | s.trim() != "" )
     .map( | s | s.trim().to_string() )
     .collect::<Vec<_>>();
@@ -95,7 +95,7 @@ fn parse_refresh_commands_event( commands : &str ) -> Option<RTMLCallback>
 fn parse_refresh_states_event( states : &str ) -> Option<RTMLCallback>
 {
     let commands = states
-    .split( ", " )
+    .split( "," )
     .filter( | s | s.trim() != "" )
     .map( | s | s.trim().to_string() )
     .collect::<Vec<_>>();

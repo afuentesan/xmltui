@@ -21,7 +21,7 @@ pub fn process_paragraph(
     let ( focus_style, focus_style_template ) = style_from_styles( node, xml_doc.styles(), Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
 
     let common = RTMLNodeCommon::new( 
-        parse_common_attrs( constraint )?, 
+        parse_common_attrs( node, constraint )?, 
         vec![], 
         parent_id
     );
