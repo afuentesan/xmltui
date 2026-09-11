@@ -3,7 +3,7 @@ use serde_json::Value;
 use crate::{state::state_executor::CommonState, util::{json::create_or_replace_path, log::log_to_file}};
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VarState
 {
     pub common : CommonState,

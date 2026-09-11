@@ -4,7 +4,7 @@ use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect
 use serde_json::{Map, Value, json};
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::event::{AppEvent, HidrateState, send_app_event}, async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, CommandExecutorType, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, calc_exec_if, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, rtml_state::render_rtml_state, util::{rtml_attrs::{ContainerAttrs, constraint_from_template, merge_container_attrs_with_template}, rtml_event::{CallbackChangeState, RTMLCallbackAction}, rtml_padding::RTMLPadding}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
+use crate::{app::event::{AppEvent, HidrateState, send_app_event}, async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, CommandExecutorType, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, calc_exec_if, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, rtml_state::render_rtml_state, util::{rtml_attrs::{ContainerAttrs, constraint_from_template, merge_container_attrs_with_template}, rtml_event::{CallbackChangeState, RTMLCallbackAction}, rtml_padding::RTMLPadding}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::{VarState, change_var_state}}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -365,6 +365,8 @@ impl RTMLDoc
     {
         let context = json!( { "st" : &self.state } );
 
+        let mut params = vec![];
+
         for id in ids
         {
             if let Some( executor ) = self.state_executors.get( id )
@@ -373,7 +375,13 @@ impl RTMLDoc
                 {
                     StateExecutor::Var( v ) =>
                     {
-                        change_var_state( v, &mut self.state );
+                        if change_var_state( v, &mut self.state )
+                        {
+                            params.push( v.clone() );
+
+                            self.refresh_all_states( &v.common.path );
+                            self.refresh_all_commands( &v.common.path );
+                        }
                     },
                     StateExecutor::Command( c ) => 
                     {
@@ -381,6 +389,21 @@ impl RTMLDoc
                     }
                 }
             }
+        }
+
+        let mut path_changed = false;
+
+        for param in params
+        {
+            if sync_field_paths( &param, self )
+            {
+                path_changed = true;
+            }
+        }
+
+        if path_changed
+        {
+            send_app_event( AppEvent::ReRender );
         }
     }
 
@@ -1068,6 +1091,21 @@ fn find_next_child<'a>( current_id : Option<&'a str>, childs : &'a Vec<String>, 
             }
         }
     )
+}
+
+pub fn sync_field_paths( params : &VarState, doc : &mut RTMLDoc ) -> bool
+{
+    let mut changed = false;
+
+    for n in doc.doc.values_mut()
+    {
+        if n.sync_path( &params.common.path, &params.value, &mut doc.state )
+        {
+            changed = true;
+        }
+    }
+
+    changed
 }
 
 pub fn render_rtml_doc(

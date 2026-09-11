@@ -62,8 +62,6 @@ impl RTMLInput
                 RTMLEvent::Enter( e ) =>
                 {
                     send_app_event( AppEvent::Callback( e.clone() ) );
-
-                    break;
                 }    
             }
         }
@@ -86,11 +84,13 @@ impl RTMLInput
         )
     }
 
-    pub fn sync_path( &mut self, path : &str, value : &str, state : &Value )
+    pub fn sync_path( &mut self, path : &str, value : &str, state : &Value ) -> bool
     {
         if path == self.field.path
         {
             self.replace_value( value.to_string() );
+
+            true
         }
         else if self.field.path.as_str().starts_with( path )
         {
@@ -102,6 +102,12 @@ impl RTMLInput
             {
                 self.replace_value( "".into() );    
             }
+
+            true
+        }
+        else
+        {
+            false    
         }
     }
 

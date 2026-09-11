@@ -1,7 +1,7 @@
 use serde_json::json;
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::event::{AppEvent, CallbackResponse, send_app_event}, async_app::async_app::spawn_async_task, code::event::{CommandExecutorParams, CommandExecutorType, ExecutorEventType, new_command_executor}, rtml::{rtml_command::{CommandRefresh, RTMLCommandOutput}, rtml_doc::RTMLDoc, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackChangeState, CallbackReplace, RTMLCallback, RTMLCallbackAction, RTMLCallbackChangeSrc, RTMLCallbackCommand}}, state::{state_executor::CommonState, var_state::{VarState, change_var_state}}, util::{log::log_to_file, template::{template_to_xml, xml_from_template_context}}, xml::xml2rtml::{replace_node_childs_with_xml, replace_node_with_xml}};
+use crate::{app::event::{AppEvent, CallbackResponse, send_app_event}, async_app::async_app::spawn_async_task, code::event::{CommandExecutorParams, CommandExecutorType, ExecutorEventType, new_command_executor}, rtml::{rtml_command::{CommandRefresh, RTMLCommandOutput}, rtml_doc::{RTMLDoc, sync_field_paths}, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackChangeState, CallbackReplace, RTMLCallback, RTMLCallbackAction, RTMLCallbackChangeSrc, RTMLCallbackCommand}}, state::{state_executor::CommonState, var_state::{VarState, change_var_state}}, util::{log::log_to_file, template::{template_to_xml, xml_from_template_context}}, xml::xml2rtml::{replace_node_childs_with_xml, replace_node_with_xml}};
 
 
 pub fn execute_callback(
@@ -218,14 +218,6 @@ fn parse_change_state(
         true
     }
     else { false }
-}
-
-fn sync_field_paths( params : &VarState, doc : &mut RTMLDoc )
-{
-    for n in doc.doc.values_mut()
-    {
-        n.sync_path( &params.common.path, &params.value, &mut doc.state );
-    }
 }
 
 fn parse_change_src( change_data : CallbackChangeSrcFromCommand, response : String, doc : &RTMLDoc ) -> bool

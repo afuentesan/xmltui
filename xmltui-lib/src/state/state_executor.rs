@@ -4,7 +4,7 @@ use serde_json::{Number, Value};
 
 use crate::{rtml::rtml_command::RTMLCommandOutput, state::{command_state::CommandState, var_state::VarState}};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CommonState
 {
     pub stype : TypeState,

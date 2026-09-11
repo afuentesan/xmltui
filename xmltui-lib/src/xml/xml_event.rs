@@ -61,7 +61,6 @@ fn parse_callback_event( node : Node, value : &str, prefix : &str ) -> anyhow::R
             RTMLCallbackCommand::new( executors, args, envs ),
             parse_callback_action( node, prefix )?
         )
-        
     )
 }
 

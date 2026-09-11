@@ -349,7 +349,7 @@ impl RTMLNode
         }
     }
 
-    pub fn sync_path( &mut self, path : &str, value : &str, state : &mut Value )
+    pub fn sync_path( &mut self, path : &str, value : &str, state : &mut Value ) -> bool
     {
         match self
         {
@@ -362,7 +362,7 @@ impl RTMLNode
             RTMLNode::State( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Paragraph( _ ) |
-            RTMLNode::Layout( _ ) => {}
+            RTMLNode::Layout( _ ) => false
         }
     }
 }

@@ -35,6 +35,7 @@
             <a align="center" src="st-refresh2">Go to 2</a>
             <button enter-refresh-st="start">Start</button>
             <button enter-refresh-st="stop">Stop</button>
+            <input id="running" />
         </layout>
 
     </body>

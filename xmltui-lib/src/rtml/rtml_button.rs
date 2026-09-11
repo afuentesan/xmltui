@@ -58,8 +58,6 @@ impl RTMLButton
                 RTMLEvent::Enter( e ) =>
                 {
                     send_app_event( AppEvent::Callback( e.clone() ) );
-
-                    break;
                 }    
             }
         }

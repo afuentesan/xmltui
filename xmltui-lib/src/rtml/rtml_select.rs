@@ -151,8 +151,6 @@ impl RTMLSelect
                 RTMLEvent::Enter( e ) =>
                 {
                     send_app_event( AppEvent::Callback( e.clone() ) );
-
-                    break;
                 }    
             }
         }
@@ -195,7 +193,7 @@ impl RTMLSelect
         )
     }
 
-    pub fn sync_path( &mut self, path : &str, value : &str, state : &mut Value )
+    pub fn sync_path( &mut self, path : &str, value : &str, state : &mut Value ) -> bool
     {
         if path == self.field.path
         {
@@ -203,6 +201,8 @@ impl RTMLSelect
             {
                 create_or_replace_path( path, state, self.state_value().1 );
             }
+
+            true
         }
         else if self.field.path.as_str().starts_with( path )
         {
@@ -219,6 +219,12 @@ impl RTMLSelect
             {
                 create_or_replace_path( path, state, self.state_value().1 );
             }
+
+            true
+        }
+        else
+        {
+            false    
         }
     }
 }

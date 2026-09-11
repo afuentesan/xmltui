@@ -71,6 +71,7 @@ impl CallbackResponse
 pub enum AppEvent
 {
     Render( RTMLDoc ),
+    ReRender,
     FocusNext,
     FocusBack,
     FocusEvent( InputEvent ),

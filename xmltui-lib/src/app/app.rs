@@ -65,6 +65,10 @@ pub fn init_app( initial_path : &str ) -> anyhow::Result<()>
 
                                 rtml_to_terminal( &mut terminal, &mut app.doc );
                             },
+                            AppEvent::ReRender =>
+                            {
+                                rtml_to_terminal( &mut terminal, &mut app.doc );
+                            },
                             AppEvent::FocusNext =>
                             {
                                 app.doc.focus_next();
