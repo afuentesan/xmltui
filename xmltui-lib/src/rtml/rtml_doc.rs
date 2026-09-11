@@ -4,7 +4,7 @@ use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect
 use serde_json::{Map, Value, json};
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::event::{AppEvent, HidrateState, send_app_event}, async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, CommandExecutorType, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, rtml_state::render_rtml_state, util::{rtml_attrs::{ContainerAttrs, constraint_from_template, merge_container_attrs_with_template}, rtml_event::{CallbackChangeState, RTMLCallbackAction}, rtml_padding::RTMLPadding}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
+use crate::{app::event::{AppEvent, HidrateState, send_app_event}, async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, CommandExecutorType, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, calc_exec_if, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, rtml_state::render_rtml_state, util::{rtml_attrs::{ContainerAttrs, constraint_from_template, merge_container_attrs_with_template}, rtml_event::{CallbackChangeState, RTMLCallbackAction}, rtml_padding::RTMLPadding}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::change_var_state}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -256,6 +256,8 @@ impl RTMLDoc
         // En caso contrario se guarda el valor del campo en el estado.
         self.sync_state_from_ids( ids );
 
+        let context = json!( { "st" : &self.state } );
+
         // 3.- Ejecutamos los comandos
         // Los comandos los ejecutamos al final por si algún comando necesita como entrada el valor de algún campo o alguna variable definida.
         for ( id, val ) in &self.state_executors
@@ -267,9 +269,7 @@ impl RTMLDoc
                 {
                     if ! c.on_init { continue };
 
-                    log_to_file( &format!( "Command state: {c:?}" ) );
-
-                    self.exec_command_state( c, id, Some( cancellation_token.clone() ) );
+                    self.exec_command_state( c, id, Some( cancellation_token.clone() ), &context );
                 }
             }
         }
@@ -361,22 +361,30 @@ impl RTMLDoc
         }
     }
 
-    pub fn reload_state_commands( &self, ids : &[String] )
+    pub fn reload_state_commands( &mut self, ids : &[String] )
     {
+        let context = json!( { "st" : &self.state } );
+
         for id in ids
         {
             if let Some( executor ) = self.state_executors.get( id )
             {
                 match executor
                 {
-                    StateExecutor::Var( _ ) => continue,
-                    StateExecutor::Command( c ) => self.exec_command_state( c, id, None )
+                    StateExecutor::Var( v ) =>
+                    {
+                        change_var_state( v, &mut self.state );
+                    },
+                    StateExecutor::Command( c ) => 
+                    {
+                        self.exec_command_state( c, id, None, &context );
+                    }
                 }
             }
         }
     }
 
-    fn exec_command_state( &self, state : &CommandState, state_id : &str, cancellation_token : Option<CancellationToken> )
+    fn exec_command_state( &self, state : &CommandState, state_id : &str, cancellation_token : Option<CancellationToken>, context : &Value )
     {
         if let Some( executors ) = self.executors_from_ids( &state.executors )
         {
@@ -403,6 +411,8 @@ impl RTMLDoc
                 CommandRefresh::Once    
             };
 
+            let exec_if = calc_exec_if( state.exec_if.as_ref(), &self.templates, &context );
+
             let params = CommandExecutorParams::new(
                 doc_id, 
                 CommandExecutorType::State( node_id ), 
@@ -421,7 +431,8 @@ impl RTMLDoc
                     )
                 ), 
                 global_cancellation_token, 
-                None
+                None,
+                exec_if
             );
 
             spawn_async_task(
@@ -552,6 +563,8 @@ impl RTMLDoc
     {
         let mut ret = vec![];
 
+        let context = json!( { "st" : &self.state } );
+
         for node_id in ids
         {
             if let Some( node ) = self.doc.get( &node_id )
@@ -594,6 +607,8 @@ impl RTMLDoc
                             let args = self.state_from_key_path( &c.args );
                             let envs = self.state_from_key_path( &c.envs );
 
+                            let exec_if = calc_exec_if( c.exec_if.as_ref(), &self.templates, &context );
+
                             let params = CommandExecutorParams::new(
                                 doc_id, 
                                 CommandExecutorType::Command( node_id ),
@@ -603,7 +618,8 @@ impl RTMLDoc
                                 executor, 
                                 ExecutorEventType::CommandChild, 
                                 global_cancel, 
-                                local_cancel_send
+                                local_cancel_send,
+                                exec_if
                             );
 
                             spawn_async_task(
@@ -632,9 +648,6 @@ impl RTMLDoc
 
     pub fn refresh_command_from_params( &self, mut params : CommandExecutorParams )
     {
-        log_to_file( &format!( "Refresh command: {:?}", params.node_id ) );
-        log_to_file( &format!( "{:?}", self.state_executors ) );
-
         if let CommandExecutorType::Command( node_id ) = &params.node_id &&
         let Some( node ) = self.doc.get( node_id )
         {
@@ -642,8 +655,11 @@ impl RTMLDoc
             {
                 RTMLNode::Command( c ) =>
                 {
+                    let context = json!( { "st" : &self.state } );
+
                     params.args = self.state_from_key_path( &c.args );
                     params.envs = self.state_from_key_path( &c.envs );
+                    params.exec = calc_exec_if( c.exec_if.as_ref(), &self.templates, &context );
 
                     spawn_async_task(
                         async move 
@@ -666,8 +682,11 @@ impl RTMLDoc
         else if let CommandExecutorType::State( node_id ) = &params.node_id &&
         let Some( StateExecutor::Command( c ) ) = self.state_executors.get( node_id )
         {
+            let context = json!( { "st" : &self.state } );
+
             params.args = self.state_from_key_path( &c.args );
             params.envs = self.state_from_key_path( &c.envs );
+            params.exec = calc_exec_if( c.exec_if.as_ref(), &self.templates, &context );
 
             spawn_async_task(
                 async move 

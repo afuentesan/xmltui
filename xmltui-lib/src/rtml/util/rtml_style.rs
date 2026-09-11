@@ -27,6 +27,18 @@ pub enum RTMLStyleTemplateType
     Inline( String )
 }
 
+impl RTMLStyleTemplateType
+{
+    pub fn to_str( &self ) -> &str
+    {
+        match self
+        {
+            RTMLStyleTemplateType::External( s ) |
+            RTMLStyleTemplateType::Inline( s ) => s
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct RTMLStyleTemplate
 {

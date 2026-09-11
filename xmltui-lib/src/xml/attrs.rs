@@ -407,6 +407,25 @@ pub fn attr_to_template( node : Node, attr : &str ) -> Option<RTMLStyleTemplateT
     }
 }
 
+pub fn single_attr_to_template( node : Node, attr : &str ) -> Option<RTMLStyleTemplateType>
+{
+    if let Some( a ) = node.attribute( attr ) && a.trim() != ""
+    {
+        if a.trim().starts_with( "{{" ) && a.trim().ends_with( "}}" )
+        {
+            Some( RTMLStyleTemplateType::Inline( a.trim().to_string() ) )
+        }
+        else
+        {
+            Some( RTMLStyleTemplateType::External( a.trim().to_string() ) )    
+        }
+    }
+    else
+    {
+        None    
+    }
+}
+
 pub fn field_attrs_from_node_and_id( node : Node, id : &str ) -> FieldAttrs
 {
     let path = if let Some( p ) = node.attribute( "path" ) && p.trim() != ""

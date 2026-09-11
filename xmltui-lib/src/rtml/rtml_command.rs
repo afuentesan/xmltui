@@ -4,7 +4,7 @@ use std::{collections::HashMap, time::Duration};
 use ratatui::{buffer::Buffer, layout::Rect, style::Style};
 use serde_json::Value;
 
-use crate::{rtml::{util::rtml_attrs::ContainerAttrs, rtml_node::{RTMLNodeCommon, XMLNodeWrapper}, util::rtml_style::{RTMLStyleTemplate, merge_style_with_templates}}, util::draw::clear_area};
+use crate::{rtml::{rtml_node::{RTMLNodeCommon, XMLNodeWrapper}, util::{rtml_attrs::ContainerAttrs, rtml_style::{RTMLStyleTemplate, RTMLStyleTemplateType, evaluate_template, merge_style_with_templates, template_str_from_template}}}, util::{draw::clear_area, log::log_to_file}};
 
 #[derive(Debug, Clone, Copy)]
 pub enum RTMLCommandOutput
@@ -30,7 +30,8 @@ pub struct RTMLCommand
     pub args : HashMap<String, String>,
     pub envs : HashMap<String, String>,
     pub reload_with_state : bool,
-    pub reload_with_state_path : Vec<String>
+    pub reload_with_state_path : Vec<String>,
+    pub exec_if : Option<RTMLStyleTemplateType>
 }
 
 impl RTMLCommand
@@ -49,7 +50,8 @@ impl RTMLCommand
         args : HashMap<String, String>,
         envs : HashMap<String, String>,
         reload_with_state : bool,
-        reload_with_state_path : Vec<String>
+        reload_with_state_path : Vec<String>,
+        exec_if : Option<RTMLStyleTemplateType>
     ) -> Self
     {
         Self 
@@ -67,7 +69,8 @@ impl RTMLCommand
             args,
             envs,
             reload_with_state,
-            reload_with_state_path
+            reload_with_state_path,
+            exec_if
         }
     }
 
@@ -87,6 +90,32 @@ pub enum CommandRefresh
 {
     Once,
     Repeat( Duration )
+}
+
+pub fn calc_exec_if(
+    template : Option<&RTMLStyleTemplateType>,
+    templates : &HashMap<String, String>,
+    context : &Value
+) -> bool
+{
+    match template
+    {
+        Some( t ) =>
+        {
+            if let Some( t ) = template_str_from_template( t, templates ) &&
+            let Some( s ) = evaluate_template( t, context )
+            {
+                s.trim().to_lowercase() == "true"
+            }
+            else
+            {
+                log_to_file( &format!( "exec-if: No se encontró el template {}", t.to_str() ) );
+
+                false    
+            }
+        },
+        None => true
+    }
 }
 
 pub fn render_rtml_command(

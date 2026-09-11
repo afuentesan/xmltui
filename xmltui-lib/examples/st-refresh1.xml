@@ -15,10 +15,15 @@
                 </arg>
             </args>
         </code>
+        <template name="is-running">
+            {{ st.running }}
+        </template>
     </head>
     <state>
+        <st-var id="start" path="running" value="true" type="bool" />
+        <st-var id="stop" path="running" value="false" type="bool" />
         <st-var path="count" value="0" type="number" />
-        <st-command id="counter" path="count" exec="counter" envs="count" type="number" refresh-sec="1" exec-if="{{ st.n == 0 }}" />
+        <st-command id="counter" path="count" exec="counter" envs="count" type="number" refresh-sec="1" exec-if="is-running" />
     </state>
     <body flex="center">
         <st reload-with-st-path="count">
@@ -26,6 +31,11 @@
                 <line align="center">{{ st.count }}</line>
             </template>
         </st>
-        <a align="center" src="st-refresh2">Go to 2</a>
+        <layout dir="horizontal">
+            <a align="center" src="st-refresh2">Go to 2</a>
+            <button enter-refresh-st="start">Start</button>
+            <button enter-refresh-st="stop">Stop</button>
+        </layout>
+
     </body>
 </rtml>

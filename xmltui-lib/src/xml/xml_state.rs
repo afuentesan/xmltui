@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_state::RTMLState}, state::{command_state::CommandState, state_executor::{CommonState, StateExecutor, TypeState}, var_state::VarState}, util::log::log_to_file, xml::{attrs::{attr_commands, attr_option, attr_option_str, default_id, id_retry_if_exists, parse_common_attrs, parse_path}, xml_command::{output_from_node, refresh_from_node}, xml_doc::XMLDoc, xml_util::{container_styles, template_from_inner_node}}};
+use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_state::RTMLState}, state::{command_state::CommandState, state_executor::{CommonState, StateExecutor, TypeState}, var_state::VarState}, util::log::log_to_file, xml::{attrs::{attr_commands, attr_option, attr_option_str, default_id, id_retry_if_exists, parse_common_attrs, parse_path, single_attr_to_template}, xml_command::{output_from_node, refresh_from_node}, xml_doc::XMLDoc, xml_util::{container_styles, template_from_inner_node}}};
 
 
 pub fn states_map( node : Node ) -> HashMap<String, StateExecutor>
@@ -124,7 +124,17 @@ fn state_command_from_output_common_and_option_id(
     states.insert(
         id, 
         StateExecutor::Command(
-            CommandState::new( common, executors, output, args, envs, on_init, template, refresh )
+            CommandState::new( 
+                common, 
+                executors, 
+                output, 
+                args, 
+                envs, 
+                on_init, 
+                template, 
+                refresh,
+                single_attr_to_template( node, "exec-if" )
+            )
         )
     );
 }

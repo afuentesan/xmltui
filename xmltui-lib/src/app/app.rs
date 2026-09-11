@@ -108,7 +108,7 @@ pub fn init_app( initial_path : &str ) -> anyhow::Result<()>
                             },
                             AppEvent::Callback( c ) =>
                             {
-                                execute_callback( &app.doc, c );
+                                execute_callback( &mut app.doc, c );
                             },
                             AppEvent::CallbackResponse( r ) =>
                             {

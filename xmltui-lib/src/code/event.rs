@@ -29,7 +29,8 @@ pub struct CommandExecutorParams
     executors : Vec<Executor>,
     event_type : ExecutorEventType,
     global_cancellation_token : Option<CancellationToken>,
-    local_cancellation_token : Option<CancellationToken>
+    local_cancellation_token : Option<CancellationToken>,
+    pub exec : bool
 }
 
 impl CommandExecutorParams
@@ -43,10 +44,11 @@ impl CommandExecutorParams
         executors : Vec<Executor>,
         event_type : ExecutorEventType,
         global_cancellation_token : Option<CancellationToken>,
-        local_cancellation_token : Option<CancellationToken>
+        local_cancellation_token : Option<CancellationToken>,
+        exec : bool
     ) -> Self
     {
-        Self { doc_id, node_id, args, envs, refresh, executors, event_type, global_cancellation_token, local_cancellation_token }
+        Self { doc_id, node_id, args, envs, refresh, executors, event_type, global_cancellation_token, local_cancellation_token, exec }
     }
 
     pub fn node_id( &self ) -> &str
@@ -71,7 +73,10 @@ pub async fn new_command_executor(
         },
         CommandRefresh::Once =>
         {
-            execute_once( &params.doc_id, params.node_id(), &params.args, &params.envs, &params.executors, &params.event_type ).await;
+            if params.exec
+            {
+                execute_once( &params.doc_id, params.node_id(), &params.args, &params.envs, &params.executors, &params.event_type ).await;
+            }
         }
     }
 }
@@ -81,7 +86,10 @@ async fn new_repeat_command_executor(
     duration : Duration
 )
 {
-    execute_once( &params.doc_id, params.node_id(), &params.args, &params.envs, &params.executors, &params.event_type ).await;
+    if params.exec
+    {
+        execute_once( &params.doc_id, params.node_id(), &params.args, &params.envs, &params.executors, &params.event_type ).await;
+    }
 
     if let Some( g ) = params.global_cancellation_token.as_ref() &&
         let Some( l ) = params.local_cancellation_token.as_ref()

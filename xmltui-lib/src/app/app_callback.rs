@@ -5,7 +5,7 @@ use crate::{app::event::{AppEvent, CallbackResponse, send_app_event}, async_app:
 
 
 pub fn execute_callback(
-    doc : &RTMLDoc,
+    doc : &mut RTMLDoc,
     callback : RTMLCallback
 )
 {
@@ -73,7 +73,8 @@ fn execute_callback_command(
             executors, 
             ExecutorEventType::Callback( action ), 
             None, 
-            None
+            None,
+            true
         );
 
         spawn_async_task(
