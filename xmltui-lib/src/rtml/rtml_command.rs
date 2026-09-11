@@ -109,7 +109,7 @@ pub fn calc_exec_if(
             }
             else
             {
-                log_to_file( &format!( "exec-if: No se encontró el template {}", t.to_str() ) );
+                log_to_file( &format!( "exec-if: Error en el template {}", t.to_str() ) );
 
                 false    
             }

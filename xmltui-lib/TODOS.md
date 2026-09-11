@@ -82,7 +82,7 @@
 
 [] También habría que evitar que un command pueda tener otro command dentro.
 
-[] Atributo exec-if en command y st-command. Tendrá un template y si devuelve true el comando se ejecuta y si no no. Por defecto será true.
+[x] Atributo exec-if en command y st-command. Tendrá un template y si devuelve true el comando se ejecuta y si no no. Por defecto será true.
 
 [] Componente include que pueda cargar el contenido desde otro fichero. 
 
