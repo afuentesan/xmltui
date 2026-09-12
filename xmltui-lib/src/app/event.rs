@@ -1,7 +1,5 @@
 use std::sync::{OnceLock, mpsc::{self, Receiver, Sender}};
 
-use serde_json::Value;
-
 use crate::{code::event::CommandExecutorParams, input::event::InputEvent, rtml::{rtml_doc::RTMLDoc, rtml_node::RTMLNodeId, rtml_toast::ToastParams, util::rtml_event::{RTMLCallback, RTMLCallbackAction}}};
 
 
