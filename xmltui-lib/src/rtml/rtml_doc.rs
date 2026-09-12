@@ -4,7 +4,7 @@ use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Flex, Layout, Rect
 use serde_json::{Map, Value, json};
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::event::{AppEvent, HidrateState, send_app_event}, async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, CommandExecutorType, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, calc_exec_if, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, rtml_state::render_rtml_state, util::{rtml_attrs::{ContainerAttrs, constraint_from_template, merge_container_attrs_with_template}, rtml_event::{CallbackChangeState, RTMLCallbackAction}, rtml_padding::RTMLPadding}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::{VarState, change_var_state}}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
+use crate::{app::event::{AppEvent, HidrateState, send_app_event}, async_app::async_app::spawn_async_task, code::{event::{CommandExecutorParams, CommandExecutorType, ExecutorEventType, new_command_executor}, executor::Executor}, input::event::InputEvent, rtml::{rtml_border::render_rtml_border, rtml_button::render_rtml_button, rtml_command::{CommandRefresh, RTMLCommandOutput, calc_exec_if, render_rtml_command}, rtml_input::render_rtml_input, rtml_layout::render_rtml_layout, rtml_line::render_rtml_line, rtml_link::render_rtml_link, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeId, XMLNodeWrapper, render_focus_node}, rtml_paragraph::{create_paragraph, render_rtml_paragraph}, rtml_select::render_rtml_select, rtml_state::render_rtml_state, rtml_toast::{ToastStyles, render_toasts}, util::{rtml_attrs::{ContainerAttrs, constraint_from_template, merge_container_attrs_with_template}, rtml_event::{CallbackChangeState, RTMLCallbackAction}, rtml_padding::RTMLPadding}}, state::{command_state::CommandState, state_executor::StateExecutor, var_state::{VarState, change_var_state}}, util::{json::{create_or_replace_path, json_value_to_string}, log::log_to_file}, xml::styles::xml_style::{StyleSelector, XMLStyle}};
 
 #[derive(Debug)]
 pub struct RTMLDoc 
@@ -20,7 +20,8 @@ pub struct RTMLDoc
     pub cancellation_tokens : HashMap<String, CancellationToken>,
     pub templates : HashMap<String, String>,
     pub state : Value,
-    pub state_executors : HashMap<String, StateExecutor>
+    pub state_executors : HashMap<String, StateExecutor>,
+    pub toast_styles : ToastStyles
 }
 
 impl RTMLDoc
@@ -29,7 +30,8 @@ impl RTMLDoc
         styles : HashMap<StyleSelector, XMLStyle>,
         executors : HashMap<String, Executor>,
         templates : HashMap<String, String>,
-        state_executors : HashMap<String, StateExecutor>
+        state_executors : HashMap<String, StateExecutor>,
+        toast_styles : ToastStyles
     ) -> Self
     {
         let mut doc = Self::empty();
@@ -38,6 +40,7 @@ impl RTMLDoc
         doc.executors = executors;
         doc.templates = templates;
         doc.state_executors = state_executors;
+        doc.toast_styles = toast_styles;
 
         doc
     }
@@ -57,7 +60,8 @@ impl RTMLDoc
             cancellation_tokens : HashMap::new(),
             templates : HashMap::new(),
             state : Value::Object( Map::new() ),
-            state_executors : HashMap::new()
+            state_executors : HashMap::new(),
+            toast_styles : ToastStyles::default()
         }
     }
 
@@ -197,6 +201,18 @@ impl RTMLDoc
             let id = self.sorted_nodes[ idx ].clone();
 
             self.node_mut_by_id( &id )
+        }
+        else
+        {
+            None    
+        }
+    }
+
+    pub fn current_focus_id( &self ) -> Option<&str>
+    {
+        if let Some( idx ) = self.focus && idx < self.sorted_nodes.len()
+        {
+            Some( self.sorted_nodes[ idx ].as_str() )
         }
         else
         {
@@ -436,6 +452,9 @@ impl RTMLDoc
 
             let exec_if = calc_exec_if( state.exec_if.as_ref(), &self.templates, &context );
 
+            let success_msg = state.message_success.clone();
+            let err_msg = state.message_error.clone();
+
             let params = CommandExecutorParams::new(
                 doc_id, 
                 CommandExecutorType::State( node_id ), 
@@ -455,7 +474,9 @@ impl RTMLDoc
                 ), 
                 global_cancellation_token, 
                 None,
-                exec_if
+                exec_if,
+                success_msg,
+                err_msg
             );
 
             spawn_async_task(
@@ -642,7 +663,9 @@ impl RTMLDoc
                                 ExecutorEventType::CommandChild, 
                                 global_cancel, 
                                 local_cancel_send,
-                                exec_if
+                                exec_if,
+                                None,
+                                None
                             );
 
                             spawn_async_task(
@@ -661,6 +684,7 @@ impl RTMLDoc
                     RTMLNode::Button( _ ) |
                     RTMLNode::Border( _ ) |
                     RTMLNode::Paragraph( _ ) |
+                    RTMLNode::Toast( _ ) |
                     RTMLNode::Select( _ ) => {}
                 }
             }
@@ -699,6 +723,7 @@ impl RTMLDoc
                 RTMLNode::Button( _ ) |
                 RTMLNode::Border( _ ) |
                 RTMLNode::Paragraph( _ ) |
+                RTMLNode::Toast( _ ) |
                 RTMLNode::Select( _ ) => {}
             }
         }
@@ -1124,7 +1149,11 @@ pub fn render_rtml_doc(
         &context
     )?;
 
-    render_focus( buf, doc, &context )
+    render_focus( buf, doc, &context )?;
+
+    render_toasts( doc, buf );
+
+    Ok( () )
 }
 
 fn render_focus(
@@ -1271,6 +1300,11 @@ fn render_node_and_get_child_areas(
         {
             render_rtml_button( b, area, buf, &doc.templates, context )?;
 
+            Ok( vec![] )
+        },
+        RTMLNode::Toast( _ ) =>
+        {
+            // Los toast se renderizan al final para que queden por encima y para calcular sus posiciones
             Ok( vec![] )
         }
     }

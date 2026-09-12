@@ -33,29 +33,6 @@ pub fn render_rtml_line(
     context : &Value
 ) -> anyhow::Result<()>
 {
-    // let style = merge_style_with_templates( rtml_line.style, &rtml_line.style_template, context, templates );
-
-    // let mut spans = if rtml_line.padding.left > 0
-    // {
-    //     vec![ padding_span( rtml_line.padding.left , style ) ] 
-    // }
-    // else
-    // {
-    //     vec![]
-    // };
-
-    // spans.append( &mut line_from_spans( &rtml_line.content, None, templates, context ).spans );
-
-    // if rtml_line.padding.right > 0 { spans.push( padding_span( rtml_line.padding.right , style ) ); }
-
-    // let line = Line::from( spans )
-    // .alignment( rtml_line.alignment )
-    // .style( style );
-
-    // line.render( area, buf );
-
-    // Ok( () )
-
     render_text_line( rtml_line.style, &rtml_line.style_template, &rtml_line.padding, &rtml_line.alignment, &rtml_line.content, area, buf, templates, context)
 }
 

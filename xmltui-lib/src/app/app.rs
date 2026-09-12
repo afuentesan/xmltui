@@ -4,7 +4,7 @@ use ratatui::{DefaultTerminal, style::Style, widgets::Block};
 use serde_json::json;
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::{app_callback::{execute_callback, execute_callback_response}, app_doc::load_file, event::{AppEvent, HidrateCommand, HidrateState, init_app_event_channels, send_app_event}}, code::event::CommandExecutorParams, rtml::rtml_doc::{RTMLDoc, render_rtml_doc}, util::{log::log_to_file, template::{template_to_xml, xml_from_template_context}}, xml::xml2rtml::{replace_node_childs_with_xml, xml2rtml_doc}};
+use crate::{app::{app_callback::{execute_callback, execute_callback_response}, app_doc::load_file, app_toast::show_message, event::{AppEvent, HidrateCommand, HidrateState, init_app_event_channels, send_app_event}}, code::event::CommandExecutorParams, rtml::rtml_doc::{RTMLDoc, render_rtml_doc}, util::{log::log_to_file, template::{template_to_xml, xml_from_template_context}}, xml::xml2rtml::{replace_node_childs_with_xml, xml2rtml_doc}};
 
 #[derive(Debug)]
 pub struct App
@@ -128,7 +128,24 @@ pub fn init_app( initial_path : &str ) -> anyhow::Result<()>
                             AppEvent::RefreshCommand( p ) =>
                             {
                                 refresh_command( p, &app.doc );
-                            }
+                            },
+                            AppEvent::ShowMessage( m ) =>
+                            {
+                                if show_message( &mut app.doc, m )
+                                {
+                                    rtml_to_terminal( &mut terminal, &mut app.doc );
+                                }
+                            },
+                            AppEvent::CloseMessage( id ) =>
+                            {
+                                let root_id = app.doc.root_id.clone();
+
+                                app.doc.remove_node_and_clear_from_parent( &id, &root_id );
+
+                                app.doc.sort_nodes();
+
+                                rtml_to_terminal( &mut terminal, &mut app.doc );
+                            },
                             AppEvent::Exit =>
                             {
                                 if let Some( cancellation ) = cancellation_token

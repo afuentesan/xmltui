@@ -1,6 +1,8 @@
 use std::sync::{OnceLock, mpsc::{self, Receiver, Sender}};
 
-use crate::{code::event::CommandExecutorParams, input::event::InputEvent, rtml::{rtml_doc::RTMLDoc, rtml_node::RTMLNodeId, util::rtml_event::{RTMLCallback, RTMLCallbackAction}}};
+use serde_json::Value;
+
+use crate::{code::event::CommandExecutorParams, input::event::InputEvent, rtml::{rtml_doc::RTMLDoc, rtml_node::RTMLNodeId, rtml_toast::ToastParams, util::rtml_event::{RTMLCallback, RTMLCallbackAction}}};
 
 
 static TX_EVENT_CHANNEL : OnceLock<Sender<AppEvent>> = OnceLock::new();
@@ -68,6 +70,21 @@ impl CallbackResponse
     }
 }
 
+pub struct ShowMessage
+{
+    pub doc_id : String,
+    pub toast : ToastParams,
+    pub response : String
+}
+
+impl ShowMessage
+{
+    pub fn new( doc_id : String, toast : ToastParams, response : String ) -> Self
+    {
+        Self { doc_id, toast, response }
+    }
+}
+
 pub enum AppEvent
 {
     Render( RTMLDoc ),
@@ -81,6 +98,8 @@ pub enum AppEvent
     Callback( RTMLCallback ),
     CallbackResponse( CallbackResponse ),
     RefreshCommand( CommandExecutorParams ),
+    ShowMessage( ShowMessage ),
+    CloseMessage( String ),
     Exit
 }
 

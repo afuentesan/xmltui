@@ -17,3 +17,4 @@ pub mod xml_paragraph;
 pub mod xml_select;
 pub mod xml_doc;
 pub mod xml_state;
+pub mod xml_toast;

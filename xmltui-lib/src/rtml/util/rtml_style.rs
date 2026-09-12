@@ -20,7 +20,7 @@ enum RTMLStyleTemplateAttr
     Visibility( RTMLStyleTemplateType )
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum RTMLStyleTemplateType
 {
     External( String ),

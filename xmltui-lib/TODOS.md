@@ -105,3 +105,5 @@
 [] Ahora si algún comando falla el usuario no ve ningún error. Habría que dar la opción de que se muestre algún error por pantalla. Quizá se pueda poner un atributo error-template, que muestre el template como una notificación o ventana flotante.
 
 [] Hay que hacer algún sistema de logs.
+
+[] Igualar RTMLCommandOutput y TypeState

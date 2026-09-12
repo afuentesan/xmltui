@@ -14,7 +14,7 @@ pub fn process_paragraph(
     xml: &str,
 ) -> anyhow::Result<( RTMLNode, RTMLNodeId )>
 {
-    let lines = process_lines( node, xml_doc.styles() )?;
+    let lines = process_text_lines( node, xml_doc.styles() )?;
     
     let ( constraint, style, style_template, padding, alignment ) = paragraph_like_styles( node, xml_doc.styles(), None );
 
@@ -45,7 +45,7 @@ pub fn process_paragraph(
 
 pub fn replace_paragraph_content( node : Node, styles : &HashMap<StyleSelector, XMLStyle>, paragraph : &mut RTMLParagraph ) -> anyhow::Result<()>
 {
-    let lines = process_lines( node, styles )?;
+    let lines = process_text_lines( node, styles )?;
 
     paragraph.lines = lines;
     
@@ -58,7 +58,7 @@ pub fn replace_paragraph_content( node : Node, styles : &HashMap<StyleSelector, 
     Ok( () )
 }
 
-fn process_lines(
+pub fn process_text_lines(
     node : Node,
     styles : &HashMap<StyleSelector, XMLStyle>   
 ) -> anyhow::Result<TextLines>

@@ -1,0 +1,121 @@
+use std::{collections::HashMap, time::Duration};
+
+use ratatui::style::Style;
+use roxmltree::Node;
+
+use crate::{rtml::{rtml_command::RTMLCommandOutput, rtml_toast::{ToastLevel, ToastParams, ToastStyles}, util::rtml_style::RTMLStyleTemplateType}, util::log::log_to_file, xml::{attrs::attr_to_template, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_command::output_from_str, xml_util::style_from_styles}};
+
+pub fn toast_params_from_node( level : ToastLevel, prefix : &str, node : Node ) -> Option<ToastParams>
+{
+    let ( title, title_template ) = toast_text( node, &format!( "{prefix}-title" ) );
+    let ( body, body_template ) = toast_text( node, &format!( "{prefix}-message" ) );
+
+    if body.is_none() && body_template.is_none()
+    {
+        return None
+    }
+
+    let duration = toast_duration( node, &format!( "{prefix}-dur" ) );
+
+    let output = if let Some( out ) = node.attribute( format!( "{prefix}-type" ).as_str() )
+    {
+        output_from_str( out )
+    }
+    else
+    {
+        RTMLCommandOutput::String    
+    };
+
+    Some(
+        ToastParams::new(
+            level, 
+            duration, 
+            title, 
+            title_template, 
+            body, 
+            body_template,
+            output
+        )
+    )
+}
+
+fn toast_text( node : Node, attr : &str ) -> ( Option<String>, Option<RTMLStyleTemplateType> )
+{
+    match attr_to_template( node, attr )
+    {
+        Some( t ) => ( None, Some( t ) ),
+        None =>
+        {
+            if let Some( t ) = node.attribute( attr ) && t.trim() != ""
+            {
+                ( Some( t.trim().to_string() ), None )
+            }
+            else
+            {
+                ( None, None )    
+            }
+        }
+    }
+}
+
+fn toast_duration( node : Node, attr : &str ) -> Option<Duration>
+{
+    match node.attribute( attr )
+    {
+        Some( val ) if val.trim() != "" =>
+        {
+            match val.trim().parse::<u64>()
+            {
+                Ok( n ) => Some( Duration::from_secs( n ) ),
+                _ => None
+            }
+        },
+        _ =>
+        {
+            Some( Duration::from_secs( 5 ) )
+        } 
+    }
+}
+
+pub fn toast_styles(
+    styles : &HashMap<StyleSelector, XMLStyle>
+) -> ToastStyles
+{
+    let ( style_success, style_success_focus ) = match roxmltree::Document::parse( "<toast-success></toast-success>" )
+    {
+        Ok( doc ) =>
+        {
+            let ( style, _ ) = style_from_styles( doc.root_element(), styles, None, None );
+
+            let ( style_focus, _ ) = style_from_styles( doc.root_element(), styles, Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
+
+            ( style, style_focus )
+        },
+        Err( e ) =>
+        {
+            log_to_file( &format!( "toast_styles. Error create doc. Err: {e:?}" ) );
+
+            ( Style::default(), default_focus_style( &Style::default() ) )
+        }
+    };
+
+    let ( style_err, style_err_focus ) = match roxmltree::Document::parse( "<toast-err></toast-err>" )
+    {
+        Ok( doc ) =>
+        {
+            let ( style, _ ) = style_from_styles( doc.root_element(), styles, None, None );
+
+            let ( style_focus, _ ) = style_from_styles( doc.root_element(), styles, Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
+
+            ( style, style_focus )
+        },
+        Err( e ) =>
+        {
+            log_to_file( &format!( "toast_styles. Error create doc. Err: {e:?}" ) );
+
+            ( Style::default(), default_focus_style( &Style::default() ) )
+        }
+    };
+
+    ToastStyles::new( style_success, style_success_focus, style_err, style_err_focus )
+}

@@ -30,8 +30,13 @@ pub fn default_id() -> RTMLNodeId
 
 pub fn id_retry_if_exists( node : Node, nodos : &HashMap<String, RTMLNode> ) -> RTMLNodeId
 {
-    let mut id = attr_id( node ).unwrap_or( default_id() );
+    let id = attr_id( node ).unwrap_or( default_id() );
 
+    str_id_retry_if_exists( id, nodos )
+}
+
+pub fn str_id_retry_if_exists( mut id : String, nodos : &HashMap<String, RTMLNode> ) -> RTMLNodeId
+{
     if ! nodos.contains_key( &id ) { return id };
 
     for _ in 0..10

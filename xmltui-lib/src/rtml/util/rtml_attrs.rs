@@ -15,6 +15,19 @@ pub struct CommonAttrs
     pub constraint_template : ConstraintTemplate
 }
 
+impl CommonAttrs
+{
+    pub fn default() -> Self
+    {
+        Self
+        {
+            area : Rect::default(),
+            constraint : Constraint::default(),
+            constraint_template : ConstraintTemplate::None
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum ConstraintTemplate
 {

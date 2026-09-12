@@ -74,7 +74,9 @@ fn execute_callback_command(
             ExecutorEventType::Callback( action ), 
             None, 
             None,
-            true
+            true,
+            None,
+            None
         );
 
         spawn_async_task(

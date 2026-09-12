@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 use crate::rtml::rtml_command::RTMLCommandOutput;
 
 
-pub fn template_to_xml( data : String, template : Option<&String>, data_type : RTMLCommandOutput, state : &Value ) -> anyhow::Result<String>
+pub fn template_to_xml( data : String, template : Option<impl AsRef<str>>, data_type : RTMLCommandOutput, state : &Value ) -> anyhow::Result<String>
 {
     if template.is_none() 
     {
@@ -59,11 +59,11 @@ pub fn template_to_xml( data : String, template : Option<&String>, data_type : R
     }
 }
 
-pub fn xml_from_template_context( template : &str, context : &Value ) -> anyhow::Result<String>
+pub fn xml_from_template_context( template : impl AsRef<str>, context : &Value ) -> anyhow::Result<String>
 {
     let mut env = Environment::new();
 
-    env.add_template( "rtml_template", template )?;
+    env.add_template( "rtml_template", template.as_ref() )?;
 
     let tmpl = env.get_template( "rtml_template" )?;
 

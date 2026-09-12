@@ -69,14 +69,14 @@ impl ExecutorOutput
         Self { output }
     }
 
-    pub fn stdout_str( &self ) -> anyhow::Result<String>
+    pub fn stdout_str( &self ) -> String
     {
-        Ok( String::from_utf8( self.output.stdout.clone() )? )
+        String::from_utf8_lossy( &self.output.stdout ).trim().to_string()
     }
 
-    pub fn stderr_str( &self ) -> anyhow::Result<String>
+    pub fn stderr_str( &self ) -> String
     {
-        Ok( String::from_utf8( self.output.stderr.clone() )? )
+        String::from_utf8_lossy( &self.output.stderr ).trim().to_string()
     }
 
     pub fn success( &self ) -> bool

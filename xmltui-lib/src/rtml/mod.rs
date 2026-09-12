@@ -13,3 +13,4 @@ pub mod rtml_paragraph;
 pub mod rtml_select;
 pub mod rtml_form;
 pub mod rtml_state;
+pub mod rtml_toast;
