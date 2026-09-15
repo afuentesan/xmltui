@@ -3,7 +3,7 @@ use std::{collections::HashMap, time::Duration};
 use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::RTMLCommandOutput, rtml_toast::{ToastLevel, ToastParams, ToastStyles}, util::rtml_style::RTMLStyleTemplateType}, util::log::log_to_file, xml::{attrs::attr_to_template, styles::{default_styles::default_focus_style, xml_style::{StyleSelector, StyleVariant, XMLStyle}}, xml_command::output_from_str, xml_util::style_from_styles}};
+use crate::{rtml::{rtml_command::RTMLCommandOutput, rtml_toast::{ToastLevel, ToastParams, ToastStyles}, util::rtml_style::RTMLStyleTemplateType}, util::log::log_to_file, xml::{attrs::attr_to_template, styles::xml_style::{StyleSelector, XMLStyle}, xml_command::output_from_str, xml_util::style_from_styles}};
 
 pub fn toast_params_from_node( level : ToastLevel, prefix : &str, node : Node ) -> Option<ToastParams>
 {
@@ -81,41 +81,37 @@ pub fn toast_styles(
     styles : &HashMap<StyleSelector, XMLStyle>
 ) -> ToastStyles
 {
-    let ( style_success, style_success_focus ) = match roxmltree::Document::parse( "<toast-success></toast-success>" )
+    let style_success = match roxmltree::Document::parse( "<toast-success></toast-success>" )
     {
         Ok( doc ) =>
         {
             let ( style, _ ) = style_from_styles( doc.root_element(), styles, None, None );
 
-            let ( style_focus, _ ) = style_from_styles( doc.root_element(), styles, Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
-
-            ( style, style_focus )
+            style
         },
         Err( e ) =>
         {
             log_to_file( &format!( "toast_styles. Error create doc. Err: {e:?}" ) );
 
-            ( Style::default(), default_focus_style( &Style::default() ) )
+            Style::default()
         }
     };
 
-    let ( style_err, style_err_focus ) = match roxmltree::Document::parse( "<toast-err></toast-err>" )
+    let style_err = match roxmltree::Document::parse( "<toast-err></toast-err>" )
     {
         Ok( doc ) =>
         {
             let ( style, _ ) = style_from_styles( doc.root_element(), styles, None, None );
 
-            let ( style_focus, _ ) = style_from_styles( doc.root_element(), styles, Some( StyleVariant::Focus ), Some( default_focus_style( &style ) ) );
-
-            ( style, style_focus )
+            style
         },
         Err( e ) =>
         {
             log_to_file( &format!( "toast_styles. Error create doc. Err: {e:?}" ) );
 
-            ( Style::default(), default_focus_style( &Style::default() ) )
+            Style::default()
         }
     };
 
-    ToastStyles::new( style_success, style_success_focus, style_err, style_err_focus )
+    ToastStyles::new( style_success, style_err )
 }

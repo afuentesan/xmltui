@@ -21,6 +21,7 @@ pub struct RTMLDoc
     pub templates : HashMap<String, String>,
     pub state : Value,
     pub state_executors : HashMap<String, StateExecutor>,
+    pub var_state_order : Vec<String>,
     pub toast_styles : ToastStyles
 }
 
@@ -31,6 +32,7 @@ impl RTMLDoc
         executors : HashMap<String, Executor>,
         templates : HashMap<String, String>,
         state_executors : HashMap<String, StateExecutor>,
+        var_state_order : Vec<String>,
         toast_styles : ToastStyles
     ) -> Self
     {
@@ -40,8 +42,9 @@ impl RTMLDoc
         doc.executors = executors;
         doc.templates = templates;
         doc.state_executors = state_executors;
+        doc.var_state_order = var_state_order;
         doc.toast_styles = toast_styles;
-
+        
         doc
     }
 
@@ -61,7 +64,8 @@ impl RTMLDoc
             templates : HashMap::new(),
             state : Value::Object( Map::new() ),
             state_executors : HashMap::new(),
-            toast_styles : ToastStyles::default()
+            toast_styles : ToastStyles::default(),
+            var_state_order : Vec::new()
         }
     }
 
@@ -208,17 +212,17 @@ impl RTMLDoc
         }
     }
 
-    pub fn current_focus_id( &self ) -> Option<&str>
-    {
-        if let Some( idx ) = self.focus && idx < self.sorted_nodes.len()
-        {
-            Some( self.sorted_nodes[ idx ].as_str() )
-        }
-        else
-        {
-            None    
-        }
-    }
+    // pub fn current_focus_id( &self ) -> Option<&str>
+    // {
+    //     if let Some( idx ) = self.focus && idx < self.sorted_nodes.len()
+    //     {
+    //         Some( self.sorted_nodes[ idx ].as_str() )
+    //     }
+    //     else
+    //     {
+    //         None    
+    //     }
+    // }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> bool
     {
@@ -256,15 +260,11 @@ impl RTMLDoc
         let ids = self.doc.keys().map( | k | k.to_string() ).collect::<Vec<_>>();
 
         // 1.- iniciamos las variables
-        for ( _, val ) in &self.state_executors
+        for var_id in &self.var_state_order
         {
-            match val
+            if let Some( StateExecutor::Var( v ) ) = self.state_executors.get( var_id )
             {
-                StateExecutor::Var( v ) =>
-                {
-                    change_var_state( v, &mut self.state );
-                },
-                StateExecutor::Command( _ ) => {}
+                change_var_state( v, &mut self.state );
             }
         }
 
@@ -1151,7 +1151,7 @@ pub fn render_rtml_doc(
 
     render_focus( buf, doc, &context )?;
 
-    render_toasts( doc, buf );
+    render_toasts( doc, buf, &context );
 
     Ok( () )
 }
@@ -1371,6 +1371,11 @@ fn childs_constraint<'a, 'b>(
             anyhow::Error::msg( format!( "No se encontró el nodo con id {child} en childs_constraint" ) )
         )?;
 
+        if node.ignore_constraint()
+        {
+            continue;
+        }
+        
         let constraint = node.constraint();
         let template = node.constraint_template();
 
@@ -1391,11 +1396,11 @@ fn calc_areas(
     {
         Direction::Horizontal =>
         {
-            container.layout_vec( &Layout::horizontal( constraints.to_vec() ).flex( *flex ) ).to_vec()
+            container.layout_vec( &Layout::horizontal( constraints ).flex( *flex ) )
         },
         Direction::Vertical =>
         {
-            container.layout_vec( &Layout::vertical( constraints.to_vec() ).flex( *flex ) ).to_vec()
+            container.layout_vec( &Layout::vertical( constraints ).flex( *flex ) )
         }
     }
 }

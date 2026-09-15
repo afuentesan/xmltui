@@ -83,12 +83,12 @@ impl RTMLNode
             RTMLNode::Select( _ ) |
             RTMLNode::Button( _ ) |
             RTMLNode::Paragraph( _ ) |
-            RTMLNode::Toast( _ ) |
             RTMLNode::Link( _ ) => true,
             RTMLNode::Layout( _ ) |
             RTMLNode::Line( _ ) |
             RTMLNode::Border( _ ) |
             RTMLNode::Command( _ ) |
+            RTMLNode::Toast( _ ) |
             RTMLNode::State( _ ) => false
         }
     }
@@ -399,6 +399,24 @@ impl RTMLNode
             RTMLNode::Border( _ ) |
             RTMLNode::Paragraph( _ ) |
             RTMLNode::Toast( _ ) |
+            RTMLNode::Layout( _ ) => false
+        }
+    }
+
+    pub fn ignore_constraint( &self ) -> bool
+    {
+        match self
+        {
+            RTMLNode::Toast( _ ) => true,
+            RTMLNode::Input( _ ) |
+            RTMLNode::Select( _ ) |
+            RTMLNode::Button( _ ) |
+            RTMLNode::Link( _ ) |
+            RTMLNode::Line( _ ) |
+            RTMLNode::Command( _ ) |
+            RTMLNode::State( _ ) |
+            RTMLNode::Border( _ ) |
+            RTMLNode::Paragraph( _ ) |
             RTMLNode::Layout( _ ) => false
         }
     }

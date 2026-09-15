@@ -1,8 +1,9 @@
-use std::time::Duration;
+use std::{collections::HashMap, time::Duration};
 
-use ratatui::{buffer::Buffer, style::Style};
+use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::{Modifier, Style}, widgets::{Block, Borders, Clear, Paragraph, Widget, Wrap}};
+use serde_json::Value;
 
-use crate::{input::event::InputEvent, rtml::{rtml_command::RTMLCommandOutput, rtml_doc::RTMLDoc, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeCommon}, util::{rtml_style::RTMLStyleTemplateType, types::{TextLine, TextLines}}}};
+use crate::{input::event::InputEvent, rtml::{rtml_command::RTMLCommandOutput, rtml_doc::RTMLDoc, rtml_line::render_text_line, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeCommon}, rtml_paragraph::lines_from_text_with_style, util::{rtml_padding::HorizontalPadding, rtml_style::{RTMLStyleTemplateBuilder, RTMLStyleTemplateType}, types::{TextLine, TextLines}}}};
 
 #[derive(Debug, Clone)]
 pub struct ToastParams
@@ -46,8 +47,7 @@ pub struct RTMLToast
     pub common : RTMLNodeCommon,
     pub title : Option<TextLine>,
     pub body : TextLines,
-    pub style : Style,
-    pub focus_style : Style
+    pub style : Style
 }
 
 impl RTMLToast
@@ -56,11 +56,10 @@ impl RTMLToast
         common : RTMLNodeCommon,
         title : Option<TextLine>, 
         body : TextLines, 
-        style : Style, 
-        focus_style : Style
+        style : Style
     ) -> Self
     {
-        Self { common, title, body, style, focus_style }
+        Self { common, title, body, style }
     }
 
     pub fn focus_event( &mut self, event : &InputEvent ) -> FocusEventResponse
@@ -75,43 +74,52 @@ impl RTMLToast
 #[derive(Debug, Default)]
 pub struct ToastStyles
 {
-    pub success : ( Style, Style ),
-    pub error : ( Style, Style )
+    pub success : Style,
+    pub error : Style
 }
 
 impl ToastStyles
 {
-    pub fn new( success : Style, success_focus : Style, err : Style, err_focus : Style ) -> Self
+    pub fn new( success : Style, error : Style ) -> Self
     {
-        Self { success : ( success, success_focus ), error : ( err, err_focus ) }
+        Self { success, error }
     }
 }
 
 pub fn render_toasts(
     doc : &RTMLDoc,
-    buf : &mut Buffer
+    buf : &mut Buffer,
+    context : &Value
 )
 {
-    let current_focus_id = doc.current_focus_id().unwrap_or( "" );
-
     if let Some( n ) = doc.doc.get( &doc.root_id )
     {
         let area = n.area();
 
+        let width = if ( area.width / 2 ) < 30
+        {
+            area.width / 2
+        }
+        else
+        {
+            30    
+        };
+
         let mut next_y = 1;
-        let x = area.width - 26;
-        let with = 25;
+        let x = area.width - width - 1;
+        let last_row = area.height - 1;
 
         for child in n.childs()
         {
             next_y = render_toast_id( 
                 doc, 
                 buf, 
+                context,
                 child,
-                current_focus_id,
-                with,
+                width,
                 next_y,
-                x
+                x,
+                last_row
             );
         }
     }
@@ -120,11 +128,12 @@ pub fn render_toasts(
 fn render_toast_id(
     doc : &RTMLDoc,
     buf : &mut Buffer,
+    context : &Value,
     id : &str,
-    focus_id : &str,
     width : u16,
     next_y : u16,
-    x : u16
+    x : u16,
+    last_row : u16
 ) -> u16
 {
     if let Some( RTMLNode::Toast( t ) ) = doc.doc.get( id )
@@ -132,11 +141,12 @@ fn render_toast_id(
         render_toast(
             t, 
             buf, 
-            id, 
-            focus_id, 
+            context,
+            &doc.templates,
             width, 
             next_y, 
-            x
+            x,
+            last_row
         )
     }
     else
@@ -148,21 +158,90 @@ fn render_toast_id(
 fn render_toast(
     toast : &RTMLToast,
     buf : &mut Buffer,
-    id : &str,
-    focus_id : &str,
+    context : &Value,
+    templates : &HashMap<String, String>,
     width : u16,
     next_y : u16,
-    x : u16
+    x : u16,
+    last_row : u16
 ) -> u16
 {
-    let style = if id == focus_id
+    let lines = lines_from_text_with_style( &toast.body, None, templates, context );
+
+    let paragraph = Paragraph::new( lines )
+    .alignment( Alignment::Left )
+    .wrap( Wrap { trim: false } )
+    .style( toast.style );
+
+    let mut num_lines = paragraph.line_count( width - 2 );
+
+    let title = if let Some( title ) = toast.title.as_ref()
     {
-        toast.focus_style
+        num_lines += 2;
+
+        title
     }
     else
     {
-        toast.style    
+        &vec![]    
+    };
+
+    num_lines += 2;
+
+    if num_lines >= last_row as usize
+    {
+        num_lines = last_row as usize - 1;
+    }
+
+    let new_next_y = next_y + num_lines as u16;
+
+    let ( current_y, next_y ) = if new_next_y <= last_row
+    {
+        ( next_y, new_next_y )
+    }
+    else if ( 1 + num_lines as u16 ) <= last_row
+    {
+        ( 1, 1 + num_lines as u16 )
+    }
+    else
+    {
+        ( 1, 1 )    
+    };
+
+    let block_area = Rect::new( x, current_y, width, num_lines as u16 );
+
+    Clear.render( block_area, buf );
+
+    let block = Block::default().borders( Borders::ALL ).style( toast.style );
+
+    block.render( block_area, buf );
+
+    let paragraph_area = if ! title.is_empty()
+    {
+        let title_area = Rect::new( x + 1, current_y +  1, width - 2, 1 );
+
+        let style_title = toast.style.add_modifier( Modifier::UNDERLINED );
+
+        let _ = render_text_line(
+            style_title, 
+            &RTMLStyleTemplateBuilder::new().build(), 
+            &HorizontalPadding::new( 0, 0 ), 
+            &Alignment::Left, 
+            title, 
+            title_area, 
+            buf, 
+            templates, 
+            context
+        );
+
+        Rect::new( x + 1, current_y + 3, width - 2, num_lines as u16 - 4 )
+    }
+    else
+    {
+        Rect::new( x + 1, current_y + 1, width - 2, num_lines as u16 - 2 )
     };
     
-    todo!()
+    paragraph.render( paragraph_area, buf );
+
+    next_y
 }

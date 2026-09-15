@@ -22,16 +22,16 @@ pub fn xml2rtml_doc( path : &str ) -> anyhow::Result<RTMLDoc>
 
     let templates = templates_from_parent( head, &xml )?;
 
-    let state_executors = if let Some( n ) = find_state( doc.root_element() )
+    let ( state_executors, var_state_order ) = if let Some( n ) = find_state( doc.root_element() )
     {
         states_map( n )
     }
     else
     {
-        HashMap::new()
+        ( HashMap::new(), Vec::new() )
     };
 
-    let mut rtml_doc = RTMLDoc::new( styles, executors, templates, state_executors, toast_styles );
+    let mut rtml_doc = RTMLDoc::new( styles, executors, templates, state_executors, var_state_order, toast_styles );
 
     let ( root, root_id, focus ) = process_first_node( 
         body, 

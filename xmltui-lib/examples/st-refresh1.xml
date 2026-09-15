@@ -23,7 +23,18 @@
         <st-var id="start" path="running" value="true" type="bool" />
         <st-var id="stop" path="running" value="false" type="bool" />
         <st-var path="count" value="0" type="number" />
-        <st-command id="counter" path="count" exec="counter" envs="count" type="number" refresh-sec="1" exec-if="is-running" />
+        <st-command 
+            id="counter" 
+            path="count" 
+            exec="counter" 
+            envs="count" 
+            type="number" 
+            refresh-sec="1" 
+            exec-if="is-running"
+            success-message="{{ 'todo bien vamos a hacer la línea más larga para ver si hace el wrap bien pero que requetebien bien lalala ' + st.count | string }}"
+            success-title="Success"
+            success-dur="15"
+        />
     </state>
     <body flex="center">
         <st reload-with-st-path="count">

@@ -68,10 +68,10 @@ fn toast_from_params( doc : &RTMLDoc, params : ToastParams, response : String ) 
 
     let common = common_from_doc( doc );
 
-    let ( style, focus_style ) = style_from_level( doc, params.level );
+    let style = style_from_level( doc, params.level );
 
     (
-        RTMLToast::new( common, title, body, style, focus_style ),
+        RTMLToast::new( common, title, body, style ),
         params.duration
     )
 }
@@ -90,17 +90,17 @@ fn common_from_doc(
 fn style_from_level(
     doc : &RTMLDoc,
     level : ToastLevel
-) -> ( Style, Style )
+) -> Style
 {
     match level
     {
         ToastLevel::Error =>
         {
-            ( doc.toast_styles.error.0, doc.toast_styles.error.1 )
+            doc.toast_styles.error
         },
         ToastLevel::Success =>
         {
-            ( doc.toast_styles.success.0, doc.toast_styles.success.1 )
+            doc.toast_styles.success
         }
     }
 }

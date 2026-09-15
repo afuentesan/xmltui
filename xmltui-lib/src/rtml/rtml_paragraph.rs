@@ -135,14 +135,14 @@ pub fn create_paragraph<'a, 'b>(
     context : &'b Value 
 ) -> Paragraph<'a>
 {
-    let lines = lines_from_text_width_style( &rtml_paragraph.lines, None, templates, context );
+    let lines = lines_from_text_with_style( &rtml_paragraph.lines, None, templates, context );
 
     Paragraph::new( lines )
     .alignment( rtml_paragraph.alignment )
     .wrap( Wrap { trim: false } )
 }
 
-pub fn lines_from_text_width_style<'a, 'b>( 
+pub fn lines_from_text_with_style<'a, 'b>( 
     lines : &'a TextLines, 
     style : Option<( usize, Style )>,
     templates : &'b HashMap<String, String>,

@@ -5,35 +5,39 @@ use roxmltree::Node;
 use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_state::RTMLState, rtml_toast::ToastLevel}, state::{command_state::CommandState, state_executor::{CommonState, StateExecutor, TypeState}, var_state::VarState}, util::log::log_to_file, xml::{attrs::{attr_commands, attr_option, attr_option_str, default_id, id_retry_if_exists, parse_common_attrs, parse_path, single_attr_to_template}, xml_command::{output_from_node, refresh_from_node}, xml_doc::XMLDoc, xml_toast::toast_params_from_node, xml_util::{container_styles, template_from_inner_node}}};
 
 
-pub fn states_map( node : Node ) -> HashMap<String, StateExecutor>
+pub fn states_map( node : Node ) -> ( HashMap<String, StateExecutor>, Vec<String> )
 {
     let mut ret = HashMap::new();
 
+    let mut var_states_order = Vec::new();
+
     for child in node.children()
     {
-        state_from_node( child, &mut ret );
+        state_from_node( child, &mut ret, &mut var_states_order );
     }
 
-    ret
+    ( ret, var_states_order )
 }
 
-fn state_from_node( node : Node, states : &mut HashMap<String, StateExecutor> )
+fn state_from_node( node : Node, states : &mut HashMap<String, StateExecutor>, var_states_order : &mut Vec<String> )
 {
     match node.tag_name().name()
     {
-        "st-var" => state_var_from_node( node, states ),
+        "st-var" => state_var_from_node( node, states, var_states_order ),
         "st-command" => state_command_from_node( node, states ),
         _ => {}
     }
 }
 
-fn state_var_from_node( node : Node, states : &mut HashMap<String, StateExecutor> )
+fn state_var_from_node( node : Node, states : &mut HashMap<String, StateExecutor>, var_states_order : &mut Vec<String> )
 {
     if let Some( ( common, id ) ) = state_common_from_node( node, None )
     {
         if let Some( v ) = attr_option_str( node, "value" )
         {
             let id = id_from_option( id );
+
+            var_states_order.push( id.clone() );
 
             states.insert(
                 id, 
@@ -135,7 +139,7 @@ fn state_command_from_output_common_and_option_id(
                 refresh,
                 single_attr_to_template( node, "exec-if" ),
                 toast_params_from_node( ToastLevel::Success, "success", node ),
-                toast_params_from_node( ToastLevel::Error, "error", node )
+                toast_params_from_node( ToastLevel::Error, "err", node )
             )
         )
     );
