@@ -102,8 +102,10 @@
 
 [] Revisar la lógica de ejecución de comandos. Ahora si ejecutas como primer comando uno que se quede esperando por stdin se bloquea la aplicación, habría que controlar eso.
 
-[] Ahora si algún comando falla el usuario no ve ningún error. Habría que dar la opción de que se muestre algún error por pantalla. Quizá se pueda poner un atributo error-template, que muestre el template como una notificación o ventana flotante.
+[x] Ahora si algún comando falla el usuario no ve ningún error. Habría que dar la opción de que se muestre algún error por pantalla. Quizá se pueda poner un atributo error-template, que muestre el template como una notificación o ventana flotante.
 
 [] Hay que hacer algún sistema de logs.
 
 [] Igualar RTMLCommandOutput y TypeState
+
+[] Hacer que se puedan cerrar los toast cuando se pulse ESC
