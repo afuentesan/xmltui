@@ -27,14 +27,15 @@ pub struct HidrateCommand
 {
     pub doc_id : String,
     pub node_id : RTMLNodeId,
-    pub response : String
+    pub response : String,
+    pub has_err : bool
 }
 
 impl HidrateCommand
 {
-    pub fn new( doc_id : String, node_id : RTMLNodeId, response : String ) -> Self
+    pub fn new( doc_id : String, node_id : RTMLNodeId, response : String, has_err : bool ) -> Self
     {
-        Self { doc_id, node_id, response }
+        Self { doc_id, node_id, response, has_err }
     }
 }
 
@@ -57,14 +58,15 @@ impl HidrateState
 pub struct CallbackResponse
 {
     pub callback_action : RTMLCallbackAction,
-    pub response : String
+    pub response : String,
+    pub has_err : bool
 }
 
 impl CallbackResponse
 {
-    pub fn new( callback_action : RTMLCallbackAction, response : String ) -> Self
+    pub fn new( callback_action : RTMLCallbackAction, response : String, has_err : bool ) -> Self
     {
-        Self { callback_action, response }
+        Self { callback_action, response, has_err }
     }
 }
 

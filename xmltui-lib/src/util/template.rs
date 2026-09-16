@@ -2,61 +2,77 @@
 use minijinja::Environment;
 use serde_json::{Value, json};
 
-use crate::rtml::rtml_command::RTMLCommandOutput;
+use crate::{rtml::rtml_command::RTMLCommandOutput, util::log::log_to_file};
 
-
-pub fn template_to_xml( data : String, template : Option<impl AsRef<str>>, data_type : RTMLCommandOutput, state : &Value ) -> anyhow::Result<String>
+pub fn template_and_err_to_xml( data : String, template : Option<impl AsRef<str>>, data_type : RTMLCommandOutput, state : &Value, err : bool ) -> anyhow::Result<String>
 {
     if template.is_none() 
     {
         return Ok( data ) 
     };
 
-    match data_type
+    log_to_file( &format!( "Data: {data}, err: {err}" ) );
+
+    if err
     {
-        RTMLCommandOutput::String =>
+        let context = json!( { "ctx" : data, "st" : state, "err" : true } );
+
+        xml_from_template_context( template.as_ref().unwrap(), &context )
+    }
+    else
+    {
+        match data_type
         {
-            let context = serde_json::Value::String( data );
-
-            let context = json!( { "ctx" : context, "st" : state } );
-
-            xml_from_template_context( template.as_ref().unwrap(), &context )
-        },
-        RTMLCommandOutput::StrVec =>
-        {
-            let vec : Result<Vec<String>, _> = serde_json::from_str( &data );
-
-            let context = match vec
+            RTMLCommandOutput::String =>
             {
-                Ok( v ) =>
-                {
-                    v.into_iter().map( | s | serde_json::Value::String( s ) ).collect()
-                },
-                Err( _ ) =>
-                {
-                    data.split( "\n" ).map( | s | serde_json::Value::String( s.to_string() ) ).collect::<Vec<_>>()
-                }
-            };
+                let context = serde_json::Value::String( data );
 
-            let context = json!( { "ctx" : serde_json::Value::Array( context ), "st" : state } );
+                let context = json!( { "ctx" : context, "st" : state, "err" : false } );
 
-            xml_from_template_context( template.as_ref().unwrap(), &context )
-        },
-        RTMLCommandOutput::Json =>
-        {
-            let json : Result<serde_json::Value, _> = serde_json::from_str( &data );
-
-            let context = match json
+                xml_from_template_context( template.as_ref().unwrap(), &context )
+            },
+            RTMLCommandOutput::StrVec =>
             {
-                Ok( v ) => v,
-                Err( _ ) => serde_json::Value::String( data )
-            };
+                let vec : Result<Vec<String>, _> = serde_json::from_str( &data );
 
-            let context = json!( { "ctx" : context, "st" : state } );
+                let context = match vec
+                {
+                    Ok( v ) =>
+                    {
+                        v.into_iter().map( | s | serde_json::Value::String( s ) ).collect()
+                    },
+                    Err( _ ) =>
+                    {
+                        data.split( "\n" ).map( | s | serde_json::Value::String( s.to_string() ) ).collect::<Vec<_>>()
+                    }
+                };
 
-            xml_from_template_context( template.as_ref().unwrap(), &context )
+                let context = json!( { "ctx" : serde_json::Value::Array( context ), "st" : state, "err" : false } );
+
+                xml_from_template_context( template.as_ref().unwrap(), &context )
+            },
+            RTMLCommandOutput::Json =>
+            {
+                let json : Result<serde_json::Value, _> = serde_json::from_str( &data );
+
+                let context = match json
+                {
+                    Ok( v ) => v,
+                    Err( _ ) => serde_json::Value::String( data )
+                };
+
+                let context = json!( { "ctx" : context, "st" : state, "err" : false } );
+
+                xml_from_template_context( template.as_ref().unwrap(), &context )
+            }
         }
     }
+    
+}
+
+pub fn template_to_xml( data : String, template : Option<impl AsRef<str>>, data_type : RTMLCommandOutput, state : &Value ) -> anyhow::Result<String>
+{
+    template_and_err_to_xml( data, template, data_type, state, false )
 }
 
 pub fn xml_from_template_context( template : impl AsRef<str>, context : &Value ) -> anyhow::Result<String>

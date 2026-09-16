@@ -1,7 +1,7 @@
 use serde_json::json;
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::event::{AppEvent, CallbackResponse, send_app_event}, async_app::async_app::spawn_async_task, code::event::{CommandExecutorParams, CommandExecutorType, ExecutorEventType, new_command_executor}, rtml::{rtml_command::{CommandRefresh, RTMLCommandOutput}, rtml_doc::{RTMLDoc, sync_field_paths}, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackChangeState, CallbackReplace, RTMLCallback, RTMLCallbackAction, RTMLCallbackChangeSrc, RTMLCallbackCommand}}, state::{state_executor::CommonState, var_state::{VarState, change_var_state}}, util::{log::log_to_file, template::{template_to_xml, xml_from_template_context}}, xml::xml2rtml::{replace_node_childs_with_xml, replace_node_with_xml}};
+use crate::{app::event::{AppEvent, CallbackResponse, send_app_event}, async_app::async_app::spawn_async_task, code::event::{CommandExecutorParams, CommandExecutorType, ExecutorEventType, new_command_executor}, rtml::{rtml_command::{CommandRefresh, RTMLCommandOutput}, rtml_doc::{RTMLDoc, sync_field_paths}, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackChangeState, CallbackReplace, RTMLCallback, RTMLCallbackAction, RTMLCallbackChangeSrc, RTMLCallbackCommand}}, state::{state_executor::CommonState, var_state::{VarState, change_var_state}}, util::{log::log_to_file, template::{template_and_err_to_xml, template_to_xml, xml_from_template_context}}, xml::xml2rtml::{replace_node_childs_with_xml, replace_node_with_xml}};
 
 
 pub fn execute_callback(
@@ -75,8 +75,8 @@ fn execute_callback_command(
             None, 
             None,
             true,
-            None,
-            None
+            command.message_success,
+            command.message_error
         );
 
         spawn_async_task(
@@ -103,7 +103,7 @@ pub fn execute_callback_response(
         RTMLCallbackAction::None => false,
         RTMLCallbackAction::ReplaceChilds( replace_data ) =>
         {
-            let response_xml = parse_response( &replace_data, response.response, doc );
+            let response_xml = parse_response( &replace_data, response.response, doc, response.has_err );
 
             if response_xml.is_none() { return false };
 
@@ -141,7 +141,7 @@ pub fn execute_callback_response(
                 return false;
             }
 
-            let response_xml = parse_response( &replace_data, response.response, doc );
+            let response_xml = parse_response( &replace_data, response.response, doc, response.has_err );
 
             if response_xml.is_none() { return false };
 
@@ -169,14 +169,20 @@ pub fn execute_callback_response(
         },
         RTMLCallbackAction::ChangeValue( node_id ) =>
         {
+            if response.has_err { return false };
+
             doc.replace_node_value( &node_id, response.response )
         },
         RTMLCallbackAction::ChangeSrc( c ) =>
         {
+            if response.has_err { return false };
+
             parse_change_src( c, response.response, doc )
         },
         RTMLCallbackAction::ChangeState( s ) =>
         {
+            if response.has_err { return false };
+
             parse_change_state( doc, s, response.response )
         }
     }
@@ -192,7 +198,8 @@ fn parse_change_state(
         change_state.template.as_ref(), 
         change_state.output, 
         response, 
-        doc
+        doc,
+        false
     )
     {
         Some( s ) => s,
@@ -246,16 +253,16 @@ fn parse_change_src( change_data : CallbackChangeSrcFromCommand, response : Stri
     false
 }
 
-fn parse_response( replace_data : &CallbackReplace, response : String, doc : &RTMLDoc ) -> Option<String>
+fn parse_response( replace_data : &CallbackReplace, response : String, doc : &RTMLDoc, err : bool ) -> Option<String>
 {
-    parse_response_from_template_and_output( replace_data.template.as_ref(), replace_data.output, response, doc )
+    parse_response_from_template_and_output( replace_data.template.as_ref(), replace_data.output, response, doc, err )
 }
 
-fn parse_response_from_template_and_output( template : Option<&String>, output : RTMLCommandOutput, response : String, doc : &RTMLDoc ) -> Option<String>
+fn parse_response_from_template_and_output( template : Option<&String>, output : RTMLCommandOutput, response : String, doc : &RTMLDoc, err : bool ) -> Option<String>
 {
     let response_xml = if let Some( template ) = template && doc.templates.contains_key( template )
     {
-        match template_to_xml( response, doc.templates.get( template ), output, &doc.state )
+        match template_and_err_to_xml( response, doc.templates.get( template ), output, &doc.state, err )
         {
             Ok( r ) => r,
             Err( e ) =>

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{rtml::{rtml_command::RTMLCommandOutput, rtml_node::RTMLNodeId}, state::state_executor::TypeState};
+use crate::{rtml::{rtml_command::RTMLCommandOutput, rtml_node::RTMLNodeId, rtml_toast::ToastParams}, state::state_executor::TypeState};
 
 
 #[derive(Debug)]
@@ -14,7 +14,9 @@ pub struct RTMLCallbackCommand
 {
     pub name : Vec<String>,
     pub args : HashMap<String, String>,
-    pub envs : HashMap<String, String>
+    pub envs : HashMap<String, String>,
+    pub message_success : Option<ToastParams>,
+    pub message_error : Option<ToastParams>
 }
 
 impl RTMLCallbackCommand
@@ -22,10 +24,12 @@ impl RTMLCallbackCommand
     pub fn new( 
         name : Vec<String>, 
         args : HashMap<String, String>, 
-        envs : HashMap<String, String> 
+        envs : HashMap<String, String>,
+        message_success : Option<ToastParams>,
+        message_error : Option<ToastParams>
     ) -> Self
     {
-        Self { name, args, envs }
+        Self { name, args, envs, message_success, message_error }
     }
 }
 

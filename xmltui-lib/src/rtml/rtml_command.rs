@@ -4,7 +4,7 @@ use std::{collections::HashMap, time::Duration};
 use ratatui::{buffer::Buffer, layout::Rect, style::Style};
 use serde_json::Value;
 
-use crate::{rtml::{rtml_node::{RTMLNodeCommon, XMLNodeWrapper}, util::{rtml_attrs::ContainerAttrs, rtml_style::{RTMLStyleTemplate, RTMLStyleTemplateType, evaluate_template, merge_style_with_templates, template_str_from_template}}}, util::{draw::clear_area, log::log_to_file}};
+use crate::{rtml::{rtml_node::{RTMLNodeCommon, XMLNodeWrapper}, rtml_toast::ToastParams, util::{rtml_attrs::ContainerAttrs, rtml_style::{RTMLStyleTemplate, RTMLStyleTemplateType, evaluate_template, merge_style_with_templates, template_str_from_template}}}, util::{draw::clear_area, log::log_to_file}};
 
 #[derive(Debug, Clone, Copy)]
 pub enum RTMLCommandOutput
@@ -31,7 +31,9 @@ pub struct RTMLCommand
     pub envs : HashMap<String, String>,
     pub reload_with_state : bool,
     pub reload_with_state_path : Vec<String>,
-    pub exec_if : Option<RTMLStyleTemplateType>
+    pub exec_if : Option<RTMLStyleTemplateType>,
+    pub message_success : Option<ToastParams>,
+    pub message_error : Option<ToastParams>
 }
 
 impl RTMLCommand
@@ -51,7 +53,9 @@ impl RTMLCommand
         envs : HashMap<String, String>,
         reload_with_state : bool,
         reload_with_state_path : Vec<String>,
-        exec_if : Option<RTMLStyleTemplateType>
+        exec_if : Option<RTMLStyleTemplateType>,
+        message_success : Option<ToastParams>,
+        message_error : Option<ToastParams>
     ) -> Self
     {
         Self 
@@ -70,7 +74,9 @@ impl RTMLCommand
             envs,
             reload_with_state,
             reload_with_state_path,
-            exec_if
+            exec_if,
+            message_success,
+            message_error
         }
     }
 

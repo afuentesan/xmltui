@@ -195,32 +195,38 @@ fn send_command_output(
     msg_err : Option<&ToastParams>
 )
 {
+    let response = if output.success()
+    {
+        output.stdout_str()
+    }
+    else
+    {
+        output.stderr_str()    
+    };
+
+    match event_type
+    {
+        ExecutorEventType::CommandChild =>
+        {
+            send_app_event(
+                AppEvent::HidrateCommand(
+                    HidrateCommand::new( doc_id.to_string(), node_id.to_string(), response.clone(), ! output.success() )
+                )
+            );
+        },
+        ExecutorEventType::Callback( action ) =>
+        {
+            send_app_event(
+                AppEvent::CallbackResponse( 
+                    CallbackResponse::new( action.clone(), response.clone(), ! output.success() ) 
+                )
+            );
+        }
+    };
+
     if output.success()
     {
-        let response = output.stdout_str();
-
-        match event_type
-        {
-            ExecutorEventType::CommandChild =>
-            {
-                send_app_event(
-                    AppEvent::HidrateCommand(
-                        HidrateCommand::new( doc_id.to_string(), node_id.to_string(), response.clone() )
-                    )
-                );
-            },
-            ExecutorEventType::Callback( action ) =>
-            {
-                send_app_event(
-                    AppEvent::CallbackResponse( 
-                        CallbackResponse::new( action.clone(), response.clone() ) 
-                    )
-                );
-            }
-        };
-
         send_message( doc_id, msg_success, response );
-        
     }
     else
     {

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}}, xml::{attrs::{attr_commands, attr_option, attr_result, id_retry_if_exists, parse_common_attrs, single_attr_to_template}, xml_doc::XMLDoc, xml_state::{parse_args_envs_from_node, reload_with_state}, xml_util::{container_styles, template_from_inner_node}}};
+use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}, rtml_toast::ToastLevel}, xml::{attrs::{attr_commands, attr_option, attr_result, id_retry_if_exists, parse_common_attrs, single_attr_to_template}, xml_doc::XMLDoc, xml_state::{parse_args_envs_from_node, reload_with_state}, xml_toast::toast_params_from_node, xml_util::{container_styles, template_from_inner_node}}};
 
 pub fn process_command( 
     xml_doc : &mut XMLDoc,
@@ -24,6 +24,9 @@ pub fn process_command(
     );
 
     let ( reload_with_state, reload_with_state_path ) = reload_with_state( node );
+
+    let success = toast_params_from_node( ToastLevel::Success, "success", node );
+    let err = toast_params_from_node( ToastLevel::Error, "err", node );
     
     Ok(
         (
@@ -43,7 +46,9 @@ pub fn process_command(
                     parse_args_envs_from_node( node, "envs" ),
                     reload_with_state,
                     reload_with_state_path,
-                    single_attr_to_template( node, "exec-if" )
+                    single_attr_to_template( node, "exec-if" ),
+                    success,
+                    err
                 )
             ),
             command_id

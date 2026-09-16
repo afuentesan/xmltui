@@ -45,6 +45,28 @@
             </args>
         </code>
 
+        <code command="bash" name="alea">
+            <args>
+                <arg>-c</arg>
+                <arg>
+                    <![CDATA[ 
+
+                    salida=$(( RANDOM % 2 ))
+
+                    if [[ $salida -eq 0 ]]
+                    then
+                        date
+                    else
+                        date >&2
+                    fi
+                    
+
+                    exit $salida
+                    ]]>
+                </arg>
+            </args>
+            
+        </code>
         <code command="node" name="obj">
             <args>
                 <arg>-e</arg>
@@ -89,13 +111,29 @@
             <command exec="lista-nums" refresh-sec="1" />
         </p>
 
+        <command exec="alea" refresh-sec="1" bg="Blue" success-message="Bien" err-message="Mal">
+            <template>
+                <line>
+                    {% if err %}
+                        Err: {{ ctx }}
+                    {% else %}
+                        Ok: {{ ctx }}
+                    {% endif %}
+                </line>
+            </template>
+        </command>
+
         <select bg="Green">
             <command exec="lista-nums" output="strvec" reload-with-st-path="txt">
                 <template>
+                    {% if err %}
+                    <option value="err">Error</option>
+                    {% else %}
                     {% for l in ctx %}
                         <option value="{{ l }}">{{ l }}</option>
                     {% endfor %}
                     <option value="{{ st.txt }}">{{ st.txt }}</option>
+                    {% endif %}
                 </template>
             </command>
         </select>
@@ -111,7 +149,7 @@
         <line>
             <st reload-with-st-path="data" id="st-data">
                 <template>
-                    Data: {{ st.data.nombre }} {{ st.data.apellidos }}
+                    Data: {{ st.data.nombre }} {{ st.data.apellidos }} {{ st.sufijo }}
                 </template>
             </st>
         </line>
