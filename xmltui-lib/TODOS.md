@@ -24,15 +24,13 @@
 
 [] Que los layouts puedan ser scrolleables si el contenido es mayor que ellos
 
-[] Pasar métodos comunes de xml a xml_util
-
 [] Añadir eventos focus y blur para todos los nodos que sean focusables.
 
 [] Hay que rerenderizar la aplicación cuando se redimensione la consola
 
 [] Ventanas flotantes
 
-[] Mensajes toast
+[x] Mensajes toast
 
 [] Barra de scroll para el Paragraph
 
