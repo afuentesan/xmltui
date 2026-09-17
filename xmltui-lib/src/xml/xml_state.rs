@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_state::RTMLState, rtml_toast::ToastLevel}, state::{command_state::CommandState, state_executor::{CommonState, StateExecutor, TypeState}, var_state::VarState}, util::log::log_to_file, xml::{attrs::{attr_commands, attr_option, attr_option_str, default_id, id_retry_if_exists, parse_common_attrs, parse_path, single_attr_to_template}, xml_command::{output_from_node, refresh_from_node}, xml_doc::XMLDoc, xml_toast::toast_params_from_node, xml_util::{container_styles, template_from_inner_node}}};
+use crate::{rtml::{rtml_command::CommandRefresh, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId}, rtml_state::RTMLState, rtml_toast::ToastLevel}, state::{command_state::CommandState, state_executor::{CommonState, StateExecutor, TypeState}, var_state::VarState}, util::log::log_to_file, xml::{attrs::{attr_commands, attr_option, attr_option_str, default_id, id_retry_if_exists, parse_common_attrs, parse_path, single_attr_to_template}, xml_command::refresh_from_node, xml_doc::XMLDoc, xml_toast::toast_params_from_node, xml_util::{container_styles, template_from_inner_node}}};
 
 
 pub fn states_map( node : Node ) -> ( HashMap<String, StateExecutor>, Vec<String> )
@@ -31,7 +31,7 @@ fn state_from_node( node : Node, states : &mut HashMap<String, StateExecutor>, v
 
 fn state_var_from_node( node : Node, states : &mut HashMap<String, StateExecutor>, var_states_order : &mut Vec<String> )
 {
-    if let Some( ( common, id ) ) = state_common_from_node( node, None )
+    if let Some( ( common, id ) ) = state_common_from_node( node )
     {
         if let Some( v ) = attr_option_str( node, "value" )
         {
@@ -56,17 +56,14 @@ fn id_from_option( id : Option<String> ) -> String
 
 fn state_command_from_node( node : Node, states : &mut HashMap<String, StateExecutor> )
 {
-    let output = output_from_node( node );
-
-    if let Some( ( common, id ) ) = state_common_from_node( node, Some( &output ) )
+    if let Some( ( common, id ) ) = state_common_from_node( node )
     {
-        state_command_from_output_common_and_option_id( node, output, common, id, states );
+        state_command_from_output_common_and_option_id( node, common, id, states );
     }
 }
 
 fn state_command_from_output_common_and_option_id(
     node : Node,
-    output : RTMLCommandOutput,
     common : CommonState,
     id : Option<String>,
     states : &mut HashMap<String, StateExecutor>
@@ -131,7 +128,6 @@ fn state_command_from_output_common_and_option_id(
             CommandState::new( 
                 common, 
                 executors, 
-                output, 
                 args, 
                 envs, 
                 on_init, 
@@ -196,19 +192,11 @@ fn arg_env_value( value : &str, acc : &mut HashMap<String, String> )
     );
 }
 
-fn state_common_from_node( node : Node, output : Option<&RTMLCommandOutput> ) -> Option<( CommonState, Option<String> )>
+fn state_common_from_node( node : Node ) -> Option<( CommonState, Option<String> )>
 {
     let path = parse_path( attr_option_str( node, "path" )? );
-    let stype = attr_option_str( node, "type" );
     
-    let stype = if let Some( t ) = stype
-    {
-        type_from_str( &t, output )
-    }
-    else
-    {
-        type_from_output( output )
-    };
+    let stype = type_from_node( node, "type" );
 
     let id = if let Some( id ) = attr_option_str( node, "id" ) && id.trim() != ""
     {
@@ -222,34 +210,24 @@ fn state_common_from_node( node : Node, output : Option<&RTMLCommandOutput> ) ->
     Some( ( CommonState::new( stype, path ), id ) )
 }
 
-fn type_from_output( output : Option<&RTMLCommandOutput> ) -> TypeState
+pub fn type_from_node( node : Node, attr : &str ) -> TypeState
 {
-    match output
+    match node.attribute( attr )
     {
-        Some( o ) =>
+        Some( v ) =>
         {
-            TypeState::from_rtml_command_output( o )
+            match TypeState::from_str( v )
+            {
+                Ok( t ) => t,
+                Err( e ) =>
+                {
+                    log_to_file( &format!( "Invalid type {v}. {e:?}" ) );
+
+                    TypeState::String
+                }
+            }
         },
         None => TypeState::String
-    }
-}
-
-fn type_from_str( str : &str, output : Option<&RTMLCommandOutput> ) -> TypeState
-{
-    match TypeState::from_str( &str )
-    {
-        Ok( t ) => t,
-        Err( _ ) =>
-        {
-            if let Some( o ) = output
-            {
-                TypeState::from_rtml_command_output( o )
-            }
-            else
-            {
-                TypeState::String
-            }
-        }
     }
 }
 

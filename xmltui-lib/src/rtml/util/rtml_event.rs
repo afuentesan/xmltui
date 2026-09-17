@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{rtml::{rtml_command::RTMLCommandOutput, rtml_node::RTMLNodeId, rtml_toast::ToastParams}, state::state_executor::TypeState};
+use crate::{rtml::{rtml_node::RTMLNodeId, rtml_toast::ToastParams}, state::state_executor::TypeState};
 
 
 #[derive(Debug)]
@@ -38,12 +38,12 @@ pub struct CallbackReplace
 {
     pub node_id : RTMLNodeId,
     pub template : Option<String>,
-    pub output : RTMLCommandOutput
+    pub output : TypeState
 }
 
 impl CallbackReplace
 {
-    pub fn new( node_id : RTMLNodeId, template : Option<String>, output : RTMLCommandOutput ) -> Self
+    pub fn new( node_id : RTMLNodeId, template : Option<String>, output : TypeState ) -> Self
     {
         Self { node_id, template, output }
     }
@@ -53,12 +53,12 @@ impl CallbackReplace
 pub struct CallbackChangeSrcFromCommand
 {
     pub url : Option<String>,
-    pub output : RTMLCommandOutput
+    pub output : TypeState
 }
 
 impl CallbackChangeSrcFromCommand
 {
-    pub fn new( url : Option<String>, output : RTMLCommandOutput ) -> Self
+    pub fn new( url : Option<String>, output : TypeState ) -> Self
     {
         Self { url, output }
     }
@@ -83,15 +83,14 @@ pub struct CallbackChangeState
 {
     pub path : String,
     pub stype : TypeState,
-    pub template : Option<String>,
-    pub output : RTMLCommandOutput
+    pub template : Option<String>
 }
 
 impl CallbackChangeState
 {
-    pub fn new( path : String, stype : TypeState, template : Option<String>, output : RTMLCommandOutput ) -> Self
+    pub fn new( path : String, stype : TypeState, template : Option<String> ) -> Self
     {
-        Self { path, stype, template, output }
+        Self { path, stype, template }
     }
 }
 

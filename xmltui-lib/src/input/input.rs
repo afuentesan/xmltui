@@ -59,7 +59,10 @@ fn process_input_event( event : InputEvent )
         InputEvent::CtrlAlt( _k ) => {},
         InputEvent::CtrlAltShift( _k ) => {},
         InputEvent::CtrlShift( _k ) => {},
-        InputEvent::Esc => {},
+        InputEvent::Esc =>
+        {
+            send_app_event( AppEvent::Esc );
+        },
         InputEvent::Other( _k ) => {},
         InputEvent::ShiftEnter => {},
         _ => {}

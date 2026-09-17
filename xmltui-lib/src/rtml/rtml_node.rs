@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ratatui::{buffer::Buffer, layout::{Constraint, Rect}};
 use serde_json::Value;
 
-use crate::{input::event::InputEvent, rtml::{rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::{RTMLCommand, RTMLCommandOutput}, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::{RTMLParagraph, render_rtml_paragraph_focus}, rtml_select::{RTMLSelect, render_rtml_select_focus}, rtml_state::RTMLState, rtml_toast::RTMLToast, util::rtml_attrs::{CommonAttrs, ConstraintTemplate}}};
+use crate::{input::event::InputEvent, rtml::{rtml_border::RTMLBorder, rtml_button::{RTMLButton, render_rtml_button_focus}, rtml_command::RTMLCommand, rtml_input::{RTMLInput, render_input_cursor}, rtml_layout::RTMLLayout, rtml_line::RTMLLine, rtml_link::{RTMLLink, render_rtml_link_focus}, rtml_paragraph::{RTMLParagraph, render_rtml_paragraph_focus}, rtml_select::{RTMLSelect, render_rtml_select_focus}, rtml_state::RTMLState, rtml_toast::RTMLToast, util::rtml_attrs::{CommonAttrs, ConstraintTemplate}}, state::state_executor::TypeState};
 
 pub type RTMLNodeId = String;
 
@@ -331,7 +331,7 @@ impl RTMLNode
         }
     }
 
-    pub fn command_output( &self ) -> RTMLCommandOutput
+    pub fn command_output( &self ) -> TypeState
     {
         match self
         {
@@ -344,7 +344,7 @@ impl RTMLNode
             RTMLNode::Select( _ ) |
             RTMLNode::Link( _ ) |
             RTMLNode::Toast( _ ) |
-            RTMLNode::State( _ ) => RTMLCommandOutput::String,
+            RTMLNode::State( _ ) => TypeState::String,
             RTMLNode::Command( n ) => n.output
         }
     }

@@ -2,16 +2,20 @@
 use minijinja::Environment;
 use serde_json::{Value, json};
 
-use crate::{rtml::rtml_command::RTMLCommandOutput, util::log::log_to_file};
+use crate::state::state_executor::TypeState;
 
-pub fn template_and_err_to_xml( data : String, template : Option<impl AsRef<str>>, data_type : RTMLCommandOutput, state : &Value, err : bool ) -> anyhow::Result<String>
+pub fn template_and_err_to_xml( 
+    data : String, 
+    template : Option<impl AsRef<str>>, 
+    data_type : TypeState, 
+    state : &Value, 
+    err : bool 
+) -> anyhow::Result<String>
 {
     if template.is_none() 
     {
         return Ok( data ) 
     };
-
-    log_to_file( &format!( "Data: {data}, err: {err}" ) );
 
     if err
     {
@@ -21,56 +25,16 @@ pub fn template_and_err_to_xml( data : String, template : Option<impl AsRef<str>
     }
     else
     {
-        match data_type
-        {
-            RTMLCommandOutput::String =>
-            {
-                let context = serde_json::Value::String( data );
+        let context = data_type.str_to_json_value( &data )?;
 
-                let context = json!( { "ctx" : context, "st" : state, "err" : false } );
+         let context = json!( { "ctx" : context, "st" : state, "err" : false } );
 
-                xml_from_template_context( template.as_ref().unwrap(), &context )
-            },
-            RTMLCommandOutput::StrVec =>
-            {
-                let vec : Result<Vec<String>, _> = serde_json::from_str( &data );
-
-                let context = match vec
-                {
-                    Ok( v ) =>
-                    {
-                        v.into_iter().map( | s | serde_json::Value::String( s ) ).collect()
-                    },
-                    Err( _ ) =>
-                    {
-                        data.split( "\n" ).map( | s | serde_json::Value::String( s.to_string() ) ).collect::<Vec<_>>()
-                    }
-                };
-
-                let context = json!( { "ctx" : serde_json::Value::Array( context ), "st" : state, "err" : false } );
-
-                xml_from_template_context( template.as_ref().unwrap(), &context )
-            },
-            RTMLCommandOutput::Json =>
-            {
-                let json : Result<serde_json::Value, _> = serde_json::from_str( &data );
-
-                let context = match json
-                {
-                    Ok( v ) => v,
-                    Err( _ ) => serde_json::Value::String( data )
-                };
-
-                let context = json!( { "ctx" : context, "st" : state, "err" : false } );
-
-                xml_from_template_context( template.as_ref().unwrap(), &context )
-            }
-        }
+        xml_from_template_context( template.as_ref().unwrap(), &context )
     }
     
 }
 
-pub fn template_to_xml( data : String, template : Option<impl AsRef<str>>, data_type : RTMLCommandOutput, state : &Value ) -> anyhow::Result<String>
+pub fn template_to_xml( data : String, template : Option<impl AsRef<str>>, data_type : TypeState, state : &Value ) -> anyhow::Result<String>
 {
     template_and_err_to_xml( data, template, data_type, state, false )
 }

@@ -3,7 +3,7 @@ use std::{collections::HashMap, time::Duration};
 use ratatui::{buffer::Buffer, layout::{Alignment, Rect}, style::{Modifier, Style}, widgets::{Block, Borders, Clear, Paragraph, Widget, Wrap}};
 use serde_json::Value;
 
-use crate::{input::event::InputEvent, rtml::{rtml_command::RTMLCommandOutput, rtml_doc::RTMLDoc, rtml_line::render_text_line, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeCommon}, rtml_paragraph::lines_from_text_with_style, util::{rtml_padding::HorizontalPadding, rtml_style::{RTMLStyleTemplateBuilder, RTMLStyleTemplateType}, types::{TextLine, TextLines}}}};
+use crate::{input::event::InputEvent, rtml::{rtml_doc::RTMLDoc, rtml_line::render_text_line, rtml_node::{FocusEventResponse, RTMLNode, RTMLNodeCommon}, rtml_paragraph::lines_from_text_with_style, util::{rtml_padding::HorizontalPadding, rtml_style::{RTMLStyleTemplateBuilder, RTMLStyleTemplateType}, types::{TextLine, TextLines}}}, state::state_executor::TypeState};
 
 #[derive(Debug, Clone)]
 pub struct ToastParams
@@ -14,7 +14,7 @@ pub struct ToastParams
     pub title_template : Option<RTMLStyleTemplateType>,
     pub body : Option<String>,
     pub body_template : Option<RTMLStyleTemplateType>,
-    pub output : RTMLCommandOutput
+    pub output : TypeState
 }
 
 impl ToastParams
@@ -26,7 +26,7 @@ impl ToastParams
         title_template : Option<RTMLStyleTemplateType>,
         body : Option<String>,
         body_template : Option<RTMLStyleTemplateType>,
-        output : RTMLCommandOutput
+        output : TypeState
     ) -> Self
     {
         Self { level, duration, title, title_template, body, body_template, output }
@@ -83,6 +83,41 @@ impl ToastStyles
     pub fn new( success : Style, error : Style ) -> Self
     {
         Self { success, error }
+    }
+}
+
+pub fn close_first_toast(
+    doc : &mut RTMLDoc
+) -> bool
+{
+    if let Some( n ) = doc.doc.get( &doc.root_id )
+    {
+        let mut id = None;
+
+        for child in n.childs()
+        {
+            if let Some( RTMLNode::Toast( _ ) ) = doc.doc.get( child )
+            {
+                id = Some( child.to_string() );
+
+                break;
+            }
+        }
+
+        if let Some( id ) = id
+        {
+            doc.remove_node_and_clear_from_parent( &id, &doc.root_id.clone() );
+
+            true
+        }
+        else
+        {
+            false    
+        }
+    }
+    else
+    {
+        false    
     }
 }
 

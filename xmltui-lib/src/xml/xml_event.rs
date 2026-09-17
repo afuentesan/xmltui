@@ -1,6 +1,6 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::RTMLCommandOutput, rtml_toast::ToastLevel, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackReplace, RTMLCallback, RTMLCallbackAction::{self}, RTMLCallbackChangeSrc, RTMLCallbackCommand, RTMLEvent}}, xml::{attrs::attr_comands_from_str, xml_command::output_from_str, xml_state::parse_args_envs_from_node, xml_toast::toast_params_from_node}};
+use crate::{rtml::{rtml_toast::ToastLevel, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackReplace, RTMLCallback, RTMLCallbackAction::{self}, RTMLCallbackChangeSrc, RTMLCallbackCommand, RTMLEvent}}, xml::{attrs::attr_comands_from_str, xml_state::{parse_args_envs_from_node, type_from_node}, xml_toast::toast_params_from_node}};
 
 pub fn parse_event_attrs( node : Node  ) -> anyhow::Result<Vec<RTMLEvent>>
 {
@@ -147,14 +147,7 @@ fn callback_change_src( node : Node, url : &str, prefix : &str ) -> CallbackChan
         None    
     };
 
-    let output = if let Some( output ) = node.attribute( format!( "{prefix}-output" ).as_str() ) && output.trim() != ""
-    {
-        output_from_str( output )
-    }
-    else
-    {
-        RTMLCommandOutput::String
-    };
+    let output = type_from_node( node, format!( "{prefix}-output" ).as_str() );
 
     CallbackChangeSrcFromCommand::new( url, output )
 }
@@ -170,14 +163,7 @@ fn callback_replace_from_node( node : Node, node_id : String, prefix : &str ) ->
         None    
     };
 
-    let output = if let Some( output ) = node.attribute( format!( "{prefix}-output" ).as_str() ) && output.trim() != ""
-    {
-        output_from_str( output )
-    }
-    else
-    {
-        RTMLCommandOutput::String
-    };
+    let output = type_from_node( node, format!( "{prefix}-output" ).as_str() );
 
     CallbackReplace::new( node_id, template, output )
 }

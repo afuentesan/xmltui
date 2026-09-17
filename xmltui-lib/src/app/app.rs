@@ -4,7 +4,7 @@ use ratatui::{DefaultTerminal, style::Style, widgets::Block};
 use serde_json::json;
 use tokio_util::sync::CancellationToken;
 
-use crate::{app::{app_callback::{execute_callback, execute_callback_response}, app_doc::load_file, app_toast::show_message, event::{AppEvent, HidrateCommand, HidrateState, init_app_event_channels, send_app_event}}, code::event::CommandExecutorParams, rtml::rtml_doc::{RTMLDoc, render_rtml_doc}, util::{log::log_to_file, template::{template_and_err_to_xml, xml_from_template_context}}, xml::xml2rtml::{replace_node_childs_with_xml, xml2rtml_doc}};
+use crate::{app::{app_callback::{execute_callback, execute_callback_response}, app_doc::load_file, app_toast::show_message, event::{AppEvent, HidrateCommand, HidrateState, init_app_event_channels, send_app_event}}, code::event::CommandExecutorParams, rtml::{rtml_doc::{RTMLDoc, render_rtml_doc}, rtml_toast::close_first_toast}, util::{log::log_to_file, template::{template_and_err_to_xml, xml_from_template_context}}, xml::xml2rtml::{replace_node_childs_with_xml, xml2rtml_doc}};
 
 #[derive(Debug)]
 pub struct App
@@ -145,6 +145,13 @@ pub fn init_app( initial_path : &str ) -> anyhow::Result<()>
                                 app.doc.sort_nodes();
 
                                 rtml_to_terminal( &mut terminal, &mut app.doc );
+                            },
+                            AppEvent::Esc =>
+                            {
+                                if close_first_toast( &mut app.doc )
+                                {
+                                    rtml_to_terminal( &mut terminal, &mut app.doc );
+                                }
                             },
                             AppEvent::Exit =>
                             {

@@ -3,7 +3,7 @@ use std::{collections::HashMap, thread, time::Duration};
 use ratatui::style::Style;
 use serde_json::Value;
 
-use crate::{app::event::{AppEvent, ShowMessage, send_app_event}, rtml::{rtml_command::RTMLCommandOutput, rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeCommon}, rtml_toast::{RTMLToast, ToastLevel, ToastParams}, util::{rtml_attrs::CommonAttrs, rtml_style::{RTMLStyleTemplateType, template_str_from_template}, types::{TextLine, TextLines}}}, util::{log::log_to_file, template::template_to_xml}, xml::{attrs::{default_id, str_id_retry_if_exists}, styles::xml_style::{StyleSelector, XMLStyle}, xml_line::process_text_line, xml_paragraph::process_text_lines}};
+use crate::{app::event::{AppEvent, ShowMessage, send_app_event}, rtml::{rtml_doc::RTMLDoc, rtml_node::{RTMLNode, RTMLNodeCommon}, rtml_toast::{RTMLToast, ToastLevel, ToastParams}, util::{rtml_attrs::CommonAttrs, rtml_style::{RTMLStyleTemplateType, template_str_from_template}, types::{TextLine, TextLines}}}, state::state_executor::TypeState, util::{log::log_to_file, template::template_to_xml}, xml::{attrs::{default_id, str_id_retry_if_exists}, styles::xml_style::{StyleSelector, XMLStyle}, xml_line::process_text_line, xml_paragraph::process_text_lines}};
 
 
 pub fn show_message( doc : &mut RTMLDoc, message : ShowMessage ) -> bool
@@ -108,7 +108,7 @@ fn style_from_level(
 fn body_from_params( 
     body : Option<String>, 
     body_template : Option<RTMLStyleTemplateType>,
-    output : &RTMLCommandOutput,
+    output : &TypeState,
     response : &str,
     styles : &HashMap<StyleSelector, XMLStyle>,
     templates : &HashMap<String, String>,
@@ -167,7 +167,7 @@ fn default_text_lines_from_str( str : &str ) -> TextLines
 fn title_from_params(
     title : Option<String>,
     title_template : Option<RTMLStyleTemplateType>,
-    output : &RTMLCommandOutput,
+    output : &TypeState,
     response : &str,
     styles : &HashMap<StyleSelector, XMLStyle>,
     templates : &HashMap<String, String>,
@@ -203,7 +203,7 @@ fn text_line_from_str( text : &str, styles : &HashMap<StyleSelector, XMLStyle> )
 fn text_from_template(
     default : Option<String>,
     title_template : Option<RTMLStyleTemplateType>,
-    output : &RTMLCommandOutput,
+    output : &TypeState,
     response : &str,
     templates : &HashMap<String, String>,
     state : &Value

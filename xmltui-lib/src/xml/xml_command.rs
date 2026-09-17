@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand, RTMLCommandOutput}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}, rtml_toast::ToastLevel}, xml::{attrs::{attr_commands, attr_option, attr_result, id_retry_if_exists, parse_common_attrs, single_attr_to_template}, xml_doc::XMLDoc, xml_state::{parse_args_envs_from_node, reload_with_state}, xml_toast::toast_params_from_node, xml_util::{container_styles, template_from_inner_node}}};
+use crate::{rtml::{rtml_command::{CommandRefresh, RTMLCommand}, rtml_node::{RTMLNode, RTMLNodeCommon, RTMLNodeId, XMLNodeWrapper}, rtml_toast::ToastLevel}, state::state_executor::TypeState, xml::{attrs::{attr_commands, attr_option, attr_result, id_retry_if_exists, parse_common_attrs, single_attr_to_template}, xml_doc::XMLDoc, xml_state::{parse_args_envs_from_node, reload_with_state, type_from_node}, xml_toast::toast_params_from_node, xml_util::{container_styles, template_from_inner_node}}};
 
 pub fn process_command( 
     xml_doc : &mut XMLDoc,
@@ -77,23 +77,9 @@ pub fn process_command_from_parent(
     Ok( () )
 }
 
-pub fn output_from_node( node : Node ) -> RTMLCommandOutput
+pub fn output_from_node( node : Node ) -> TypeState
 {
-    match node.attribute( "output" )
-    {
-        Some( a ) => output_from_str( a ),
-        None => RTMLCommandOutput::String
-    }
-}
-
-pub fn output_from_str( str : &str ) -> RTMLCommandOutput
-{
-    match str
-    {
-        "strvec" => RTMLCommandOutput::StrVec,
-        "json" => RTMLCommandOutput::Json,
-        _ => RTMLCommandOutput::String
-    }
+    type_from_node( node, "output" )
 }
 
 fn wrapper_from_node( node : Node ) -> Option<XMLNodeWrapper>

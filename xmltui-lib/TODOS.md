@@ -106,6 +106,6 @@
 
 [] Hay que hacer algún sistema de logs.
 
-[] Igualar RTMLCommandOutput y TypeState
+[x] Igualar RTMLCommandOutput y TypeState
 
-[] Hacer que se puedan cerrar los toast cuando se pulse ESC
+[x] Hacer que se puedan cerrar los toast cuando se pulse ESC

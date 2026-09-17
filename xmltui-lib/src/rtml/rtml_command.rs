@@ -4,15 +4,7 @@ use std::{collections::HashMap, time::Duration};
 use ratatui::{buffer::Buffer, layout::Rect, style::Style};
 use serde_json::Value;
 
-use crate::{rtml::{rtml_node::{RTMLNodeCommon, XMLNodeWrapper}, rtml_toast::ToastParams, util::{rtml_attrs::ContainerAttrs, rtml_style::{RTMLStyleTemplate, RTMLStyleTemplateType, evaluate_template, merge_style_with_templates, template_str_from_template}}}, util::{draw::clear_area, log::log_to_file}};
-
-#[derive(Debug, Clone, Copy)]
-pub enum RTMLCommandOutput
-{
-    String,
-    StrVec,
-    Json
-}
+use crate::{rtml::{rtml_node::{RTMLNodeCommon, XMLNodeWrapper}, rtml_toast::ToastParams, util::{rtml_attrs::ContainerAttrs, rtml_style::{RTMLStyleTemplate, RTMLStyleTemplateType, evaluate_template, merge_style_with_templates, template_str_from_template}}}, state::state_executor::TypeState, util::{draw::clear_area, log::log_to_file}};
 
 #[derive(Debug)]
 pub struct RTMLCommand
@@ -26,7 +18,7 @@ pub struct RTMLCommand
     pub child : Option<XMLNodeWrapper>,
     pub template_name : Option<String>,
     pub template : Option<String>,
-    pub output : RTMLCommandOutput,
+    pub output : TypeState,
     pub args : HashMap<String, String>,
     pub envs : HashMap<String, String>,
     pub reload_with_state : bool,
@@ -48,7 +40,7 @@ impl RTMLCommand
         child : Option<XMLNodeWrapper>,
         template_name : Option<String>,
         template : Option<String>,
-        output : RTMLCommandOutput,
+        output : TypeState,
         args : HashMap<String, String>,
         envs : HashMap<String, String>,
         reload_with_state : bool,

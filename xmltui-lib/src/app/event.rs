@@ -100,6 +100,7 @@ pub enum AppEvent
     RefreshCommand( CommandExecutorParams ),
     ShowMessage( ShowMessage ),
     CloseMessage( String ),
+    Esc,
     Exit
 }
 

@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use serde_json::{Number, Value};
 
-use crate::{rtml::rtml_command::RTMLCommandOutput, state::{command_state::CommandState, var_state::VarState}};
+use crate::state::{command_state::CommandState, var_state::VarState};
 
 #[derive(Debug, Clone)]
 pub struct CommonState
@@ -19,27 +19,18 @@ impl CommonState
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum TypeState
 {
     String,
     Number,
     Bool,
-    Json
+    Json,
+    StrVec
 }
 
 impl TypeState
 {
-    pub fn from_rtml_command_output( output : &RTMLCommandOutput ) -> TypeState
-    {
-        match output
-        {
-            RTMLCommandOutput::Json |
-            RTMLCommandOutput::StrVec => TypeState::Json,
-            RTMLCommandOutput::String => TypeState::String    
-        }
-    }
-
     pub fn str_to_json_value( &self, str : &str ) -> anyhow::Result<Value>
     {
         match self
@@ -65,6 +56,24 @@ impl TypeState
                 Ok(
                     Value::Number( Number::from_str( str.trim() )? )
                 )
+            },
+            TypeState::StrVec =>
+            {
+                let vec : Result<Vec<String>, _> = serde_json::from_str( str );
+
+                let context = match vec
+                {
+                    Ok( v ) =>
+                    {
+                        v.into_iter().map( | s | serde_json::Value::String( s ) ).collect()
+                    },
+                    Err( _ ) =>
+                    {
+                        str.split( "\n" ).map( | s | serde_json::Value::String( s.to_string() ) ).collect::<Vec<_>>()
+                    }
+                };
+
+                Ok( Value::Array( context ) )
             }
         }
     }
@@ -82,6 +91,7 @@ impl FromStr for TypeState
             "str" => Ok( TypeState::String ),
             "bool" => Ok( TypeState::Bool ),
             "json" => Ok( TypeState::Json ),
+            "strvec" => Ok( TypeState::StrVec ),
             _ => Err( anyhow::Error::msg( format!( "Typestate {s} not found" ) ) )
         }
     }
