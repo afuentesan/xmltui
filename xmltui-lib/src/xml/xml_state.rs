@@ -122,6 +122,8 @@ fn state_command_from_output_common_and_option_id(
         on_init    
     };
 
+    let output = common.stype;
+
     states.insert(
         id, 
         StateExecutor::Command(
@@ -134,8 +136,8 @@ fn state_command_from_output_common_and_option_id(
                 template, 
                 refresh,
                 single_attr_to_template( node, "exec-if" ),
-                toast_params_from_node( ToastLevel::Success, "success", node ),
-                toast_params_from_node( ToastLevel::Error, "err", node )
+                toast_params_from_node( ToastLevel::Success, "success", node, output ),
+                toast_params_from_node( ToastLevel::Error, "err", node, TypeState::String )
             )
         )
     );

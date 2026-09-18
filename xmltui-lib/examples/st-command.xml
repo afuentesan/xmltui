@@ -1,0 +1,54 @@
+<rtml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:noNamespaceSchemaLocation="schema.xsd">
+
+    <head>
+        <code command="bash" name="err">
+            <args>
+                <arg>-c</arg>
+                <arg>
+                    <![CDATA[ 
+                    date >&2
+                    exit 1
+                    ]]>
+                </arg>
+            </args>
+        </code>
+        <code command="node" name="success">
+            <args>
+                <arg>-e</arg>
+                <arg>
+                    <![CDATA[ 
+                    let response = { "value" : 23 };
+
+                    console.log( JSON.stringify( response ) );
+                    ]]>
+                </arg>
+            </args>
+        </code>
+    </head>
+
+    <state>
+        <st-command 
+            id="err" 
+            path="date" 
+            exec="err" 
+            type="str" 
+            refresh-sec="1" 
+            err-message="Error: {{ ctx }}"
+            on-init="true"
+        />
+        <st-command 
+            id="success" 
+            path="/obj/success" 
+            exec="success" 
+            type="json" 
+            refresh-sec="1" 
+            success-message="Success {{ ctx.value }}. From context: {{ st.obj.success.value }}"
+            on-init="true"
+        />
+    </state>
+
+    <body>
+
+    </body>
+</rtml>

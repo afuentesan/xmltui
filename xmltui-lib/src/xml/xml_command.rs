@@ -25,8 +25,10 @@ pub fn process_command(
 
     let ( reload_with_state, reload_with_state_path ) = reload_with_state( node );
 
-    let success = toast_params_from_node( ToastLevel::Success, "success", node );
-    let err = toast_params_from_node( ToastLevel::Error, "err", node );
+    let output = output_from_node( node );
+
+    let success = toast_params_from_node( ToastLevel::Success, "success", node, output );
+    let err = toast_params_from_node( ToastLevel::Error, "err", node, TypeState::String );
     
     Ok(
         (
@@ -41,7 +43,7 @@ pub fn process_command(
                     wrapper_from_node( node ),
                     attr_option( node, "template" ),
                     template_from_inner_node( node, xml ),
-                    output_from_node( node ),
+                    output,
                     parse_args_envs_from_node( node, "args" ),
                     parse_args_envs_from_node( node, "envs" ),
                     reload_with_state,

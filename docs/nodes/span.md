@@ -20,3 +20,4 @@ A `<span>` node can **only contain plain text**.
     <span fg="Red" font-weight="bold">bold red text</span>, 
     and <span bg="#333333" text-decoration="underline">underlined text with a background</span>.
 </line>
+```

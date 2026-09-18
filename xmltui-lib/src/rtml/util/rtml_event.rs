@@ -105,6 +105,22 @@ pub enum RTMLCallbackAction
     None
 }
 
+impl RTMLCallbackAction
+{
+    pub fn output( &self ) -> TypeState
+    {
+        match self
+        {
+            RTMLCallbackAction::ReplaceNode( c ) => c.output,
+            RTMLCallbackAction::ReplaceChilds( c ) => c.output,
+            RTMLCallbackAction::ChangeValue( _ ) => TypeState::String,
+            RTMLCallbackAction::ChangeSrc( c ) => c.output,
+            RTMLCallbackAction::ChangeState( c ) => c.stype,
+            RTMLCallbackAction::None => TypeState::String    
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum RTMLCallback
 {

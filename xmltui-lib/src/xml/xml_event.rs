@@ -1,6 +1,6 @@
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_toast::ToastLevel, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackReplace, RTMLCallback, RTMLCallbackAction::{self}, RTMLCallbackChangeSrc, RTMLCallbackCommand, RTMLEvent}}, xml::{attrs::attr_comands_from_str, xml_state::{parse_args_envs_from_node, type_from_node}, xml_toast::toast_params_from_node}};
+use crate::{rtml::{rtml_toast::ToastLevel, util::rtml_event::{CallbackChangeSrcFromCommand, CallbackReplace, RTMLCallback, RTMLCallbackAction::{self}, RTMLCallbackChangeSrc, RTMLCallbackCommand, RTMLEvent}}, state::state_executor::TypeState, xml::{attrs::attr_comands_from_str, xml_state::{parse_args_envs_from_node, type_from_node}, xml_toast::toast_params_from_node}};
 
 pub fn parse_event_attrs( node : Node  ) -> anyhow::Result<Vec<RTMLEvent>>
 {
@@ -56,8 +56,10 @@ fn parse_callback_event( node : Node, value : &str, prefix : &str ) -> anyhow::R
     let args = parse_args_envs_from_node( node, format!( "{prefix}-args" ).as_str() );
     let envs = parse_args_envs_from_node( node, format!( "{prefix}-envs" ).as_str() );
 
-    let success = toast_params_from_node( ToastLevel::Success, format!( "{prefix}-success" ).as_str(), node );
-    let err = toast_params_from_node( ToastLevel::Error, format!( "{prefix}-err" ).as_str(), node );
+    let callback_action= parse_callback_action( node, prefix )?;
+
+    let success = toast_params_from_node( ToastLevel::Success, format!( "{prefix}-success" ).as_str(), node, callback_action.output() );
+    let err = toast_params_from_node( ToastLevel::Error, format!( "{prefix}-err" ).as_str(), node, TypeState::String );
 
     Ok(
         RTMLCallback::Command(

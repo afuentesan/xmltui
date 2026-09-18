@@ -3,9 +3,9 @@ use std::{collections::HashMap, time::Duration};
 use ratatui::style::Style;
 use roxmltree::Node;
 
-use crate::{rtml::{rtml_toast::{ToastLevel, ToastParams, ToastStyles}, util::rtml_style::RTMLStyleTemplateType}, util::log::log_to_file, xml::{attrs::attr_to_template, styles::xml_style::{StyleSelector, XMLStyle}, xml_state::type_from_node, xml_util::style_from_styles}};
+use crate::{rtml::{rtml_toast::{ToastLevel, ToastParams, ToastStyles}, util::rtml_style::RTMLStyleTemplateType}, state::state_executor::TypeState, util::log::log_to_file, xml::{attrs::attr_to_template, styles::xml_style::{StyleSelector, XMLStyle}, xml_util::style_from_styles}};
 
-pub fn toast_params_from_node( level : ToastLevel, prefix : &str, node : Node ) -> Option<ToastParams>
+pub fn toast_params_from_node( level : ToastLevel, prefix : &str, node : Node, output : TypeState ) -> Option<ToastParams>
 {
     let ( title, title_template ) = toast_text( node, &format!( "{prefix}-title" ) );
     let ( body, body_template ) = toast_text( node, &format!( "{prefix}-message" ) );
@@ -16,8 +16,6 @@ pub fn toast_params_from_node( level : ToastLevel, prefix : &str, node : Node ) 
     }
 
     let duration = toast_duration( node, &format!( "{prefix}-dur" ) );
-
-    let output = type_from_node( node, format!( "{prefix}-type" ).as_str() );
 
     Some(
         ToastParams::new(
@@ -41,7 +39,7 @@ fn toast_text( node : Node, attr : &str ) -> ( Option<String>, Option<RTMLStyleT
         {
             if let Some( t ) = node.attribute( attr ) && t.trim() != ""
             {
-                ( Some( t.trim().to_string() ), None )
+                ( None, Some( RTMLStyleTemplateType::Inline( t.trim().to_string() ) ) )
             }
             else
             {

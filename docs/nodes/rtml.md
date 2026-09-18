@@ -42,3 +42,4 @@ Here is a standard boilerplate for an `xmltui` application:
 
     </body>
 </rtml>
+```
